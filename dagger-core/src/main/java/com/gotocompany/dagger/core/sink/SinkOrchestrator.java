@@ -106,6 +106,9 @@ public class SinkOrchestrator implements TelemetryPublisher {
             kafkaProducerConfigs.setProperty(Constants.SINK_KAFKA_COMPRESSION_TYPE_KEY, Constants.SINK_KAFKA_COMPRESSION_TYPE_DEFAULT);
             kafkaProducerConfigs.setProperty(Constants.SINK_KAFKA_MAX_REQUEST_SIZE_KEY, Constants.SINK_KAFKA_MAX_REQUEST_SIZE_DEFAULT);
         }
+        String lingerMs = configuration.getString(SINK_KAFKA_LINGER_MS_KEY, SINK_KAFKA_LINGER_MS_DEFAULT);
+        kafkaProducerConfigs.setProperty(SINK_KAFKA_LINGER_MS_CONFIG_KEY, lingerMs);
+
         return kafkaProducerConfigs;
     }
 
