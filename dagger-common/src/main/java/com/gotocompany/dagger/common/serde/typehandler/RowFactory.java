@@ -48,8 +48,9 @@ public class RowFactory {
         List<FieldDescriptor> descriptorFields = proto.getDescriptorForType().getFields();
         int fieldCount = descriptorFields.size();
         for (FieldDescriptor fieldDescriptor : descriptorFields) {
-            if (ProtoDeserializer.getFlag() && !ProtoDeserializer.getFieldDescriptorSet().contains(fieldDescriptor.getFullName()))
+            if (ProtoDeserializer.getFlag() && !ProtoDeserializer.getFieldDescriptorSet().contains(fieldDescriptor.getFullName())) {
                 fieldCount--;
+            }
 
         }
         Row row = new Row(fieldCount + extraColumns);
@@ -57,7 +58,9 @@ public class RowFactory {
             if (!ProtoDeserializer.getFlag()) {
                 ProtoDeserializer.getFieldDescriptorSet().add(fieldDescriptor.getFullName());
             } else {
-                if (!ProtoDeserializer.getFieldDescriptorSet().contains(fieldDescriptor.getFullName())) continue;
+                if (!ProtoDeserializer.getFieldDescriptorSet().contains(fieldDescriptor.getFullName())) {
+                    continue;
+                }
             }
             TypeHandler typeHandler = TypeHandlerFactory.getTypeHandler(fieldDescriptor);
             row.setField(fieldDescriptor.getIndex(), typeHandler.transformFromProto(proto.getField(fieldDescriptor)));
