@@ -1,17 +1,14 @@
 package com.gotocompany.dagger.common.serde.typehandler;
 
-import com.gotocompany.dagger.common.serde.proto.deserialization.ProtoDeserializer;
-import org.apache.flink.types.Row;
-
 import com.google.protobuf.Descriptors;
 import com.google.protobuf.Descriptors.FieldDescriptor;
 import com.google.protobuf.DynamicMessage;
+import com.gotocompany.dagger.common.serde.proto.deserialization.ProtoDeserializer;
+import org.apache.flink.types.Row;
 import org.apache.parquet.example.data.simple.SimpleGroup;
 
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 /**
  * The Factory class for Row.
@@ -57,9 +54,9 @@ public class RowFactory {
         }
         Row row = new Row(fieldCount + extraColumns);
         for (FieldDescriptor fieldDescriptor : descriptorFields) {
-            if (!ProtoDeserializer.getFlag())
+            if (!ProtoDeserializer.getFlag()) {
                 ProtoDeserializer.getFieldDescriptorSet().add(fieldDescriptor.getFullName());
-            else {
+            } else {
                 if (!ProtoDeserializer.getFieldDescriptorSet().contains(fieldDescriptor.getFullName())) continue;
             }
             TypeHandler typeHandler = TypeHandlerFactory.getTypeHandler(fieldDescriptor);
