@@ -17,11 +17,6 @@ import java.util.Set;
  * The Factory class for Row.
  */
 public class RowFactory {
-    public static Set<String> fieldDescriptorSet;
-
-    static {
-        fieldDescriptorSet = new HashSet<>();
-    }
 
     /**
      * Create row from specified input map and descriptor.
@@ -56,14 +51,16 @@ public class RowFactory {
         List<FieldDescriptor> descriptorFields = proto.getDescriptorForType().getFields();
         int fieldCount = descriptorFields.size();
         for (FieldDescriptor fieldDescriptor : descriptorFields) {
-            if (ProtoDeserializer.flag == 1 && !fieldDescriptorSet.contains(fieldDescriptor.getFullName())) fieldCount--;
+            if (ProtoDeserializer.getFlag() && !ProtoDeserializer.getFieldDescriptorSet().contains(fieldDescriptor.getFullName()))
+                fieldCount--;
 
         }
         Row row = new Row(fieldCount + extraColumns);
         for (FieldDescriptor fieldDescriptor : descriptorFields) {
-            if (ProtoDeserializer.flag == 0) fieldDescriptorSet.add(fieldDescriptor.getFullName());
+            if (!ProtoDeserializer.getFlag())
+                ProtoDeserializer.getFieldDescriptorSet().add(fieldDescriptor.getFullName());
             else {
-                if (!fieldDescriptorSet.contains(fieldDescriptor.getFullName())) continue;
+                if (!ProtoDeserializer.getFieldDescriptorSet().contains(fieldDescriptor.getFullName())) continue;
             }
             TypeHandler typeHandler = TypeHandlerFactory.getTypeHandler(fieldDescriptor);
             row.setField(fieldDescriptor.getIndex(), typeHandler.transformFromProto(proto.getField(fieldDescriptor)));
