@@ -29,6 +29,7 @@ public class ProtoDeserializer implements KafkaDeserializationSchema<Row>, Dagge
     private final int timestampFieldIndex;
     private final StencilClientOrchestrator stencilClientOrchestrator;
     private final TypeInformation<Row> typeInformation;
+    public static int flag = 0;
 
     /**
      * Instantiates a new Proto deserializer.
@@ -88,6 +89,8 @@ public class ProtoDeserializer implements KafkaDeserializationSchema<Row>, Dagge
 
     private Row addTimestampFieldToRow(DynamicMessage proto) {
         Row finalRecord = RowFactory.createRow(proto, 2);
+
+        flag = 1;
         Descriptors.FieldDescriptor fieldDescriptor = proto.getDescriptorForType().findFieldByNumber(timestampFieldIndex);
         DynamicMessage timestampProto = (DynamicMessage) proto.getField(fieldDescriptor);
         List<Descriptors.FieldDescriptor> timestampFields = timestampProto.getDescriptorForType().getFields();
