@@ -1,5 +1,6 @@
 package com.gotocompany.dagger.common.serde.typehandler;
 
+import com.gotocompany.dagger.common.serde.proto.deserialization.ProtoDeserializer;
 import org.apache.flink.types.Row;
 
 import com.google.protobuf.Descriptors;
@@ -7,13 +8,21 @@ import com.google.protobuf.Descriptors.FieldDescriptor;
 import com.google.protobuf.DynamicMessage;
 import org.apache.parquet.example.data.simple.SimpleGroup;
 
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * The Factory class for Row.
  */
 public class RowFactory {
+    public static Set<String> fieldDescriptorSet;
+
+    static {
+        fieldDescriptorSet = new HashSet<>();
+    }
+
     /**
      * Create row from specified input map and descriptor.
      *
@@ -45,8 +54,17 @@ public class RowFactory {
      */
     public static Row createRow(DynamicMessage proto, int extraColumns) {
         List<FieldDescriptor> descriptorFields = proto.getDescriptorForType().getFields();
-        Row row = new Row(descriptorFields.size() + extraColumns);
+        int fieldCount = descriptorFields.size();
         for (FieldDescriptor fieldDescriptor : descriptorFields) {
+            if (ProtoDeserializer.flag == 1 && !fieldDescriptorSet.contains(fieldDescriptor.getFullName())) fieldCount--;
+
+        }
+        Row row = new Row(fieldCount + extraColumns);
+        for (FieldDescriptor fieldDescriptor : descriptorFields) {
+            if (ProtoDeserializer.flag == 0) fieldDescriptorSet.add(fieldDescriptor.getFullName());
+            else {
+                if (!fieldDescriptorSet.contains(fieldDescriptor.getFullName())) continue;
+            }
             TypeHandler typeHandler = TypeHandlerFactory.getTypeHandler(fieldDescriptor);
             row.setField(fieldDescriptor.getIndex(), typeHandler.transformFromProto(proto.getField(fieldDescriptor)));
         }
