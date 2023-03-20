@@ -17,7 +17,9 @@ import org.slf4j.LoggerFactory;
 
 import java.sql.Timestamp;
 import java.time.Instant;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 /**
  * Deserializer for protobuf messages.
@@ -29,7 +31,9 @@ public class ProtoDeserializer implements KafkaDeserializationSchema<Row>, Dagge
     private final int timestampFieldIndex;
     private final StencilClientOrchestrator stencilClientOrchestrator;
     private final TypeInformation<Row> typeInformation;
-    public static int flag = 0;
+    private static boolean flag = false;
+    private static Set<String> fieldDescriptorSet = new HashSet<>();
+
 
     /**
      * Instantiates a new Proto deserializer.
@@ -90,7 +94,7 @@ public class ProtoDeserializer implements KafkaDeserializationSchema<Row>, Dagge
     private Row addTimestampFieldToRow(DynamicMessage proto) {
         Row finalRecord = RowFactory.createRow(proto, 2);
 
-        flag = 1;
+        flag = true;
         Descriptors.FieldDescriptor fieldDescriptor = proto.getDescriptorForType().findFieldByNumber(timestampFieldIndex);
         DynamicMessage timestampProto = (DynamicMessage) proto.getField(fieldDescriptor);
         List<Descriptors.FieldDescriptor> timestampFields = timestampProto.getDescriptorForType().getFields();
@@ -101,5 +105,13 @@ public class ProtoDeserializer implements KafkaDeserializationSchema<Row>, Dagge
         finalRecord.setField(finalRecord.getArity() - 2, true);
         finalRecord.setField(finalRecord.getArity() - 1, Timestamp.from(Instant.ofEpochSecond(timestampSeconds, timestampNanos)));
         return finalRecord;
+    }
+
+    public static boolean getFlag() {
+        return flag;
+    }
+
+    public static Set<String> getFieldDescriptorSet() {
+        return fieldDescriptorSet;
     }
 }
