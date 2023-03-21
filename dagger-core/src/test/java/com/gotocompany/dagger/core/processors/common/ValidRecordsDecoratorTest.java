@@ -18,7 +18,7 @@ import org.mockito.Mock;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import static io.odpf.dagger.common.core.Constants.*;
+import static com.gotocompany.dagger.common.core.Constants.*;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertThrows;
 import static org.junit.Assert.assertTrue;
