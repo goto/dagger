@@ -13,7 +13,7 @@ import org.mockito.Mock;
 import java.lang.reflect.Field;
 import java.util.*;
 
-import static io.odpf.dagger.common.core.Constants.*;
+import static com.gotocompany.dagger.common.core.Constants.*;
 import static org.junit.Assert.*;
 import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
