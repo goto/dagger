@@ -21,8 +21,8 @@ import org.mockito.Mock;
 import java.sql.Timestamp;
 import java.time.Instant;
 
-import static com.gotocompany.dagger.common.core.Constants.*;
-import static com.gotocompany.dagger.common.core.Constants.SCHEMA_REGISTRY_STENCIL_URLS_DEFAULT;
+import static io.odpf.dagger.common.core.Constants.*;
+import static io.odpf.dagger.common.core.Constants.SCHEMA_REGISTRY_STENCIL_URLS_DEFAULT;
 import static org.apache.flink.api.common.typeinfo.Types.*;
 import static org.apache.flink.api.common.typeinfo.Types.SQL_TIMESTAMP;
 import static org.junit.Assert.*;
@@ -41,6 +41,9 @@ public class SimpleGroupDeserializerTest {
         initMocks(this);
         when(configuration.getBoolean(SCHEMA_REGISTRY_STENCIL_ENABLE_KEY, SCHEMA_REGISTRY_STENCIL_ENABLE_DEFAULT)).thenReturn(SCHEMA_REGISTRY_STENCIL_ENABLE_DEFAULT);
         when(configuration.getString(SCHEMA_REGISTRY_STENCIL_URLS_KEY, SCHEMA_REGISTRY_STENCIL_URLS_DEFAULT)).thenReturn(SCHEMA_REGISTRY_STENCIL_URLS_DEFAULT);
+        when(configuration.getBoolean(SCHEMA_REGISTRY_STENCIL_CACHE_AUTO_REFRESH_KEY, SCHEMA_REGISTRY_STENCIL_CACHE_AUTO_REFRESH_DEFAULT)).thenReturn(SCHEMA_REGISTRY_STENCIL_CACHE_AUTO_REFRESH_DEFAULT);
+        when(configuration.getLong(SCHEMA_REGISTRY_STENCIL_CACHE_TTL_MS_KEY, SCHEMA_REGISTRY_STENCIL_CACHE_TTL_MS_DEFAULT)).thenReturn(SCHEMA_REGISTRY_STENCIL_CACHE_TTL_MS_DEFAULT);
+        when(configuration.getString(SCHEMA_REGISTRY_STENCIL_REFRESH_STRATEGY_KEY, SCHEMA_REGISTRY_STENCIL_REFRESH_STRATEGY_DEFAULT)).thenReturn(SCHEMA_REGISTRY_STENCIL_REFRESH_STRATEGY_DEFAULT);
         stencilClientOrchestrator = new StencilClientOrchestrator(configuration);
     }
 
