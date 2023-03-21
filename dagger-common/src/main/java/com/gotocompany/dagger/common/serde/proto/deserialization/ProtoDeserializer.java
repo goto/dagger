@@ -32,8 +32,8 @@ public class ProtoDeserializer implements KafkaDeserializationSchema<Row>, Dagge
     private final StencilClientOrchestrator stencilClientOrchestrator;
     private final TypeInformation<Row> typeInformation;
     private static boolean flagFirstRun = true;
-    private static final Set<String> protoClassSet = new HashSet<>();
-    private static final Set<String> fieldDescriptorSet = new HashSet<>();
+    private static final Set<String> PROTO_CLASS_SET = new HashSet<>();
+    private static final Set<String> FIELD_DESCRIPTOR_SET = new HashSet<>();
 
 
     /**
@@ -93,8 +93,8 @@ public class ProtoDeserializer implements KafkaDeserializationSchema<Row>, Dagge
     }
 
     private Row addTimestampFieldToRow(DynamicMessage proto) {
-        if (!protoClassSet.contains(protoClassName)) {
-            protoClassSet.add(protoClassName);
+        if (!PROTO_CLASS_SET.contains(protoClassName)) {
+            PROTO_CLASS_SET.add(protoClassName);
             flagFirstRun = true;
         } else {
             flagFirstRun = false;
@@ -119,6 +119,6 @@ public class ProtoDeserializer implements KafkaDeserializationSchema<Row>, Dagge
     }
 
     public static Set<String> getFieldDescriptorSet() {
-        return fieldDescriptorSet;
+        return FIELD_DESCRIPTOR_SET;
     }
 }
