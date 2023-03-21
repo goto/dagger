@@ -21,8 +21,8 @@ import org.mockito.Mock;
 import java.sql.Timestamp;
 import java.time.Instant;
 
-import static io.odpf.dagger.common.core.Constants.*;
-import static io.odpf.dagger.common.core.Constants.SCHEMA_REGISTRY_STENCIL_URLS_DEFAULT;
+import static com.gotocompany.dagger.common.core.Constants.*;
+import static com.gotocompany.dagger.common.core.Constants.SCHEMA_REGISTRY_STENCIL_URLS_DEFAULT;
 import static org.apache.flink.api.common.typeinfo.Types.*;
 import static org.apache.flink.api.common.typeinfo.Types.SQL_TIMESTAMP;
 import static org.junit.Assert.*;
