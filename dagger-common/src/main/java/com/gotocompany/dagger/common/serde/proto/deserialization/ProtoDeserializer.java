@@ -31,8 +31,9 @@ public class ProtoDeserializer implements KafkaDeserializationSchema<Row>, Dagge
     private final int timestampFieldIndex;
     private final StencilClientOrchestrator stencilClientOrchestrator;
     private final TypeInformation<Row> typeInformation;
-    private static boolean flag = false;
-    private static Set<String> fieldDescriptorSet = new HashSet<>();
+    private static boolean flagFirstRun = true;
+    private static final Set<String> protoClassSet = new HashSet<>();
+    private static final Set<String> fieldDescriptorSet = new HashSet<>();
 
 
     /**
@@ -92,9 +93,15 @@ public class ProtoDeserializer implements KafkaDeserializationSchema<Row>, Dagge
     }
 
     private Row addTimestampFieldToRow(DynamicMessage proto) {
+        if (!protoClassSet.contains(protoClassName)) {
+            protoClassSet.add(protoClassName);
+            flagFirstRun = true;
+        } else {
+            flagFirstRun = false;
+        }
         Row finalRecord = RowFactory.createRow(proto, 2);
 
-        flag = true;
+        flagFirstRun = false;
         Descriptors.FieldDescriptor fieldDescriptor = proto.getDescriptorForType().findFieldByNumber(timestampFieldIndex);
         DynamicMessage timestampProto = (DynamicMessage) proto.getField(fieldDescriptor);
         List<Descriptors.FieldDescriptor> timestampFields = timestampProto.getDescriptorForType().getFields();
@@ -107,8 +114,8 @@ public class ProtoDeserializer implements KafkaDeserializationSchema<Row>, Dagge
         return finalRecord;
     }
 
-    public static boolean getFlag() {
-        return flag;
+    public static boolean getFlagFirstRun() {
+        return flagFirstRun;
     }
 
     public static Set<String> getFieldDescriptorSet() {
