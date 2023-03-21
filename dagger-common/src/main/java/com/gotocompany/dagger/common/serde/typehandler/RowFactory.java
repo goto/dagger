@@ -48,14 +48,14 @@ public class RowFactory {
         List<FieldDescriptor> descriptorFields = proto.getDescriptorForType().getFields();
         int fieldCount = descriptorFields.size();
         for (FieldDescriptor fieldDescriptor : descriptorFields) {
-            if (ProtoDeserializer.getFlag() && !ProtoDeserializer.getFieldDescriptorSet().contains(fieldDescriptor.getFullName())) {
+            if (!ProtoDeserializer.getFlagFirstRun() && !ProtoDeserializer.getFieldDescriptorSet().contains(fieldDescriptor.getFullName())) {
                 fieldCount--;
             }
 
         }
         Row row = new Row(fieldCount + extraColumns);
         for (FieldDescriptor fieldDescriptor : descriptorFields) {
-            if (!ProtoDeserializer.getFlag()) {
+            if (ProtoDeserializer.getFlagFirstRun()) {
                 ProtoDeserializer.getFieldDescriptorSet().add(fieldDescriptor.getFullName());
             } else {
                 if (!ProtoDeserializer.getFieldDescriptorSet().contains(fieldDescriptor.getFullName())) {
