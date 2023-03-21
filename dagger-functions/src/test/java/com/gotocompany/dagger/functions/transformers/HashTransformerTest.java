@@ -16,8 +16,11 @@ import org.mockito.Mock;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.concurrent.TimeUnit;
 
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
 
 public class HashTransformerTest extends DaggerContextTestBase {
@@ -31,11 +34,18 @@ public class HashTransformerTest extends DaggerContextTestBase {
 
         initMocks(this);
         when(configuration.getString("SINK_KAFKA_PROTO_MESSAGE", ""))
-                .thenReturn("com.gotocompany.dagger.consumer.TestBookingLogMessage");
+                .thenReturn("io.odpf.dagger.consumer.TestBookingLogMessage");
         when(configuration.getBoolean("SCHEMA_REGISTRY_STENCIL_ENABLE", false))
                 .thenReturn(false);
         when(configuration.getString("SCHEMA_REGISTRY_STENCIL_URLS", ""))
                 .thenReturn("");
+        when(configuration.getBoolean("SCHEMA_REGISTRY_STENCIL_CACHE_AUTO_REFRESH", false))
+                .thenReturn(false);
+        when(configuration.getLong("SCHEMA_REGISTRY_STENCIL_CACHE_TTL_MS", TimeUnit.HOURS.toMillis(2)))
+                .thenReturn(TimeUnit.HOURS.toMillis(2));
+        when(configuration.getString("SCHEMA_REGISTRY_STENCIL_REFRESH_STRATEGY", "LONG_POLLING"))
+                .thenReturn("LONG_POLLING");
+
     }
 
     @Test
@@ -132,7 +142,7 @@ public class HashTransformerTest extends DaggerContextTestBase {
     @Test
     public void shouldHashNestedFields() throws Exception {
         when(configuration.getString("SINK_KAFKA_PROTO_MESSAGE", ""))
-                .thenReturn("com.gotocompany.dagger.consumer.TestEnrichedBookingLogMessage");
+                .thenReturn("io.odpf.dagger.consumer.TestEnrichedBookingLogMessage");
         HashMap<String, Object> transformationArguments = new HashMap<>();
 
         ArrayList<String> fieldsToEncrypt = new ArrayList<>();
@@ -211,9 +221,9 @@ public class HashTransformerTest extends DaggerContextTestBase {
     @Test
     public void shouldThrowErrorIfUnableToFindOpDescriptor() throws Exception {
         when(configuration.getString("SINK_KAFKA_PROTO_MESSAGE", ""))
-                .thenReturn("com.gotocompany.dagger.consumer.RandomTestMessage");
+                .thenReturn("io.odpf.dagger.consumer.RandomTestMessage");
         thrown.expect(DescriptorNotFoundException.class);
-        thrown.expectMessage("Output Descriptor for class: com.gotocompany.dagger.consumer.RandomTestMessage not found");
+        thrown.expectMessage("Output Descriptor for class: io.odpf.dagger.consumer.RandomTestMessage not found");
         HashMap<String, Object> transformationArguments = new HashMap<>();
 
         ArrayList<String> fieldsToEncrypt = new ArrayList<>();
