@@ -17,9 +17,7 @@ import org.slf4j.LoggerFactory;
 
 import java.sql.Timestamp;
 import java.time.Instant;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 /**
  * Deserializer for protobuf messages.
@@ -31,10 +29,8 @@ public class ProtoDeserializer implements KafkaDeserializationSchema<Row>, Dagge
     private final int timestampFieldIndex;
     private final StencilClientOrchestrator stencilClientOrchestrator;
     private final TypeInformation<Row> typeInformation;
-    private static boolean flagFirstRun = true;
-    private static final Set<String> PROTO_CLASS_SET = new HashSet<>();
-    private static final Set<String> FIELD_DESCRIPTOR_SET = new HashSet<>();
-
+    private static final Map<String,Integer> FIELD_DESCRIPTOR_INDEX_MAP = new HashMap<>();
+    private static final Set<String> PROTO_DESCRIPTOR_SET = new HashSet<>();
 
     /**
      * Instantiates a new Proto deserializer.
@@ -49,6 +45,7 @@ public class ProtoDeserializer implements KafkaDeserializationSchema<Row>, Dagge
         this.timestampFieldIndex = timestampFieldIndex;
         this.stencilClientOrchestrator = stencilClientOrchestrator;
         this.typeInformation = new ProtoType(protoClassName, rowtimeAttributeName, stencilClientOrchestrator).getRowType();
+        dfs(getProtoParser());
     }
 
     @Override
@@ -93,15 +90,9 @@ public class ProtoDeserializer implements KafkaDeserializationSchema<Row>, Dagge
     }
 
     private Row addTimestampFieldToRow(DynamicMessage proto) {
-        if (!PROTO_CLASS_SET.contains(protoClassName)) {
-            PROTO_CLASS_SET.add(protoClassName);
-            flagFirstRun = true;
-        } else {
-            flagFirstRun = false;
-        }
+
         Row finalRecord = RowFactory.createRow(proto, 2);
 
-        flagFirstRun = false;
         Descriptors.FieldDescriptor fieldDescriptor = proto.getDescriptorForType().findFieldByNumber(timestampFieldIndex);
         DynamicMessage timestampProto = (DynamicMessage) proto.getField(fieldDescriptor);
         List<Descriptors.FieldDescriptor> timestampFields = timestampProto.getDescriptorForType().getFields();
@@ -114,11 +105,35 @@ public class ProtoDeserializer implements KafkaDeserializationSchema<Row>, Dagge
         return finalRecord;
     }
 
-    public static boolean getFlagFirstRun() {
-        return flagFirstRun;
+
+    public static Map<String,Integer> getFieldDescriptorIndexMap() {
+        return FIELD_DESCRIPTOR_INDEX_MAP;
     }
 
-    public static Set<String> getFieldDescriptorSet() {
-        return FIELD_DESCRIPTOR_SET;
+    void dfs(Descriptors.Descriptor ss) {
+
+        if (PROTO_DESCRIPTOR_SET.contains(ss.getFullName())) return;
+        PROTO_DESCRIPTOR_SET.add(ss.getFullName());
+        List<Descriptors.FieldDescriptor> descriptorFields = ss.getFields();
+
+
+        for (Descriptors.FieldDescriptor x : descriptorFields)
+            FIELD_DESCRIPTOR_INDEX_MAP.putIfAbsent(x.getFullName(),x.getIndex());
+
+
+        for (Descriptors.FieldDescriptor x : descriptorFields) {
+            if (x.getType().toString().equals("MESSAGE")) {
+                dfs(x.getMessageType());
+
+            }
+        }
+
+        List<Descriptors.Descriptor> oo = ss.getNestedTypes();
+        for (Descriptors.Descriptor x : oo) {
+            LOGGER.info(x.getFullName());
+            dfs(x);
+
+        }
+
     }
 }
