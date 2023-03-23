@@ -6,6 +6,8 @@ import com.google.protobuf.DynamicMessage;
 import com.gotocompany.dagger.common.serde.proto.deserialization.ProtoDeserializer;
 import org.apache.flink.types.Row;
 import org.apache.parquet.example.data.simple.SimpleGroup;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.List;
 import java.util.Map;
@@ -14,6 +16,8 @@ import java.util.Map;
  * The Factory class for Row.
  */
 public class RowFactory {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(RowFactory.class);
 
     /**
      * Create row from specified input map and descriptor.
@@ -47,26 +51,28 @@ public class RowFactory {
     public static Row createRow(DynamicMessage proto, int extraColumns) {
         List<FieldDescriptor> descriptorFields = proto.getDescriptorForType().getFields();
         int fieldCount = descriptorFields.size();
+
         for (FieldDescriptor fieldDescriptor : descriptorFields) {
-            if (!ProtoDeserializer.getFlagFirstRun() && !ProtoDeserializer.getFieldDescriptorSet().contains(fieldDescriptor.getFullName())) {
+            if (!ProtoDeserializer.getFieldDescriptorIndexMap().containsKey(fieldDescriptor.getFullName())) {
                 fieldCount--;
             }
 
         }
+
         Row row = new Row(fieldCount + extraColumns);
         for (FieldDescriptor fieldDescriptor : descriptorFields) {
-            if (ProtoDeserializer.getFlagFirstRun()) {
-                ProtoDeserializer.getFieldDescriptorSet().add(fieldDescriptor.getFullName());
-            } else {
-                if (!ProtoDeserializer.getFieldDescriptorSet().contains(fieldDescriptor.getFullName())) {
-                    continue;
-                }
+
+            if (!ProtoDeserializer.getFieldDescriptorIndexMap().containsKey(fieldDescriptor.getFullName())) {
+
+                continue;
             }
+
             TypeHandler typeHandler = TypeHandlerFactory.getTypeHandler(fieldDescriptor);
-            row.setField(fieldDescriptor.getIndex(), typeHandler.transformFromProto(proto.getField(fieldDescriptor)));
+            row.setField(ProtoDeserializer.getFieldDescriptorIndexMap().get(fieldDescriptor.getFullName()), typeHandler.transformFromProto(proto.getField(fieldDescriptor)));
         }
         return row;
     }
+
 
     public static Row createRow(Descriptors.Descriptor descriptor, SimpleGroup simpleGroup, int extraColumns) {
         List<FieldDescriptor> descriptorFields = descriptor.getFields();
