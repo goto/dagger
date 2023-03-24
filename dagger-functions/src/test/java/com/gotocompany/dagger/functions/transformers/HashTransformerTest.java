@@ -34,7 +34,7 @@ public class HashTransformerTest extends DaggerContextTestBase {
 
         initMocks(this);
         when(configuration.getString("SINK_KAFKA_PROTO_MESSAGE", ""))
-                .thenReturn("io.odpf.dagger.consumer.TestBookingLogMessage");
+                .thenReturn("com.gotocompany.dagger.consumer.TestBookingLogMessage");
         when(configuration.getBoolean("SCHEMA_REGISTRY_STENCIL_ENABLE", false))
                 .thenReturn(false);
         when(configuration.getString("SCHEMA_REGISTRY_STENCIL_URLS", ""))
@@ -142,7 +142,7 @@ public class HashTransformerTest extends DaggerContextTestBase {
     @Test
     public void shouldHashNestedFields() throws Exception {
         when(configuration.getString("SINK_KAFKA_PROTO_MESSAGE", ""))
-                .thenReturn("io.odpf.dagger.consumer.TestEnrichedBookingLogMessage");
+                .thenReturn("com.gotocompany.dagger.consumer.TestEnrichedBookingLogMessage");
         HashMap<String, Object> transformationArguments = new HashMap<>();
 
         ArrayList<String> fieldsToEncrypt = new ArrayList<>();
@@ -221,9 +221,9 @@ public class HashTransformerTest extends DaggerContextTestBase {
     @Test
     public void shouldThrowErrorIfUnableToFindOpDescriptor() throws Exception {
         when(configuration.getString("SINK_KAFKA_PROTO_MESSAGE", ""))
-                .thenReturn("io.odpf.dagger.consumer.RandomTestMessage");
+                .thenReturn("com.gotocompany.dagger.consumer.RandomTestMessage");
         thrown.expect(DescriptorNotFoundException.class);
-        thrown.expectMessage("Output Descriptor for class: io.odpf.dagger.consumer.RandomTestMessage not found");
+        thrown.expectMessage("Output Descriptor for class: com.gotocompany.dagger.consumer.RandomTestMessage not found");
         HashMap<String, Object> transformationArguments = new HashMap<>();
 
         ArrayList<String> fieldsToEncrypt = new ArrayList<>();
