@@ -17,7 +17,11 @@ import org.slf4j.LoggerFactory;
 
 import java.sql.Timestamp;
 import java.time.Instant;
-import java.util.*;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * Deserializer for protobuf messages.
@@ -112,14 +116,16 @@ public class ProtoDeserializer implements KafkaDeserializationSchema<Row>, Dagge
 
     void dfs(Descriptors.Descriptor ss) {
 
-        if (PROTO_DESCRIPTOR_SET.contains(ss.getFullName())) return;
+        if (PROTO_DESCRIPTOR_SET.contains(ss.getFullName())) {
+            return;
+        }
         PROTO_DESCRIPTOR_SET.add(ss.getFullName());
         List<Descriptors.FieldDescriptor> descriptorFields = ss.getFields();
 
 
-        for (Descriptors.FieldDescriptor x : descriptorFields)
+        for (Descriptors.FieldDescriptor x : descriptorFields) {
             FIELD_DESCRIPTOR_INDEX_MAP.putIfAbsent(x.getFullName(), x.getIndex());
-
+        }
 
         for (Descriptors.FieldDescriptor x : descriptorFields) {
             if (x.getType().toString().equals("MESSAGE")) {
