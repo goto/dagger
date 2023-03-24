@@ -40,8 +40,8 @@ public class ProtoTypeTest {
 
     @Test
     public void shouldGiveAllColumnNamesOfProtoAlongWithRowtime() {
-        ProtoType feedbackKeyProtoType = new ProtoType("io.odpf.dagger.consumer.TestFeedbackLogKey", "rowtime", stencilClientOrchestrator);
-        ProtoType bookingKeyProtoType = new ProtoType("io.odpf.dagger.consumer.TestBookingLogKey", "rowtime", stencilClientOrchestrator);
+        ProtoType feedbackKeyProtoType = new ProtoType("com.gotocompany.dagger.consumer.TestFeedbackLogKey", "rowtime", stencilClientOrchestrator);
+        ProtoType bookingKeyProtoType = new ProtoType("com.gotocompany.dagger.consumer.TestBookingLogKey", "rowtime", stencilClientOrchestrator);
 
         assertArrayEquals(
                 new String[]{"order_number", "event_timestamp", INTERNAL_VALIDATION_FIELD_KEY, "rowtime"},
@@ -54,7 +54,7 @@ public class ProtoTypeTest {
 
     @Test
     public void shouldGiveAllTypesOfFieldsAlongWithRowtime() {
-        ProtoType protoType = new ProtoType("io.odpf.dagger.consumer.TestBookingLogKey", "rowtime", stencilClientOrchestrator);
+        ProtoType protoType = new ProtoType("com.gotocompany.dagger.consumer.TestBookingLogKey", "rowtime", stencilClientOrchestrator);
 
         assertArrayEquals(
                 new TypeInformation[]{STRING, STRING, STRING, STRING, ROW_NAMED(new String[]{"seconds", "nanos"}, LONG, INT), BOOLEAN, SQL_TIMESTAMP},
@@ -63,7 +63,7 @@ public class ProtoTypeTest {
 
     @Test
     public void shouldThrowConfigurationExceptionWhenClassNotFound() {
-        ProtoType protoType = new ProtoType("io.odpf.dagger.consumer.NotFoundClass", "rowtime", stencilClientOrchestrator);
+        ProtoType protoType = new ProtoType("com.gotocompany.dagger.consumer.NotFoundClass", "rowtime", stencilClientOrchestrator);
         assertThrows(DescriptorNotFoundException.class,
                 () -> protoType.getRowType());
     }
