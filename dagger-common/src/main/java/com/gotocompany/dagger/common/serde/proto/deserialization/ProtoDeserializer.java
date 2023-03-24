@@ -29,7 +29,7 @@ public class ProtoDeserializer implements KafkaDeserializationSchema<Row>, Dagge
     private final int timestampFieldIndex;
     private final StencilClientOrchestrator stencilClientOrchestrator;
     private final TypeInformation<Row> typeInformation;
-    private static final Map<String,Integer> FIELD_DESCRIPTOR_INDEX_MAP = new HashMap<>();
+    private static final Map<String, Integer> FIELD_DESCRIPTOR_INDEX_MAP = new HashMap<>();
     private static final Set<String> PROTO_DESCRIPTOR_SET = new HashSet<>();
 
     /**
@@ -106,7 +106,7 @@ public class ProtoDeserializer implements KafkaDeserializationSchema<Row>, Dagge
     }
 
 
-    public static Map<String,Integer> getFieldDescriptorIndexMap() {
+    public static Map<String, Integer> getFieldDescriptorIndexMap() {
         return FIELD_DESCRIPTOR_INDEX_MAP;
     }
 
@@ -118,7 +118,7 @@ public class ProtoDeserializer implements KafkaDeserializationSchema<Row>, Dagge
 
 
         for (Descriptors.FieldDescriptor x : descriptorFields)
-            FIELD_DESCRIPTOR_INDEX_MAP.putIfAbsent(x.getFullName(),x.getIndex());
+            FIELD_DESCRIPTOR_INDEX_MAP.putIfAbsent(x.getFullName(), x.getIndex());
 
 
         for (Descriptors.FieldDescriptor x : descriptorFields) {
