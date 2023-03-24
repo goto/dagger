@@ -30,7 +30,7 @@ public class TypeHandlerFactory {
      */
     public static TypeHandler getTypeHandler(final Descriptors.FieldDescriptor fieldDescriptor) {
         return typeHandlerMap.compute(fieldDescriptor.getFullName(),
-                (k,v) -> getSpecificHandlers(fieldDescriptor).stream().filter(TypeHandler::canHandle)
+                (k, v) -> getSpecificHandlers(fieldDescriptor).stream().filter(TypeHandler::canHandle)
                         .findFirst().orElseGet(() -> new PrimitiveTypeHandler(fieldDescriptor)));
     }
 
