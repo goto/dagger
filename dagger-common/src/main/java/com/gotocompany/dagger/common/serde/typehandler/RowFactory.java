@@ -15,6 +15,8 @@ import java.util.Map;
  */
 public class RowFactory {
 
+    private static boolean stencilCacheAutoRefreshEnable = false;
+
     /**
      * Create row from specified input map and descriptor.
      *
@@ -49,7 +51,7 @@ public class RowFactory {
         int fieldCount = descriptorFields.size();
 
         for (FieldDescriptor fieldDescriptor : descriptorFields) {
-            if (!ProtoDeserializer.getFieldDescriptorIndexMap().containsKey(fieldDescriptor.getFullName())) {
+            if (stencilCacheAutoRefreshEnable == true && !ProtoDeserializer.getFieldDescriptorIndexMap().containsKey(fieldDescriptor.getFullName())) {
                 fieldCount--;
             }
 
@@ -58,13 +60,13 @@ public class RowFactory {
         Row row = new Row(fieldCount + extraColumns);
         for (FieldDescriptor fieldDescriptor : descriptorFields) {
 
-            if (!ProtoDeserializer.getFieldDescriptorIndexMap().containsKey(fieldDescriptor.getFullName())) {
+            if (stencilCacheAutoRefreshEnable == true && !ProtoDeserializer.getFieldDescriptorIndexMap().containsKey(fieldDescriptor.getFullName())) {
 
                 continue;
             }
 
             TypeHandler typeHandler = TypeHandlerFactory.getTypeHandler(fieldDescriptor);
-            row.setField(ProtoDeserializer.getFieldDescriptorIndexMap().get(fieldDescriptor.getFullName()), typeHandler.transformFromProto(proto.getField(fieldDescriptor)));
+            row.setField((stencilCacheAutoRefreshEnable == true) ? ProtoDeserializer.getFieldDescriptorIndexMap().get(fieldDescriptor.getFullName()) : fieldDescriptor.getIndex(), typeHandler.transformFromProto(proto.getField(fieldDescriptor)));
         }
         return row;
     }
@@ -92,5 +94,9 @@ public class RowFactory {
      */
     public static Row createRow(DynamicMessage proto) {
         return createRow(proto, 0);
+    }
+
+    public static void setStencilCacheAutoRefreshEnable(boolean stencilCacheAutoRefreshEnable) {
+        RowFactory.stencilCacheAutoRefreshEnable = stencilCacheAutoRefreshEnable;
     }
 }
