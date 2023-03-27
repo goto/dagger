@@ -33,8 +33,9 @@ public class ProtoDeserializer implements KafkaDeserializationSchema<Row>, Dagge
     private final int timestampFieldIndex;
     private final StencilClientOrchestrator stencilClientOrchestrator;
     private final TypeInformation<Row> typeInformation;
-    private static final Map<String, Integer> FIELD_DESCRIPTOR_INDEX_MAP = new HashMap<>();
-    private static final Set<String> PROTO_DESCRIPTOR_SET = new HashSet<>();
+    private static Map<String, Integer> STATIC_FIELD_DESCRIPTOR_INDEX_MAP = null;
+    private final Map<String, Integer> FIELD_DESCRIPTOR_INDEX_MAP = new HashMap<>();
+    private final Set<String> PROTO_DESCRIPTOR_SET = new HashSet<>();
 
     /**
      * Instantiates a new Proto deserializer.
@@ -49,7 +50,9 @@ public class ProtoDeserializer implements KafkaDeserializationSchema<Row>, Dagge
         this.timestampFieldIndex = timestampFieldIndex;
         this.stencilClientOrchestrator = stencilClientOrchestrator;
         this.typeInformation = new ProtoType(protoClassName, rowtimeAttributeName, stencilClientOrchestrator).getRowType();
-        dfs(getProtoParser());
+        cacheFieldDescriptorMap(getProtoParser());
+
+
     }
 
     @Override
@@ -59,6 +62,8 @@ public class ProtoDeserializer implements KafkaDeserializationSchema<Row>, Dagge
 
     @Override
     public Row deserialize(ConsumerRecord<byte[], byte[]> consumerRecord) {
+        STATIC_FIELD_DESCRIPTOR_INDEX_MAP = FIELD_DESCRIPTOR_INDEX_MAP;
+
         Descriptors.Descriptor descriptor = getProtoParser();
         try {
             DynamicMessage proto = DynamicMessage.parseFrom(descriptor, consumerRecord.value());
@@ -111,33 +116,33 @@ public class ProtoDeserializer implements KafkaDeserializationSchema<Row>, Dagge
 
 
     public static Map<String, Integer> getFieldDescriptorIndexMap() {
-        return FIELD_DESCRIPTOR_INDEX_MAP;
+
+        return STATIC_FIELD_DESCRIPTOR_INDEX_MAP;
     }
 
-    void dfs(Descriptors.Descriptor ss) {
+    void cacheFieldDescriptorMap(Descriptors.Descriptor descriptor) {
 
-        if (PROTO_DESCRIPTOR_SET.contains(ss.getFullName())) {
+        if (PROTO_DESCRIPTOR_SET.contains(descriptor.getFullName())) {
             return;
         }
-        PROTO_DESCRIPTOR_SET.add(ss.getFullName());
-        List<Descriptors.FieldDescriptor> descriptorFields = ss.getFields();
+        PROTO_DESCRIPTOR_SET.add(descriptor.getFullName());
+        List<Descriptors.FieldDescriptor> descriptorFields = descriptor.getFields();
 
 
-        for (Descriptors.FieldDescriptor x : descriptorFields) {
-            FIELD_DESCRIPTOR_INDEX_MAP.putIfAbsent(x.getFullName(), x.getIndex());
+        for (Descriptors.FieldDescriptor fieldDescriptor : descriptorFields) {
+            FIELD_DESCRIPTOR_INDEX_MAP.putIfAbsent(fieldDescriptor.getFullName(), fieldDescriptor.getIndex());
         }
 
-        for (Descriptors.FieldDescriptor x : descriptorFields) {
-            if (x.getType().toString().equals("MESSAGE")) {
-                dfs(x.getMessageType());
+        for (Descriptors.FieldDescriptor fieldDescriptor : descriptorFields) {
+            if (fieldDescriptor.getType().toString().equals("MESSAGE")) {
+                cacheFieldDescriptorMap(fieldDescriptor.getMessageType());
 
             }
         }
 
-        List<Descriptors.Descriptor> oo = ss.getNestedTypes();
-        for (Descriptors.Descriptor x : oo) {
-            LOGGER.info(x.getFullName());
-            dfs(x);
+        List<Descriptors.Descriptor> nestedTypes = descriptor.getNestedTypes();
+        for (Descriptors.Descriptor nestedTypeDescriptor : nestedTypes) {
+            cacheFieldDescriptorMap(nestedTypeDescriptor);
 
         }
 
