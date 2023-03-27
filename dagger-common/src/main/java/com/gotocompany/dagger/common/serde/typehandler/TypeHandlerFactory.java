@@ -29,8 +29,10 @@ public class TypeHandlerFactory {
      * @return the type handler
      */
     public static TypeHandler getTypeHandler(final Descriptors.FieldDescriptor fieldDescriptor) {
-        return typeHandlerMap.compute(fieldDescriptor.getFullName(),
+        return (fieldDescriptor.getType().toString().equals("ENUM")) ? typeHandlerMap.compute(fieldDescriptor.getFullName(),
                 (k, v) -> getSpecificHandlers(fieldDescriptor).stream().filter(TypeHandler::canHandle)
+                        .findFirst().orElseGet(() -> new PrimitiveTypeHandler(fieldDescriptor))) : typeHandlerMap.computeIfAbsent(fieldDescriptor.getFullName(),
+                k -> getSpecificHandlers(fieldDescriptor).stream().filter(TypeHandler::canHandle)
                         .findFirst().orElseGet(() -> new PrimitiveTypeHandler(fieldDescriptor)));
     }
 
