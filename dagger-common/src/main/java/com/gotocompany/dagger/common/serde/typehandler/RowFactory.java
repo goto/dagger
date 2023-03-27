@@ -6,8 +6,6 @@ import com.google.protobuf.DynamicMessage;
 import com.gotocompany.dagger.common.serde.proto.deserialization.ProtoDeserializer;
 import org.apache.flink.types.Row;
 import org.apache.parquet.example.data.simple.SimpleGroup;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.util.List;
 import java.util.Map;
@@ -16,8 +14,6 @@ import java.util.Map;
  * The Factory class for Row.
  */
 public class RowFactory {
-
-    private static final Logger LOGGER = LoggerFactory.getLogger(RowFactory.class);
 
     /**
      * Create row from specified input map and descriptor.
