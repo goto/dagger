@@ -76,6 +76,7 @@ public class StencilClientOrchestrator implements Serializable {
      * @return the stencil client
      */
     public StencilClient getStencilClient() {
+
         if (stencilClient != null) {
             return stencilClient;
         }
@@ -135,5 +136,9 @@ public class StencilClientOrchestrator implements Serializable {
                 .map(String::trim)
                 .collect(Collectors.toCollection(HashSet::new));
         return stencilUrls;
+    }
+
+    public boolean getStencilCacheAutoRefreshEnable() {
+        return configuration.getBoolean(SCHEMA_REGISTRY_STENCIL_CACHE_AUTO_REFRESH_KEY, SCHEMA_REGISTRY_STENCIL_CACHE_AUTO_REFRESH_DEFAULT);
     }
 }
