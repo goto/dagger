@@ -51,7 +51,7 @@ public class RowFactory {
         int fieldCount = descriptorFields.size();
 
         for (FieldDescriptor fieldDescriptor : descriptorFields) {
-            if (stencilCacheAutoRefreshEnable == true && !ProtoDeserializer.getFieldDescriptorIndexMap().containsKey(fieldDescriptor.getFullName())) {
+            if (stencilCacheAutoRefreshEnable && !ProtoDeserializer.getFieldDescriptorIndexMap().containsKey(fieldDescriptor.getFullName())) {
                 fieldCount--;
             }
 
@@ -60,13 +60,13 @@ public class RowFactory {
         Row row = new Row(fieldCount + extraColumns);
         for (FieldDescriptor fieldDescriptor : descriptorFields) {
 
-            if (stencilCacheAutoRefreshEnable == true && !ProtoDeserializer.getFieldDescriptorIndexMap().containsKey(fieldDescriptor.getFullName())) {
+            if (stencilCacheAutoRefreshEnable && !ProtoDeserializer.getFieldDescriptorIndexMap().containsKey(fieldDescriptor.getFullName())) {
 
                 continue;
             }
 
             TypeHandler typeHandler = TypeHandlerFactory.getTypeHandler(fieldDescriptor);
-            row.setField((stencilCacheAutoRefreshEnable == true) ? ProtoDeserializer.getFieldDescriptorIndexMap().get(fieldDescriptor.getFullName()) : fieldDescriptor.getIndex(), typeHandler.transformFromProto(proto.getField(fieldDescriptor)));
+            row.setField((stencilCacheAutoRefreshEnable) ? ProtoDeserializer.getFieldDescriptorIndexMap().get(fieldDescriptor.getFullName()) : fieldDescriptor.getIndex(), typeHandler.transformFromProto(proto.getField(fieldDescriptor)));
         }
         return row;
     }
