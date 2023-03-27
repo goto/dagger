@@ -33,9 +33,9 @@ public class ProtoDeserializer implements KafkaDeserializationSchema<Row>, Dagge
     private final int timestampFieldIndex;
     private final StencilClientOrchestrator stencilClientOrchestrator;
     private final TypeInformation<Row> typeInformation;
-    private static Map<String, Integer> STATIC_FIELD_DESCRIPTOR_INDEX_MAP = null;
-    private final Map<String, Integer> FIELD_DESCRIPTOR_INDEX_MAP = new HashMap<>();
-    private final Set<String> PROTO_DESCRIPTOR_SET = new HashSet<>();
+    private static Map<String, Integer> staticFieldDescriptorIndexMap = null;
+    private final Map<String, Integer> fieldDescriptorIndexMap = new HashMap<>();
+    private final Set<String> protoDescriptorSet = new HashSet<>();
 
     /**
      * Instantiates a new Proto deserializer.
@@ -62,7 +62,7 @@ public class ProtoDeserializer implements KafkaDeserializationSchema<Row>, Dagge
 
     @Override
     public Row deserialize(ConsumerRecord<byte[], byte[]> consumerRecord) {
-        STATIC_FIELD_DESCRIPTOR_INDEX_MAP = FIELD_DESCRIPTOR_INDEX_MAP;
+        staticFieldDescriptorIndexMap = fieldDescriptorIndexMap;
 
         Descriptors.Descriptor descriptor = getProtoParser();
         try {
@@ -117,20 +117,20 @@ public class ProtoDeserializer implements KafkaDeserializationSchema<Row>, Dagge
 
     public static Map<String, Integer> getFieldDescriptorIndexMap() {
 
-        return STATIC_FIELD_DESCRIPTOR_INDEX_MAP;
+        return staticFieldDescriptorIndexMap;
     }
 
     void cacheFieldDescriptorMap(Descriptors.Descriptor descriptor) {
 
-        if (PROTO_DESCRIPTOR_SET.contains(descriptor.getFullName())) {
+        if (protoDescriptorSet.contains(descriptor.getFullName())) {
             return;
         }
-        PROTO_DESCRIPTOR_SET.add(descriptor.getFullName());
+        protoDescriptorSet.add(descriptor.getFullName());
         List<Descriptors.FieldDescriptor> descriptorFields = descriptor.getFields();
 
 
         for (Descriptors.FieldDescriptor fieldDescriptor : descriptorFields) {
-            FIELD_DESCRIPTOR_INDEX_MAP.putIfAbsent(fieldDescriptor.getFullName(), fieldDescriptor.getIndex());
+            fieldDescriptorIndexMap.putIfAbsent(fieldDescriptor.getFullName(), fieldDescriptor.getIndex());
         }
 
         for (Descriptors.FieldDescriptor fieldDescriptor : descriptorFields) {
