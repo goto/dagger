@@ -63,7 +63,7 @@ public class ProtoDeserializer implements KafkaDeserializationSchema<Row>, Dagge
     @Override
     public Row deserialize(ConsumerRecord<byte[], byte[]> consumerRecord) {
         staticFieldDescriptorIndexMap = fieldDescriptorIndexMap;
-
+        RowFactory.setStencilCacheAutoRefreshEnable(stencilClientOrchestrator.getStencilCacheAutoRefreshEnable());
         Descriptors.Descriptor descriptor = getProtoParser();
         try {
             DynamicMessage proto = DynamicMessage.parseFrom(descriptor, consumerRecord.value());
