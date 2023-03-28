@@ -49,7 +49,7 @@ public class StreamManagerTest extends DaggerContextTestBase {
             + "            \"SOURCE_KAFKA_CONSUMER_CONFIG_AUTO_OFFSET_RESET\": \"latest\",\n"
             + "            \"SOURCE_KAFKA_CONSUMER_CONFIG_BOOTSTRAP_SERVERS\": \"localhost:6667\",\n"
             + "            \"SOURCE_KAFKA_CONSUMER_CONFIG_GROUP_ID\": \"flink-sql-flud-gp0330\",\n"
-            + "            \"INPUT_SCHEMA_PROTO_CLASS\": \"io.odpf.dagger.consumer.TestBookingLogMessage\",\n"
+            + "            \"INPUT_SCHEMA_PROTO_CLASS\": \"com.gotocompany.dagger.consumer.TestBookingLogMessage\",\n"
             + "            \"INPUT_SCHEMA_TABLE\": \"data_stream\",\n"
             + "            \"SOURCE_KAFKA_TOPIC_NAMES\": \"test-topic\"\n"
             + "        }\n"
