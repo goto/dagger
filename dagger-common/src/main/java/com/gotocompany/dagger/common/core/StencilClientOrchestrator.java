@@ -1,6 +1,7 @@
 package com.gotocompany.dagger.common.core;
 
 import com.gotocompany.dagger.common.configuration.Configuration;
+import com.gotocompany.dagger.common.serde.typehandler.TypeHandlerFactory;
 import com.gotocompany.stencil.StencilClientFactory;
 import com.gotocompany.stencil.cache.SchemaRefreshStrategy;
 import com.gotocompany.stencil.client.StencilClient;
@@ -47,6 +48,7 @@ public class StencilClientOrchestrator implements Serializable {
                 .refreshStrategy(getSchemaRefreshStrategy(configuration.getString(SCHEMA_REGISTRY_STENCIL_REFRESH_STRATEGY_KEY, SCHEMA_REGISTRY_STENCIL_REFRESH_STRATEGY_DEFAULT)))
                 .fetchBackoffMinMs(configuration.getLong(SCHEMA_REGISTRY_STENCIL_FETCH_BACKOFF_MIN_MS_KEY, SCHEMA_REGISTRY_STENCIL_FETCH_BACKOFF_MIN_MS_DEFAULT))
                 .fetchRetries(configuration.getInteger(SCHEMA_REGISTRY_STENCIL_FETCH_RETRIES_KEY, SCHEMA_REGISTRY_STENCIL_FETCH_RETRIES_DEFAULT))
+                .updateListener(k -> TypeHandlerFactory.clearTypeHandlerMap())
                 .build();
     }
 
