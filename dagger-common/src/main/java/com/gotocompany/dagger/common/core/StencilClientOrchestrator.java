@@ -53,18 +53,11 @@ public class StencilClientOrchestrator implements Serializable {
     }
 
     private SchemaRefreshStrategy getSchemaRefreshStrategy(String refreshStrategy) {
-        if (refreshStrategy == null) {
-            return SchemaRefreshStrategy.longPollingStrategy();
-        }
-
-        if (refreshStrategy.equalsIgnoreCase("LONG_POLLING")) {
-            return SchemaRefreshStrategy.longPollingStrategy();
-        }
-        if (refreshStrategy.equalsIgnoreCase("VERSION_BASED")) {
+        if (refreshStrategy.equalsIgnoreCase("VERSION_BASED_REFRESH")) {
             return SchemaRefreshStrategy.versionBasedRefresh();
         }
-        LOGGER.error("Invalid Schema Refresh Strategy - {} , only LONG_POLLING or VERSION_BASED allowed", refreshStrategy);
-        throw new IllegalArgumentException("Invalid Schema Refresh Strategy - " + refreshStrategy);
+        return SchemaRefreshStrategy.longPollingStrategy();
+
     }
 
     private List<Header> getHeaders(Configuration config) {
