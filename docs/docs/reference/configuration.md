@@ -416,15 +416,40 @@ Defines the stencil URL. Multiple URLs could be given in a comma-separated forma
 * Example value: `http://localhost:8000/testproto.desc`
 * Type: `required`
 
-#### `SCHEMA_REGISTRY_STENCIL_REFRESH_CACHE`
 
-Enable/Disable the stencil refresh cache.
+#### `SCHEMA_REGISTRY_STENCIL_FETCH_TIMEOUT_MS`
 
-* Example value: `false`
+Defines the stencil timeout in milliseconds.
+
+* Example value: `60000`
 * Type: `optional`
-* Default value: `false`
+* Default value: `60000`
 
-#### `SCHEMA_REGISTRY_STENCIL_TIMEOUT_MS`
+#### `SCHEMA_REGISTRY_STENCIL_CACHE_AUTO_REFRESH`
+
+Defines the stencil timeout in milliseconds.
+
+* Example value: `60000`
+* Type: `optional`
+* Default value: `60000`
+
+#### `SCHEMA_REGISTRY_STENCIL_CACHE_TTL_MS`
+
+Defines the stencil timeout in milliseconds.
+
+* Example value: `60000`
+* Type: `optional`
+* Default value: `60000`
+
+#### `SCHEMA_REGISTRY_STENCIL_FETCH_BACKOFF_MIN_MS`
+
+Defines the stencil timeout in milliseconds.
+
+* Example value: `60000`
+* Type: `optional`
+* Default value: `60000`
+
+#### `SCHEMA_REGISTRY_STENCIL_FETCH_RETRIES`
 
 Defines the stencil timeout in milliseconds.
 
