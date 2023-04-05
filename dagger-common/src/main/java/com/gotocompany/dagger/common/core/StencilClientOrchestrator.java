@@ -139,4 +139,5 @@ public class StencilClientOrchestrator implements Serializable {
     public boolean getStencilCacheAutoRefreshEnable() {
         return configuration.getBoolean(SCHEMA_REGISTRY_STENCIL_CACHE_AUTO_REFRESH_KEY, SCHEMA_REGISTRY_STENCIL_CACHE_AUTO_REFRESH_DEFAULT);
     }
+
 }
