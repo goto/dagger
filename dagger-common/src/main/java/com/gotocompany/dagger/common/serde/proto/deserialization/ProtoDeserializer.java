@@ -3,6 +3,7 @@ package com.gotocompany.dagger.common.serde.proto.deserialization;
 import com.google.protobuf.Descriptors;
 import com.google.protobuf.DynamicMessage;
 import com.google.protobuf.InvalidProtocolBufferException;
+import com.gotocompany.dagger.common.core.FieldDescriptorCache;
 import com.gotocompany.dagger.common.exceptions.DescriptorNotFoundException;
 import com.gotocompany.dagger.common.exceptions.serde.DaggerDeserializationException;
 import com.gotocompany.dagger.common.serde.typehandler.RowFactory;
@@ -17,11 +18,7 @@ import org.slf4j.LoggerFactory;
 
 import java.sql.Timestamp;
 import java.time.Instant;
-import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
-import java.util.Set;
 
 /**
  * Deserializer for protobuf messages.
@@ -33,9 +30,7 @@ public class ProtoDeserializer implements KafkaDeserializationSchema<Row>, Dagge
     private final int timestampFieldIndex;
     private final StencilClientOrchestrator stencilClientOrchestrator;
     private final TypeInformation<Row> typeInformation;
-    private static Map<String, Integer> staticFieldDescriptorIndexMap = null;
-    private final Map<String, Integer> fieldDescriptorIndexMap = new HashMap<>();
-    private final Set<String> protoDescriptorSet = new HashSet<>();
+    private final FieldDescriptorCache fieldDescriptorCache;
 
     /**
      * Instantiates a new Proto deserializer.
@@ -50,8 +45,7 @@ public class ProtoDeserializer implements KafkaDeserializationSchema<Row>, Dagge
         this.timestampFieldIndex = timestampFieldIndex;
         this.stencilClientOrchestrator = stencilClientOrchestrator;
         this.typeInformation = new ProtoType(protoClassName, rowtimeAttributeName, stencilClientOrchestrator).getRowType();
-        cacheFieldDescriptorMap(getProtoParser());
-
+        this.fieldDescriptorCache = new FieldDescriptorCache(getProtoParser(), stencilClientOrchestrator.getStencilCacheAutoRefreshEnable());
 
     }
 
@@ -62,8 +56,6 @@ public class ProtoDeserializer implements KafkaDeserializationSchema<Row>, Dagge
 
     @Override
     public Row deserialize(ConsumerRecord<byte[], byte[]> consumerRecord) {
-        staticFieldDescriptorIndexMap = fieldDescriptorIndexMap;
-        RowFactory.setStencilCacheAutoRefreshEnable(stencilClientOrchestrator.getStencilCacheAutoRefreshEnable());
         Descriptors.Descriptor descriptor = getProtoParser();
         try {
             DynamicMessage proto = DynamicMessage.parseFrom(descriptor, consumerRecord.value());
@@ -99,9 +91,12 @@ public class ProtoDeserializer implements KafkaDeserializationSchema<Row>, Dagge
     }
 
     private Row addTimestampFieldToRow(DynamicMessage proto) {
-
-        Row finalRecord = RowFactory.createRow(proto, 2);
-
+        Row finalRecord;
+        if (stencilClientOrchestrator.getStencilCacheAutoRefreshEnable()) {
+            finalRecord = RowFactory.createRow(proto, 2, fieldDescriptorCache);
+        } else {
+            finalRecord = RowFactory.createRow(proto, 2);
+        }
         Descriptors.FieldDescriptor fieldDescriptor = proto.getDescriptorForType().findFieldByNumber(timestampFieldIndex);
         DynamicMessage timestampProto = (DynamicMessage) proto.getField(fieldDescriptor);
         List<Descriptors.FieldDescriptor> timestampFields = timestampProto.getDescriptorForType().getFields();
@@ -115,36 +110,4 @@ public class ProtoDeserializer implements KafkaDeserializationSchema<Row>, Dagge
     }
 
 
-    public static Map<String, Integer> getFieldDescriptorIndexMap() {
-
-        return staticFieldDescriptorIndexMap;
-    }
-
-    void cacheFieldDescriptorMap(Descriptors.Descriptor descriptor) {
-
-        if (protoDescriptorSet.contains(descriptor.getFullName())) {
-            return;
-        }
-        protoDescriptorSet.add(descriptor.getFullName());
-        List<Descriptors.FieldDescriptor> descriptorFields = descriptor.getFields();
-
-
-        for (Descriptors.FieldDescriptor fieldDescriptor : descriptorFields) {
-            fieldDescriptorIndexMap.putIfAbsent(fieldDescriptor.getFullName(), fieldDescriptor.getIndex());
-        }
-
-        for (Descriptors.FieldDescriptor fieldDescriptor : descriptorFields) {
-            if (fieldDescriptor.getType().toString().equals("MESSAGE")) {
-                cacheFieldDescriptorMap(fieldDescriptor.getMessageType());
-
-            }
-        }
-
-        List<Descriptors.Descriptor> nestedTypes = descriptor.getNestedTypes();
-        for (Descriptors.Descriptor nestedTypeDescriptor : nestedTypes) {
-            cacheFieldDescriptorMap(nestedTypeDescriptor);
-
-        }
-
-    }
 }
