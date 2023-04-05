@@ -3,7 +3,7 @@ package com.gotocompany.dagger.common.serde.typehandler;
 import com.google.protobuf.Descriptors;
 import com.google.protobuf.Descriptors.FieldDescriptor;
 import com.google.protobuf.DynamicMessage;
-import com.gotocompany.dagger.common.serde.proto.deserialization.ProtoDeserializer;
+import com.gotocompany.dagger.common.core.FieldDescriptorCache;
 import org.apache.flink.types.Row;
 import org.apache.parquet.example.data.simple.SimpleGroup;
 
@@ -15,7 +15,6 @@ import java.util.Map;
  */
 public class RowFactory {
 
-    private static boolean stencilCacheAutoRefreshEnable = false;
 
     /**
      * Create row from specified input map and descriptor.
@@ -48,25 +47,35 @@ public class RowFactory {
      */
     public static Row createRow(DynamicMessage proto, int extraColumns) {
         List<FieldDescriptor> descriptorFields = proto.getDescriptorForType().getFields();
-        int fieldCount = descriptorFields.size();
-
+        Row row = new Row(descriptorFields.size() + extraColumns);
         for (FieldDescriptor fieldDescriptor : descriptorFields) {
-            if (stencilCacheAutoRefreshEnable && !ProtoDeserializer.getFieldDescriptorIndexMap().containsKey(fieldDescriptor.getFullName())) {
-                fieldCount--;
-            }
-
+            TypeHandler typeHandler = TypeHandlerFactory.getTypeHandler(fieldDescriptor);
+            row.setField(fieldDescriptor.getIndex(), typeHandler.transformFromProto(proto.getField(fieldDescriptor)));
         }
+        return row;
+    }
+
+
+    /**
+     * Create row from specified proto and extra columns.
+     *
+     * @param proto        the proto
+     * @param extraColumns the extra columns
+     * @return the row
+     */
+    public static Row createRow(DynamicMessage proto, int extraColumns, FieldDescriptorCache fieldDescriptorCache) {
+        List<FieldDescriptor> descriptorFields = proto.getDescriptorForType().getFields();
+        int fieldCount = fieldDescriptorCache.getOriginalFieldCount(proto.getDescriptorForType());
 
         Row row = new Row(fieldCount + extraColumns);
         for (FieldDescriptor fieldDescriptor : descriptorFields) {
 
-            if (stencilCacheAutoRefreshEnable && !ProtoDeserializer.getFieldDescriptorIndexMap().containsKey(fieldDescriptor.getFullName())) {
-
+            if (!fieldDescriptorCache.containsField(fieldDescriptor.getFullName())) {
                 continue;
             }
 
             TypeHandler typeHandler = TypeHandlerFactory.getTypeHandler(fieldDescriptor);
-            row.setField((stencilCacheAutoRefreshEnable) ? ProtoDeserializer.getFieldDescriptorIndexMap().get(fieldDescriptor.getFullName()) : fieldDescriptor.getIndex(), typeHandler.transformFromProto(proto.getField(fieldDescriptor)));
+            row.setField(fieldDescriptorCache.getOriginalFieldIndex(fieldDescriptor), typeHandler.transformFromProtoMap(proto.getField(fieldDescriptor), fieldDescriptorCache));
         }
         return row;
     }
@@ -96,7 +105,14 @@ public class RowFactory {
         return createRow(proto, 0);
     }
 
-    public static void setStencilCacheAutoRefreshEnable(boolean stencilCacheAutoRefreshEnable) {
-        RowFactory.stencilCacheAutoRefreshEnable = stencilCacheAutoRefreshEnable;
+    /**
+     * Create row from specfied proto and extra columns equals to zero.
+     *
+     * @param proto the proto
+     * @return the row
+     */
+    public static Row createRow(DynamicMessage proto, FieldDescriptorCache map) {
+        return createRow(proto, 0, map);
     }
+
 }
