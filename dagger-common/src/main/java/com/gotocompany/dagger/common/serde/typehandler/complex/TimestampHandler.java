@@ -110,8 +110,8 @@ public class TimestampHandler implements TypeHandler {
     }
 
     @Override
-    public Object transformFromProtoMap(Object field, FieldDescriptorCache map) {
-        return RowFactory.createRow((DynamicMessage) field, map);
+    public Object transformFromProtoUsingCache(Object field, FieldDescriptorCache cache) {
+        return RowFactory.createRow((DynamicMessage) field, cache);
     }
 
     @Override
