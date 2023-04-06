@@ -1,6 +1,8 @@
 package com.gotocompany.dagger.common.serde.typehandler.repeated;
 
+import com.gotocompany.dagger.common.core.FieldDescriptorCache;
 import com.gotocompany.dagger.common.serde.typehandler.TypeHandlerFactory;
+import com.gotocompany.dagger.consumer.TestPaymentOptionMetadata;
 import org.apache.flink.api.common.typeinfo.TypeInformation;
 import org.apache.flink.types.Row;
 
@@ -375,4 +377,37 @@ public class RepeatedMessageHandlerTest {
 
         assertEquals(0, actualRows.length);
     }
+
+    @Test
+    public void shouldReturnEmptyArrayOfRowsIfNullPassedForTransformFromProtoUsingCache() {
+        Descriptors.FieldDescriptor repeatedMessageFieldDescriptor = TestFeedbackLogMessage.getDescriptor().findFieldByName("reason");
+        FieldDescriptorCache fieldDescriptorCache = new FieldDescriptorCache(TestFeedbackLogMessage.getDescriptor(), true);
+        Object[] values = (Object[]) new RepeatedMessageHandler(repeatedMessageFieldDescriptor).transformFromProtoUsingCache(null, fieldDescriptorCache);
+
+
+        assertEquals(0, values.length);
+    }
+
+    @Test
+    public void shouldReturnArrayOfRowsGivenAListForFieldDescriptorOfTypeRepeatedMessageOfAsDescriptorForTransformFromProtoUsingCache() throws InvalidProtocolBufferException {
+        TestFeedbackLogMessage logMessage = TestFeedbackLogMessage
+                .newBuilder()
+                .addReason(TestReason.newBuilder().setReasonId("reason1").setGroupId("group1").build())
+                .addReason(TestReason.newBuilder().setReasonId("reason2").setGroupId("group2").build())
+                .build();
+        DynamicMessage dynamicMessage = DynamicMessage.parseFrom(TestFeedbackLogMessage.getDescriptor(), logMessage.toByteArray());
+
+        Descriptors.FieldDescriptor repeatedMessageFieldDescriptor = TestFeedbackLogMessage.getDescriptor().findFieldByName("reason");
+        FieldDescriptorCache fieldDescriptorCache = new FieldDescriptorCache(TestFeedbackLogMessage.getDescriptor(), true);
+
+        Object[] values = (Object[]) new RepeatedMessageHandler(repeatedMessageFieldDescriptor).transformFromProtoUsingCache(dynamicMessage.getField(repeatedMessageFieldDescriptor), fieldDescriptorCache);
+
+        assertEquals(repeatedMessageFieldDescriptor.getMessageType().getFields().size(), ((Row) values[0]).getArity());
+        assertEquals(repeatedMessageFieldDescriptor.getMessageType().getFields().size(), ((Row) values[1]).getArity());
+        assertEquals("reason1", ((Row) values[0]).getField(0));
+        assertEquals("group1", ((Row) values[0]).getField(1));
+        assertEquals("reason2", ((Row) values[1]).getField(0));
+        assertEquals("group2", ((Row) values[1]).getField(1));
+    }
+
 }
