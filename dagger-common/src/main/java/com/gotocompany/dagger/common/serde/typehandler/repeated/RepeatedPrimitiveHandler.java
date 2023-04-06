@@ -71,7 +71,7 @@ public class RepeatedPrimitiveHandler implements TypeHandler {
     }
 
     @Override
-    public Object transformFromProtoMap(Object field, FieldDescriptorCache map) {
+    public Object transformFromProtoUsingCache(Object field, FieldDescriptorCache cache) {
         PrimitiveHandler primitiveHandler = PrimitiveHandlerFactory.getTypeHandler(fieldDescriptor);
         return primitiveHandler.parseRepeatedObjectField(field);
     }
