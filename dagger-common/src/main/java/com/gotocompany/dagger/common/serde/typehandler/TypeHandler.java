@@ -46,10 +46,10 @@ public interface TypeHandler {
      * Transform from protobuf message.
      *
      * @param field the field
-     * @param map
+     * @param cache
      * @return the object
      */
-    Object transformFromProtoMap(Object field, FieldDescriptorCache map);
+    Object transformFromProtoUsingCache(Object field, FieldDescriptorCache cache);
 
     /**
      * Transform from parquet SimpleGroup.
