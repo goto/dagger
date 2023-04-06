@@ -91,8 +91,8 @@ public class MapHandler implements TypeHandler {
     }
 
     @Override
-    public Object transformFromProtoMap(Object field, FieldDescriptorCache map) {
-        return repeatedMessageHandler.transformFromProtoMap(field, map);
+    public Object transformFromProtoUsingCache(Object field, FieldDescriptorCache cache) {
+        return repeatedMessageHandler.transformFromProtoUsingCache(field, cache);
     }
 
     @Override
