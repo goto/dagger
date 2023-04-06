@@ -63,19 +63,19 @@ public class RowFactory {
      * @param extraColumns the extra columns
      * @return the row
      */
-    public static Row createRow(DynamicMessage proto, int extraColumns, FieldDescriptorCache fieldDescriptorCache) {
+    public static Row createRow(DynamicMessage proto, int extraColumns, FieldDescriptorCache cache) {
         List<FieldDescriptor> descriptorFields = proto.getDescriptorForType().getFields();
-        int fieldCount = fieldDescriptorCache.getOriginalFieldCount(proto.getDescriptorForType());
+        int fieldCount = cache.getOriginalFieldCount(proto.getDescriptorForType());
 
         Row row = new Row(fieldCount + extraColumns);
         for (FieldDescriptor fieldDescriptor : descriptorFields) {
 
-            if (!fieldDescriptorCache.containsField(fieldDescriptor.getFullName())) {
+            if (!cache.containsField(fieldDescriptor.getFullName())) {
                 continue;
             }
 
             TypeHandler typeHandler = TypeHandlerFactory.getTypeHandler(fieldDescriptor);
-            row.setField(fieldDescriptorCache.getOriginalFieldIndex(fieldDescriptor), typeHandler.transformFromProtoMap(proto.getField(fieldDescriptor), fieldDescriptorCache));
+            row.setField(cache.getOriginalFieldIndex(fieldDescriptor), typeHandler.transformFromProtoUsingCache(proto.getField(fieldDescriptor), cache));
         }
         return row;
     }
@@ -111,8 +111,8 @@ public class RowFactory {
      * @param proto the proto
      * @return the row
      */
-    public static Row createRow(DynamicMessage proto, FieldDescriptorCache map) {
-        return createRow(proto, 0, map);
+    public static Row createRow(DynamicMessage proto, FieldDescriptorCache cache) {
+        return createRow(proto, 0, cache);
     }
 
 }
