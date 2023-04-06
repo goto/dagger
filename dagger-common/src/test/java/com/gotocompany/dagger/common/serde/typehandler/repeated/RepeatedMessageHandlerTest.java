@@ -1,18 +1,16 @@
 package com.gotocompany.dagger.common.serde.typehandler.repeated;
 
-import com.gotocompany.dagger.common.core.FieldDescriptorCache;
-import com.gotocompany.dagger.common.serde.typehandler.TypeHandlerFactory;
-import com.gotocompany.dagger.consumer.TestPaymentOptionMetadata;
-import org.apache.flink.api.common.typeinfo.TypeInformation;
-import org.apache.flink.types.Row;
-
 import com.google.protobuf.Descriptors;
 import com.google.protobuf.DynamicMessage;
 import com.google.protobuf.InvalidProtocolBufferException;
+import com.gotocompany.dagger.common.core.FieldDescriptorCache;
+import com.gotocompany.dagger.common.serde.typehandler.TypeHandlerFactory;
 import com.gotocompany.dagger.consumer.TestBookingLogMessage;
 import com.gotocompany.dagger.consumer.TestFeedbackLogMessage;
 import com.gotocompany.dagger.consumer.TestReason;
 import net.minidev.json.JSONArray;
+import org.apache.flink.api.common.typeinfo.TypeInformation;
+import org.apache.flink.types.Row;
 import org.apache.parquet.example.data.simple.SimpleGroup;
 import org.apache.parquet.schema.GroupType;
 import org.apache.parquet.schema.PrimitiveType;
@@ -22,9 +20,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
-import static org.apache.flink.api.common.typeinfo.Types.OBJECT_ARRAY;
-import static org.apache.flink.api.common.typeinfo.Types.ROW_NAMED;
-import static org.apache.flink.api.common.typeinfo.Types.STRING;
+import static org.apache.flink.api.common.typeinfo.Types.*;
 import static org.apache.parquet.schema.PrimitiveType.PrimitiveTypeName.INT64;
 import static org.apache.parquet.schema.Types.buildMessage;
 import static org.apache.parquet.schema.Types.repeatedGroup;
