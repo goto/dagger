@@ -63,7 +63,7 @@ public class EnumHandler implements TypeHandler {
     }
 
     @Override
-    public Object transformFromProtoMap(Object field, FieldDescriptorCache map) {
+    public Object transformFromProtoUsingCache(Object field, FieldDescriptorCache cache) {
         return String.valueOf(field).trim();
     }
 
