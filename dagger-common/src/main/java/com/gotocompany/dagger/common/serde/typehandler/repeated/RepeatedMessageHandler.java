@@ -96,11 +96,11 @@ public class RepeatedMessageHandler implements TypeHandler {
     }
 
     @Override
-    public Object transformFromProtoMap(Object field, FieldDescriptorCache map) {
+    public Object transformFromProtoUsingCache(Object field, FieldDescriptorCache cache) {
         ArrayList<Row> rows = new ArrayList<>();
         if (field != null) {
             List<DynamicMessage> protos = (List<DynamicMessage>) field;
-            protos.forEach(proto -> rows.add(RowFactory.createRow(proto, map)));
+            protos.forEach(proto -> rows.add(RowFactory.createRow(proto, cache)));
         }
         return rows.toArray();
     }
