@@ -283,7 +283,7 @@ public class MessageHandlerTest {
         Descriptors.Descriptor descriptor = TestBookingLogMessage.getDescriptor();
         Descriptors.FieldDescriptor fieldDescriptor = descriptor.findFieldByName("payment_option_metadata");
 
-        Row value = (Row) new MessageHandler(fieldDescriptor).transformFromProtoMap(dynamicMessage.getField(fieldDescriptor), fieldDescriptorCache);
+        Row value = (Row) new MessageHandler(fieldDescriptor).transformFromProtoUsingCache(dynamicMessage.getField(fieldDescriptor), fieldDescriptorCache);
 
         assertEquals("test1", value.getField(0));
         assertEquals("test2", value.getField(1));
@@ -302,7 +302,7 @@ public class MessageHandlerTest {
         Descriptors.Descriptor descriptor = TestBookingLogMessage.getDescriptor();
         Descriptors.FieldDescriptor fieldDescriptor = descriptor.findFieldByName("payment_option_metadata");
 
-        Row value = (Row) new MessageHandler(fieldDescriptor).transformFromProtoMap(dynamicMessage.getField(fieldDescriptor), fieldDescriptorCache);
+        Row value = (Row) new MessageHandler(fieldDescriptor).transformFromProtoUsingCache(dynamicMessage.getField(fieldDescriptor), fieldDescriptorCache);
 
         assertEquals("test1", value.getField(0));
         assertEquals("", value.getField(1));
