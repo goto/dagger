@@ -211,4 +211,24 @@ public class StencilClientOrchestratorTest {
         assertEquals("key2: val2", stencilConfig.getFetchHeaders().get(1).toString());
         assertEquals("key3: val3", stencilConfig.getFetchHeaders().get(2).toString());
     }
+
+    @Test
+    public void shouldReturnTrueIfStencilAutoRefreshEnabled() {
+        when(configuration.getBoolean(SCHEMA_REGISTRY_STENCIL_ENABLE_KEY, SCHEMA_REGISTRY_STENCIL_ENABLE_DEFAULT)).thenReturn(true);
+        when(configuration.getString(SCHEMA_REGISTRY_STENCIL_URLS_KEY, SCHEMA_REGISTRY_STENCIL_URLS_DEFAULT)).thenReturn("http://localhost/latest,");
+        when(configuration.getBoolean(SCHEMA_REGISTRY_STENCIL_CACHE_AUTO_REFRESH_KEY, SCHEMA_REGISTRY_STENCIL_CACHE_AUTO_REFRESH_DEFAULT)).thenReturn(true);
+        when(configuration.getString(SCHEMA_REGISTRY_STENCIL_REFRESH_STRATEGY_KEY, SCHEMA_REGISTRY_STENCIL_REFRESH_STRATEGY_DEFAULT)).thenReturn(SCHEMA_REGISTRY_STENCIL_REFRESH_STRATEGY_DEFAULT);
+        StencilClientOrchestrator stencilClientOrchestrator = new StencilClientOrchestrator(configuration);
+        assertTrue(stencilClientOrchestrator.getStencilCacheAutoRefreshEnable());
+    }
+
+    @Test
+    public void shouldReturnFalseIfStencilAutoRefreshDisabled() {
+        when(configuration.getBoolean(SCHEMA_REGISTRY_STENCIL_ENABLE_KEY, SCHEMA_REGISTRY_STENCIL_ENABLE_DEFAULT)).thenReturn(true);
+        when(configuration.getString(SCHEMA_REGISTRY_STENCIL_URLS_KEY, SCHEMA_REGISTRY_STENCIL_URLS_DEFAULT)).thenReturn("http://localhost/latest,");
+        when(configuration.getBoolean(SCHEMA_REGISTRY_STENCIL_CACHE_AUTO_REFRESH_KEY, SCHEMA_REGISTRY_STENCIL_CACHE_AUTO_REFRESH_DEFAULT)).thenReturn(false);
+        when(configuration.getString(SCHEMA_REGISTRY_STENCIL_REFRESH_STRATEGY_KEY, SCHEMA_REGISTRY_STENCIL_REFRESH_STRATEGY_DEFAULT)).thenReturn(SCHEMA_REGISTRY_STENCIL_REFRESH_STRATEGY_DEFAULT);
+        StencilClientOrchestrator stencilClientOrchestrator = new StencilClientOrchestrator(configuration);
+        assertFalse(stencilClientOrchestrator.getStencilCacheAutoRefreshEnable());
+    }
 }
