@@ -41,6 +41,38 @@ public class StreamConfig {
 
     private static final String KAFKA_PREFIX = "source_kafka_consumer_config_";
 
+    @SerializedName(SOURCE_KAFKA_CONSUMER_CONFIG_SSL_KEY_PASSWORD_KEY)
+    @Getter
+    private String sslKeyPassword;
+
+    @SerializedName(SOURCE_KAFKA_CONSUMER_CONFIG_SSL_KEYSTORE_LOCATION_KEY)
+    @Getter
+    private String sslKeystoreLocation;
+
+    @SerializedName(SOURCE_KAFKA_CONSUMER_CONFIG_SSL_KEYSTORE_PASSWORD_KEY)
+    @Getter
+    private String sslKeystorePassword;
+
+    @SerializedName(SOURCE_KAFKA_CONSUMER_CONFIG_SSL_KEYSTORE_TYPE_KEY)
+    @Getter
+    private String sslKeystoreType;
+
+    @SerializedName(SOURCE_KAFKA_CONSUMER_CONFIG_SSL_PROTOCOL_KEY)
+    @Getter
+    private String sslProtocol;
+
+    @SerializedName(SOURCE_KAFKA_CONSUMER_CONFIG_SSL_TRUSTSTORE_LOCATION_KEY)
+    @Getter
+    private String sslTruststoreLocation;
+
+    @SerializedName(SOURCE_KAFKA_CONSUMER_CONFIG_SSL_TRUSTSTORE_PASSWORD_KEY)
+    @Getter
+    private String sslTruststorePassword;
+
+    @SerializedName(SOURCE_KAFKA_CONSUMER_CONFIG_SSL_TRUSTSTORE_TYPE_KEY)
+    @Getter
+    private String sslTruststoreType;
+
     @SerializedName(STREAM_SOURCE_KAFKA_TOPIC_NAMES_KEY)
     @Getter
     private String kafkaTopicNames;
