@@ -38,12 +38,6 @@ public class FieldDescriptorCache implements Serializable {
             }
         }
 
-        List<Descriptors.Descriptor> nestedTypes = descriptor.getNestedTypes();
-        for (Descriptors.Descriptor nestedTypeDescriptor : nestedTypes) {
-            cacheFieldDescriptorMap(nestedTypeDescriptor);
-
-        }
-
     }
 
     public int getOriginalFieldIndex(Descriptors.FieldDescriptor fieldDescriptor) {
