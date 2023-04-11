@@ -170,6 +170,7 @@ Defines the security protocol used to communicate with SSL enabled kafka. Other 
 ##### `SOURCE_KAFKA_CONSUMER_CONFIG_SSL_PROTOCOL`
 
 Defines the security protocol used to communicate with SSL enabled kafka. Find more details on this config [here](https://kafka.apache.org/documentation/#brokerconfigs_ssl.protocol)
+Dagger supported values are: TLSv1.2, TLSv1.3, TLS, TLSv1.1, SSL, SSLv2 and SSLv3
 
 * Example value 1: `SSL`
 * Type: `optional` required only for SSL enabled `KAFKA_CONSUMER` or `KAFKA_SOURCE`
@@ -201,6 +202,7 @@ Defines the SSL KeyStore password for Kafka source. Find more details on this co
 ##### `SOURCE_KAFKA_CONSUMER_CONFIG_SSL_KEYSTORE_TYPE`
 
 Defines the SSL KeyStore Type like JKS, PKCS12 etc  for Kafka source. Find more details on this config [here](https://kafka.apache.org/documentation/#brokerconfigs_ssl.keystore.type)
+Dagger supported values are: JKS, PKCS12, PEM
 
 * Example value: `JKS`
 * Type: `optional` required only for SSL enabled `KAFKA_CONSUMER` or `KAFKA_SOURCE`
@@ -222,6 +224,7 @@ Defines the SSL TrustStore password for Kafka source. Find more details on this 
 ##### `SOURCE_KAFKA_CONSUMER_CONFIG_SSL_TRUSTSTORE_TYPE`
 
 Defines the SSL TrustStore Type like JKS, PKCS12 for Kafka source. Find more details on this config [here](https://kafka.apache.org/documentation/#brokerconfigs_ssl.truststore.type)
+Dagger supported values are: JKS, PKCS12, PEM
 
 * Example value: `JKS`
 * Type: `optional` required only for SSL enabled `KAFKA_CONSUMER` or `KAFKA_SOURCE`

@@ -2,6 +2,9 @@ package com.gotocompany.dagger.core.source.config;
 
 import com.google.gson.annotations.JsonAdapter;
 import com.gotocompany.dagger.core.source.config.adapter.DaggerSASLMechanismAdaptor;
+import com.gotocompany.dagger.core.source.config.adapter.DaggerSSLKeyStoreFileTypeAdaptor;
+import com.gotocompany.dagger.core.source.config.adapter.DaggerSSLProtocolAdaptor;
+import com.gotocompany.dagger.core.source.config.adapter.DaggerSSLTrustStoreFileTypeAdaptor;
 import com.gotocompany.dagger.core.source.config.adapter.DaggerSecurityProtocolAdaptor;
 import com.gotocompany.dagger.core.source.config.adapter.FileDateRangeAdaptor;
 import com.gotocompany.dagger.core.source.config.adapter.SourceParquetFilePathsAdapter;
@@ -55,10 +58,12 @@ public class StreamConfig {
 
     @SerializedName(SOURCE_KAFKA_CONSUMER_CONFIG_SSL_KEYSTORE_TYPE_KEY)
     @Getter
+    @JsonAdapter(value = DaggerSSLKeyStoreFileTypeAdaptor.class)
     private String sslKeystoreType;
 
     @SerializedName(SOURCE_KAFKA_CONSUMER_CONFIG_SSL_PROTOCOL_KEY)
     @Getter
+    @JsonAdapter(value = DaggerSSLProtocolAdaptor.class)
     private String sslProtocol;
 
     @SerializedName(SOURCE_KAFKA_CONSUMER_CONFIG_SSL_TRUSTSTORE_LOCATION_KEY)
@@ -71,6 +76,7 @@ public class StreamConfig {
 
     @SerializedName(SOURCE_KAFKA_CONSUMER_CONFIG_SSL_TRUSTSTORE_TYPE_KEY)
     @Getter
+    @JsonAdapter(value = DaggerSSLTrustStoreFileTypeAdaptor.class)
     private String sslTruststoreType;
 
     @SerializedName(STREAM_SOURCE_KAFKA_TOPIC_NAMES_KEY)
