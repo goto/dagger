@@ -176,7 +176,7 @@ Dagger supported values are: TLSv1.2, TLSv1.3, TLS, TLSv1.1, SSL, SSLv2 and SSLv
 * Type: `optional` required only for SSL enabled `KAFKA_CONSUMER` or `KAFKA_SOURCE`
 
 * Example value 2: `TLS`
-* Type: `optional` required only for SSL enabled `KAFKA_CONSUMER` or `KAFKA_SOURCE`
+* Type: `optional` required only for TLS enabled `KAFKA_CONSUMER` or `KAFKA_SOURCE`
 
 ##### `SOURCE_KAFKA_CONSUMER_CONFIG_SSL_KEY_PASSWORD`
 
@@ -189,7 +189,7 @@ Defines the SSL Key Password for Kafka source. Find more details on this config 
 
 Defines the SSL KeyStore location or path for Kafka source. Find more details on this config [here](https://kafka.apache.org/documentation/#brokerconfigs_ssl.keystore.location)
 
-* Example value: `myKeyStore.jks`
+* Example value: `/tmp/myKeyStore.jks`
 * Type: `optional` required only for SSL enabled `KAFKA_CONSUMER` or `KAFKA_SOURCE`
 
 ##### `SOURCE_KAFKA_CONSUMER_CONFIG_SSL_KEYSTORE_PASSWORD`
@@ -211,7 +211,7 @@ Dagger supported values are: JKS, PKCS12, PEM
 
 Defines the SSL TrustStore location or path for Kafka source. Find more details on this config [here](https://kafka.apache.org/documentation/#brokerconfigs_ssl.truststore.location)
 
-* Example value: `myTrustStore.jks`
+* Example value: `/tmp/myTrustStore.jks`
 * Type: `optional` required only for SSL enabled `KAFKA_CONSUMER` or `KAFKA_SOURCE`
 
 ##### `SOURCE_KAFKA_CONSUMER_CONFIG_SSL_TRUSTSTORE_PASSWORD`
