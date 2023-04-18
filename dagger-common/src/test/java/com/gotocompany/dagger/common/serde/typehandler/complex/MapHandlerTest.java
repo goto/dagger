@@ -1,5 +1,7 @@
 package com.gotocompany.dagger.common.serde.typehandler.complex;
 
+import com.gotocompany.dagger.common.core.FieldDescriptorCache;
+import com.gotocompany.dagger.consumer.TestPaymentOptionMetadata;
 import org.apache.flink.api.common.typeinfo.Types;
 import org.apache.flink.types.Row;
 
@@ -305,6 +307,156 @@ public class MapHandlerTest {
         DynamicMessage dynamicMessage = DynamicMessage.parseFrom(TestComplexMap.getDescriptor(), testComplexMap.toByteArray());
 
         List<Object> outputValues = Arrays.asList((Object[]) mapHandler.transformFromProto(dynamicMessage.getField(mapFieldDescriptor)));
+
+        Row expected = Row.of(0, Row.of("", "", ""));
+        assertEquals(expected, outputValues.get(0));
+    }
+
+
+    @Test
+    public void shouldReturnArrayOfRowHavingSameSizeAsInputMapForTransformFromProtoUsingCache() throws InvalidProtocolBufferException {
+        Descriptors.FieldDescriptor mapFieldDescriptor = TestBookingLogMessage.getDescriptor().findFieldByName("metadata");
+        MapHandler mapHandler = new MapHandler(mapFieldDescriptor);
+        MapEntry<String, String> mapEntry = MapEntry
+                .newDefaultInstance(mapFieldDescriptor.getMessageType(), WireFormat.FieldType.STRING, "", WireFormat.FieldType.STRING, "");
+        TestBookingLogMessage driverProfileFlattenLogMessage = TestBookingLogMessage
+                .newBuilder()
+                .addRepeatedField(mapFieldDescriptor, mapEntry.toBuilder().setKey("a").setValue("123").buildPartial())
+                .addRepeatedField(mapFieldDescriptor, mapEntry.toBuilder().setKey("b").setValue("456").buildPartial())
+                .build();
+        FieldDescriptorCache fieldDescriptorCache = new FieldDescriptorCache(TestBookingLogMessage.getDescriptor());
+
+        DynamicMessage dynamicMessage = DynamicMessage.parseFrom(TestBookingLogMessage.getDescriptor(), driverProfileFlattenLogMessage.toByteArray());
+
+        List<Object> outputValues = Arrays.asList((Object[]) mapHandler.transformFromProtoUsingCache(dynamicMessage.getField(mapFieldDescriptor), fieldDescriptorCache));
+
+        assertEquals(2, outputValues.size());
+    }
+
+    @Test
+    public void shouldReturnArrayOfRowHavingFieldsSetAsInputMapAndOfSizeTwoForTransformFromProtoUsingCache() throws InvalidProtocolBufferException {
+        Descriptors.FieldDescriptor mapFieldDescriptor = TestBookingLogMessage.getDescriptor().findFieldByName("metadata");
+        MapHandler mapHandler = new MapHandler(mapFieldDescriptor);
+        MapEntry<String, String> mapEntry = MapEntry
+                .newDefaultInstance(mapFieldDescriptor.getMessageType(), WireFormat.FieldType.STRING, "", WireFormat.FieldType.STRING, "");
+        TestBookingLogMessage driverProfileFlattenLogMessage = TestBookingLogMessage
+                .newBuilder()
+                .addRepeatedField(mapFieldDescriptor, mapEntry.toBuilder().setKey("a").setValue("123").buildPartial())
+                .addRepeatedField(mapFieldDescriptor, mapEntry.toBuilder().setKey("b").setValue("456").buildPartial())
+                .build();
+        FieldDescriptorCache fieldDescriptorCache = new FieldDescriptorCache(TestBookingLogMessage.getDescriptor());
+
+        DynamicMessage dynamicMessage = DynamicMessage.parseFrom(TestBookingLogMessage.getDescriptor(), driverProfileFlattenLogMessage.toByteArray());
+
+        List<Object> outputValues = Arrays.asList((Object[]) mapHandler.transformFromProtoUsingCache(dynamicMessage.getField(mapFieldDescriptor), fieldDescriptorCache));
+
+        assertEquals(Row.of("a", "123"), outputValues.get(0));
+        assertEquals(Row.of("b", "456"), outputValues.get(1));
+    }
+
+    @Test
+    public void shouldReturnArrayOfRowHavingSameSizeAsInputMapHavingComplexDataFieldsForTransformFromProtoUsingCache() throws InvalidProtocolBufferException {
+        Descriptors.FieldDescriptor mapFieldDescriptor = TestComplexMap.getDescriptor().findFieldByName("complex_map");
+        MapHandler mapHandler = new MapHandler(mapFieldDescriptor);
+        Map<Integer, TestMessage> complexMap = new HashMap<>();
+        complexMap.put(1, TestMessage.newBuilder().setOrderNumber("123").setOrderDetails("abc").build());
+        complexMap.put(2, TestMessage.newBuilder().setOrderNumber("456").setOrderDetails("efg").build());
+        TestComplexMap testComplexMap = TestComplexMap.newBuilder().putAllComplexMap(complexMap).build();
+        FieldDescriptorCache fieldDescriptorCache = new FieldDescriptorCache(TestComplexMap.getDescriptor());
+
+        DynamicMessage dynamicMessage = DynamicMessage.parseFrom(TestComplexMap.getDescriptor(), testComplexMap.toByteArray());
+
+        List<Object> outputValues = Arrays.asList((Object[]) mapHandler.transformFromProtoUsingCache(dynamicMessage.getField(mapFieldDescriptor), fieldDescriptorCache));
+
+        assertEquals(2, outputValues.size());
+    }
+
+    @Test
+    public void shouldReturnArrayOfRowsHavingFieldsSetAsInputMapHavingComplexDataFieldsAndOfSizeTwoForTransformFromProtoUsingCache() throws InvalidProtocolBufferException {
+        Descriptors.FieldDescriptor mapFieldDescriptor = TestComplexMap.getDescriptor().findFieldByName("complex_map");
+        MapHandler mapHandler = new MapHandler(mapFieldDescriptor);
+        Map<Integer, TestMessage> complexMap = new HashMap<>();
+        complexMap.put(1, TestMessage.newBuilder().setOrderNumber("123").setOrderDetails("abc").build());
+        complexMap.put(2, TestMessage.newBuilder().setOrderNumber("456").setOrderDetails("efg").build());
+        TestComplexMap testComplexMap = TestComplexMap.newBuilder().putAllComplexMap(complexMap).build();
+        FieldDescriptorCache fieldDescriptorCache = new FieldDescriptorCache(TestComplexMap.getDescriptor());
+
+        DynamicMessage dynamicMessage = DynamicMessage.parseFrom(TestComplexMap.getDescriptor(), testComplexMap.toByteArray());
+
+        List<Object> outputValues = Arrays.asList((Object[]) mapHandler.transformFromProtoUsingCache(dynamicMessage.getField(mapFieldDescriptor), fieldDescriptorCache));
+
+        Row mapEntry1 = Row.of(1, Row.of("123", "", "abc"));
+        Row mapEntry2 = Row.of(2, Row.of("456", "", "efg"));
+
+        assertEquals(mapEntry1, outputValues.get(0));
+        assertEquals(mapEntry2, outputValues.get(1));
+    }
+
+    @Test
+    public void shouldReturnArrayOfRowsHavingFieldsSetAsInputMapHavingComplexDataFieldsIfKeyIsSetAsDefaultProtoValueForTransformFromProtoUsingCache() throws InvalidProtocolBufferException {
+        Descriptors.FieldDescriptor mapFieldDescriptor = TestComplexMap.getDescriptor().findFieldByName("complex_map");
+        MapHandler mapHandler = new MapHandler(mapFieldDescriptor);
+        Map<Integer, TestMessage> complexMap = new HashMap<>();
+        complexMap.put(0, TestMessage.newBuilder().setOrderNumber("123").setOrderDetails("abc").build());
+        TestComplexMap testComplexMap = TestComplexMap.newBuilder().putAllComplexMap(complexMap).build();
+        FieldDescriptorCache fieldDescriptorCache = new FieldDescriptorCache(TestComplexMap.getDescriptor());
+
+        DynamicMessage dynamicMessage = DynamicMessage.parseFrom(TestComplexMap.getDescriptor(), testComplexMap.toByteArray());
+
+        List<Object> outputValues = Arrays.asList((Object[]) mapHandler.transformFromProtoUsingCache(dynamicMessage.getField(mapFieldDescriptor), fieldDescriptorCache));
+
+        Row expected = Row.of(0, Row.of("123", "", "abc"));
+        assertEquals(expected, outputValues.get(0));
+    }
+
+    @Test
+    public void shouldReturnArrayOfRowsHavingFieldsSetAsInputMapHavingComplexDataFieldsIfValueIsDefaultForTransformFromProtoUsingCache() throws InvalidProtocolBufferException {
+        Descriptors.FieldDescriptor mapFieldDescriptor = TestComplexMap.getDescriptor().findFieldByName("complex_map");
+        MapHandler mapHandler = new MapHandler(mapFieldDescriptor);
+        Map<Integer, TestMessage> complexMap = new HashMap<>();
+        complexMap.put(1, TestMessage.getDefaultInstance());
+        TestComplexMap testComplexMap = TestComplexMap.newBuilder().putAllComplexMap(complexMap).build();
+        FieldDescriptorCache fieldDescriptorCache = new FieldDescriptorCache(TestComplexMap.getDescriptor());
+
+        DynamicMessage dynamicMessage = DynamicMessage.parseFrom(TestComplexMap.getDescriptor(), testComplexMap.toByteArray());
+
+        List<Object> outputValues = Arrays.asList((Object[]) mapHandler.transformFromProtoUsingCache(dynamicMessage.getField(mapFieldDescriptor), fieldDescriptorCache));
+
+        Row expected = Row.of(1, Row.of("", "", ""));
+
+        assertEquals(expected, outputValues.get(0));
+    }
+
+    @Test
+    public void shouldReturnArrayOfRowsHavingFieldsSetAsInputMapHavingComplexDataFieldsIfKeyAndValueAreDefaultForTransformFromProtoUsingCache() throws InvalidProtocolBufferException {
+        Descriptors.FieldDescriptor mapFieldDescriptor = TestComplexMap.getDescriptor().findFieldByName("complex_map");
+        MapHandler mapHandler = new MapHandler(mapFieldDescriptor);
+        Map<Integer, TestMessage> complexMap = new HashMap<>();
+        complexMap.put(0, TestMessage.getDefaultInstance());
+        TestComplexMap testComplexMap = TestComplexMap.newBuilder().putAllComplexMap(complexMap).build();
+        FieldDescriptorCache fieldDescriptorCache = new FieldDescriptorCache(TestComplexMap.getDescriptor());
+
+        DynamicMessage dynamicMessage = DynamicMessage.parseFrom(TestComplexMap.getDescriptor(), testComplexMap.toByteArray());
+
+        List<Object> outputValues = Arrays.asList((Object[]) mapHandler.transformFromProtoUsingCache(dynamicMessage.getField(mapFieldDescriptor), fieldDescriptorCache));
+
+        Row expected = Row.of(0, Row.of("", "", ""));
+
+        assertEquals(expected, outputValues.get(0));
+    }
+
+    @Test
+    public void shouldReturnArrayOfRowsHavingFieldsSetAsInputMapHavingComplexDataFieldsForDefaultInstanceForTransformFromProtoUsingCache() throws InvalidProtocolBufferException {
+        Descriptors.FieldDescriptor mapFieldDescriptor = TestComplexMap.getDescriptor().findFieldByName("complex_map");
+        MapHandler mapHandler = new MapHandler(mapFieldDescriptor);
+        Map<Integer, TestMessage> complexMap = new HashMap<>();
+        complexMap.put(0, TestMessage.newBuilder().setOrderNumber("").setOrderDetails("").build());
+        TestComplexMap testComplexMap = TestComplexMap.newBuilder().putAllComplexMap(complexMap).build();
+        FieldDescriptorCache fieldDescriptorCache = new FieldDescriptorCache(TestComplexMap.getDescriptor());
+
+        DynamicMessage dynamicMessage = DynamicMessage.parseFrom(TestComplexMap.getDescriptor(), testComplexMap.toByteArray());
+
+        List<Object> outputValues = Arrays.asList((Object[]) mapHandler.transformFromProtoUsingCache(dynamicMessage.getField(mapFieldDescriptor), fieldDescriptorCache));
 
         Row expected = Row.of(0, Row.of("", "", ""));
         assertEquals(expected, outputValues.get(0));
