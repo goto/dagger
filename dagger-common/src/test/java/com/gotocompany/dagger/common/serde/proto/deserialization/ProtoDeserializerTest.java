@@ -1,32 +1,20 @@
 package com.gotocompany.dagger.common.serde.proto.deserialization;
 
-import com.google.protobuf.DynamicMessage;
-import com.gotocompany.dagger.common.core.FieldDescriptorCache;
-import com.gotocompany.dagger.common.serde.typehandler.RowFactory;
-import org.apache.flink.api.common.typeinfo.TypeInformation;
-import org.apache.flink.api.java.typeutils.RowTypeInfo;
-import org.apache.flink.types.Row;
-
 import com.google.protobuf.Struct;
 import com.google.protobuf.Timestamp;
 import com.gotocompany.dagger.common.configuration.Configuration;
 import com.gotocompany.dagger.common.core.StencilClientOrchestrator;
 import com.gotocompany.dagger.common.exceptions.DescriptorNotFoundException;
 import com.gotocompany.dagger.common.exceptions.serde.DaggerDeserializationException;
-import com.gotocompany.dagger.consumer.TestBookingLogKey;
-import com.gotocompany.dagger.consumer.TestBookingLogMessage;
-import com.gotocompany.dagger.consumer.TestBookingStatus;
-import com.gotocompany.dagger.consumer.TestLocation;
-import com.gotocompany.dagger.consumer.TestNestedRepeatedMessage;
-import com.gotocompany.dagger.consumer.TestRoute;
-import com.gotocompany.dagger.consumer.TestServiceType;
+import com.gotocompany.dagger.common.serde.typehandler.RowFactory;
+import com.gotocompany.dagger.consumer.*;
+import org.apache.flink.api.common.typeinfo.TypeInformation;
+import org.apache.flink.api.java.typeutils.RowTypeInfo;
+import org.apache.flink.types.Row;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
-import org.apache.kafka.clients.consumer.OffsetAndMetadata;
-import org.apache.kafka.common.TopicPartition;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
-import org.mockito.Mockito;
 
 import java.io.IOException;
 import java.util.HashMap;
@@ -35,9 +23,6 @@ import java.util.Map;
 import static com.gotocompany.dagger.common.core.Constants.*;
 import static org.apache.flink.api.common.typeinfo.Types.*;
 import static org.junit.Assert.*;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyInt;
-import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
 
