@@ -377,7 +377,7 @@ public class RepeatedMessageHandlerTest {
     @Test
     public void shouldReturnEmptyArrayOfRowsIfNullPassedForTransformFromProtoUsingCache() {
         Descriptors.FieldDescriptor repeatedMessageFieldDescriptor = TestFeedbackLogMessage.getDescriptor().findFieldByName("reason");
-        FieldDescriptorCache fieldDescriptorCache = new FieldDescriptorCache(TestFeedbackLogMessage.getDescriptor(), true);
+        FieldDescriptorCache fieldDescriptorCache = new FieldDescriptorCache(TestFeedbackLogMessage.getDescriptor());
         Object[] values = (Object[]) new RepeatedMessageHandler(repeatedMessageFieldDescriptor).transformFromProtoUsingCache(null, fieldDescriptorCache);
 
 
@@ -394,7 +394,7 @@ public class RepeatedMessageHandlerTest {
         DynamicMessage dynamicMessage = DynamicMessage.parseFrom(TestFeedbackLogMessage.getDescriptor(), logMessage.toByteArray());
 
         Descriptors.FieldDescriptor repeatedMessageFieldDescriptor = TestFeedbackLogMessage.getDescriptor().findFieldByName("reason");
-        FieldDescriptorCache fieldDescriptorCache = new FieldDescriptorCache(TestFeedbackLogMessage.getDescriptor(), true);
+        FieldDescriptorCache fieldDescriptorCache = new FieldDescriptorCache(TestFeedbackLogMessage.getDescriptor());
 
         Object[] values = (Object[]) new RepeatedMessageHandler(repeatedMessageFieldDescriptor).transformFromProtoUsingCache(dynamicMessage.getField(repeatedMessageFieldDescriptor), fieldDescriptorCache);
 
