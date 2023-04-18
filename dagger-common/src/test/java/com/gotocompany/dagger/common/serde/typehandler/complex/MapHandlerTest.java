@@ -1,18 +1,12 @@
 package com.gotocompany.dagger.common.serde.typehandler.complex;
 
+import com.google.protobuf.*;
 import com.gotocompany.dagger.common.core.FieldDescriptorCache;
-import com.gotocompany.dagger.consumer.TestPaymentOptionMetadata;
-import org.apache.flink.api.common.typeinfo.Types;
-import org.apache.flink.types.Row;
-
-import com.google.protobuf.Descriptors;
-import com.google.protobuf.DynamicMessage;
-import com.google.protobuf.InvalidProtocolBufferException;
-import com.google.protobuf.MapEntry;
-import com.google.protobuf.WireFormat;
 import com.gotocompany.dagger.consumer.TestBookingLogMessage;
 import com.gotocompany.dagger.consumer.TestComplexMap;
 import com.gotocompany.dagger.consumer.TestMessage;
+import org.apache.flink.api.common.typeinfo.Types;
+import org.apache.flink.types.Row;
 import org.apache.parquet.example.data.simple.SimpleGroup;
 import org.apache.parquet.schema.GroupType;
 import org.apache.parquet.schema.LogicalTypeAnnotation;
@@ -20,16 +14,9 @@ import org.apache.parquet.schema.MessageType;
 import org.apache.parquet.schema.PrimitiveType;
 import org.junit.Test;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
-import static org.apache.parquet.schema.Types.buildMessage;
-import static org.apache.parquet.schema.Types.repeatedGroup;
-import static org.apache.parquet.schema.Types.requiredGroup;
-import static org.apache.parquet.schema.Types.requiredMap;
+import static org.apache.parquet.schema.Types.*;
 import static org.junit.Assert.*;
 
 public class MapHandlerTest {
