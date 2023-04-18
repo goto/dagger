@@ -39,7 +39,7 @@ public class StencilClientOrchestrator implements Serializable {
         this.stencilUrls = getStencilUrls();
     }
 
-    StencilConfig createStencilConfig() {
+    public StencilConfig createStencilConfig() {
         return StencilConfig.builder()
                 .fetchHeaders(getHeaders(configuration))
                 .fetchTimeoutMs(configuration.getInteger(SCHEMA_REGISTRY_STENCIL_FETCH_TIMEOUT_MS, SCHEMA_REGISTRY_STENCIL_FETCH_TIMEOUT_MS_DEFAULT))
@@ -135,9 +135,4 @@ public class StencilClientOrchestrator implements Serializable {
                 .collect(Collectors.toCollection(HashSet::new));
         return stencilUrls;
     }
-
-    public boolean getStencilCacheAutoRefreshEnable() {
-        return configuration.getBoolean(SCHEMA_REGISTRY_STENCIL_CACHE_AUTO_REFRESH_KEY, SCHEMA_REGISTRY_STENCIL_CACHE_AUTO_REFRESH_DEFAULT);
-    }
-
 }
