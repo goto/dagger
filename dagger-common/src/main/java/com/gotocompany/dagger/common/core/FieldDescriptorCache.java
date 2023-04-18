@@ -11,10 +11,8 @@ import java.util.Map;
 public class FieldDescriptorCache implements Serializable {
     private final Map<String, Integer> fieldDescriptorIndexMap = new HashMap<>();
     private final Map<String, Integer> protoDescriptorArityMap = new HashMap<>();
-    private final boolean stencilCacheAutoRefreshEnable;
 
-    public FieldDescriptorCache(Descriptors.Descriptor descriptor, boolean stencilCacheAutoRefreshEnable) {
-        this.stencilCacheAutoRefreshEnable = stencilCacheAutoRefreshEnable;
+    public FieldDescriptorCache(Descriptors.Descriptor descriptor) {
 
         cacheFieldDescriptorMap(descriptor);
     }
@@ -37,11 +35,10 @@ public class FieldDescriptorCache implements Serializable {
 
             }
         }
-
     }
 
     public int getOriginalFieldIndex(Descriptors.FieldDescriptor fieldDescriptor) {
-        return (stencilCacheAutoRefreshEnable) ? fieldDescriptorIndexMap.get(fieldDescriptor.getFullName()) : fieldDescriptor.getIndex();
+        return fieldDescriptorIndexMap.get(fieldDescriptor.getFullName());
     }
 
     public boolean containsField(String fieldName) {
@@ -50,7 +47,6 @@ public class FieldDescriptorCache implements Serializable {
     }
 
     public int getOriginalFieldCount(Descriptors.Descriptor descriptor) {
-
         return protoDescriptorArityMap.get(descriptor.getFullName());
     }
 }
