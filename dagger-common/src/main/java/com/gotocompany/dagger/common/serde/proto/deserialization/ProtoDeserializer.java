@@ -9,6 +9,7 @@ import com.gotocompany.dagger.common.exceptions.serde.DaggerDeserializationExcep
 import com.gotocompany.dagger.common.serde.typehandler.RowFactory;
 import com.gotocompany.dagger.common.core.StencilClientOrchestrator;
 import com.gotocompany.dagger.common.serde.DaggerDeserializer;
+import com.gotocompany.stencil.config.StencilConfig;
 import org.apache.flink.api.common.typeinfo.TypeInformation;
 import org.apache.flink.streaming.connectors.kafka.KafkaDeserializationSchema;
 import org.apache.flink.types.Row;
@@ -31,6 +32,7 @@ public class ProtoDeserializer implements KafkaDeserializationSchema<Row>, Dagge
     private final StencilClientOrchestrator stencilClientOrchestrator;
     private final TypeInformation<Row> typeInformation;
     private final FieldDescriptorCache fieldDescriptorCache;
+    private final StencilConfig stencilConfig;
 
     /**
      * Instantiates a new Proto deserializer.
@@ -45,8 +47,8 @@ public class ProtoDeserializer implements KafkaDeserializationSchema<Row>, Dagge
         this.timestampFieldIndex = timestampFieldIndex;
         this.stencilClientOrchestrator = stencilClientOrchestrator;
         this.typeInformation = new ProtoType(protoClassName, rowtimeAttributeName, stencilClientOrchestrator).getRowType();
-        this.fieldDescriptorCache = new FieldDescriptorCache(getProtoParser(), stencilClientOrchestrator.getStencilCacheAutoRefreshEnable());
-
+        this.fieldDescriptorCache = new FieldDescriptorCache(getProtoParser());
+        this.stencilConfig = stencilClientOrchestrator.createStencilConfig();
     }
 
     @Override
@@ -84,7 +86,12 @@ public class ProtoDeserializer implements KafkaDeserializationSchema<Row>, Dagge
     }
 
     private Row createDefaultInvalidRow(DynamicMessage defaultInstance) {
-        Row row = RowFactory.createRow(defaultInstance, 2);
+        Row row;
+        if (stencilConfig.getCacheAutoRefresh()) {
+            row = RowFactory.createRow(defaultInstance, 2, fieldDescriptorCache);
+        } else {
+            row = RowFactory.createRow(defaultInstance, 2);
+        }
         row.setField(row.getArity() - 2, false);
         row.setField(row.getArity() - 1, new Timestamp(0));
         return row;
@@ -92,7 +99,7 @@ public class ProtoDeserializer implements KafkaDeserializationSchema<Row>, Dagge
 
     private Row addTimestampFieldToRow(DynamicMessage proto) {
         Row finalRecord;
-        if (stencilClientOrchestrator.getStencilCacheAutoRefreshEnable()) {
+        if (stencilConfig.getCacheAutoRefresh()) {
             finalRecord = RowFactory.createRow(proto, 2, fieldDescriptorCache);
         } else {
             finalRecord = RowFactory.createRow(proto, 2);
