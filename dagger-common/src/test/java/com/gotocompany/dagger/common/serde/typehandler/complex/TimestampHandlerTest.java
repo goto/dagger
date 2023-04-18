@@ -263,7 +263,7 @@ public class TimestampHandlerTest {
 
         DynamicMessage dynamicMessage = DynamicMessage.parseFrom(TestBookingLogMessage.getDescriptor(), bookingLogMessage.toByteArray());
         TimestampHandler timestampHandler = new TimestampHandler(fieldDescriptor);
-        Row row = (Row) timestampHandler.transformFromProtoUsingCache(dynamicMessage.getField(fieldDescriptor),fieldDescriptorCache);
+        Row row = (Row) timestampHandler.transformFromProtoUsingCache(dynamicMessage.getField(fieldDescriptor), fieldDescriptorCache);
         assertEquals(Row.of(10L, 10), row);
     }
 
@@ -278,7 +278,7 @@ public class TimestampHandlerTest {
 
         DynamicMessage dynamicMessage = DynamicMessage.parseFrom(TestBookingLogMessage.getDescriptor(), bookingLogMessage.toByteArray());
         TimestampHandler timestampHandler = new TimestampHandler(fieldDescriptor);
-        Row row = (Row) timestampHandler.transformFromProtoUsingCache(dynamicMessage.getField(fieldDescriptor),fieldDescriptorCache);
+        Row row = (Row) timestampHandler.transformFromProtoUsingCache(dynamicMessage.getField(fieldDescriptor), fieldDescriptorCache);
         assertEquals(Row.of(0L, 0), row);
     }
 
