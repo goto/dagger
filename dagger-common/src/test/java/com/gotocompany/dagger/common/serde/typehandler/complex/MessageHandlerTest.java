@@ -276,7 +276,7 @@ public class MessageHandlerTest {
                 .newBuilder()
                 .setPaymentOptionMetadata(TestPaymentOptionMetadata.newBuilder().setMaskedCard("test1").setNetwork("test2").build())
                 .build();
-        FieldDescriptorCache fieldDescriptorCache = new FieldDescriptorCache(TestPaymentOptionMetadata.getDescriptor(), true);
+        FieldDescriptorCache fieldDescriptorCache = new FieldDescriptorCache(TestPaymentOptionMetadata.getDescriptor());
 
         DynamicMessage dynamicMessage = DynamicMessage.parseFrom(TestBookingLogMessage.getDescriptor(), bookingLogMessage.toByteArray());
 
@@ -296,7 +296,7 @@ public class MessageHandlerTest {
                 .setPaymentOptionMetadata(TestPaymentOptionMetadata.newBuilder().setMaskedCard("test1").build())
                 .build();
 
-        FieldDescriptorCache fieldDescriptorCache = new FieldDescriptorCache(TestPaymentOptionMetadata.getDescriptor(), true);
+        FieldDescriptorCache fieldDescriptorCache = new FieldDescriptorCache(TestPaymentOptionMetadata.getDescriptor());
         DynamicMessage dynamicMessage = DynamicMessage.parseFrom(TestBookingLogMessage.getDescriptor(), bookingLogMessage.toByteArray());
 
         Descriptors.Descriptor descriptor = TestBookingLogMessage.getDescriptor();
