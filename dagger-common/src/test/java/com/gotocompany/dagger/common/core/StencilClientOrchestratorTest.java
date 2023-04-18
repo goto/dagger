@@ -1,6 +1,7 @@
 package com.gotocompany.dagger.common.core;
 
 import com.gotocompany.dagger.common.configuration.Configuration;
+import com.gotocompany.stencil.cache.SchemaRefreshStrategy;
 import com.gotocompany.stencil.client.ClassLoadStencilClient;
 import com.gotocompany.stencil.client.MultiURLStencilClient;
 import com.gotocompany.stencil.client.StencilClient;
@@ -168,6 +169,133 @@ public class StencilClientOrchestratorTest {
     }
 
     @Test
+    public void shouldReturnTrueIfCacheAutoRefreshIsSetToTrue() {
+        Map<String, String> configMap = new HashMap<String, String>() {{
+            put(SCHEMA_REGISTRY_STENCIL_CACHE_AUTO_REFRESH_KEY, "true");
+        }};
+        Configuration config = getConfig(configMap);
+        StencilClientOrchestrator stencilClientOrchestrator = new StencilClientOrchestrator(config);
+        StencilConfig stencilConfig = stencilClientOrchestrator.createStencilConfig();
+        assertTrue(stencilConfig.getCacheAutoRefresh());
+    }
+
+    @Test
+    public void shouldReturnFalseIfCacheAutoRefreshIsSetToFalse() {
+        Map<String, String> configMap = new HashMap<String, String>() {{
+            put(SCHEMA_REGISTRY_STENCIL_CACHE_AUTO_REFRESH_KEY, "false");
+        }};
+        Configuration config = getConfig(configMap);
+        StencilClientOrchestrator stencilClientOrchestrator = new StencilClientOrchestrator(config);
+        StencilConfig stencilConfig = stencilClientOrchestrator.createStencilConfig();
+        assertFalse(stencilConfig.getCacheAutoRefresh());
+    }
+
+    @Test
+    public void shouldReturnFalseIfCacheAutoRefreshIsNotSet() {
+        Map<String, String> configMap = new HashMap<>();
+
+        Configuration config = getConfig(configMap);
+        StencilClientOrchestrator stencilClientOrchestrator = new StencilClientOrchestrator(config);
+        StencilConfig stencilConfig = stencilClientOrchestrator.createStencilConfig();
+        assertFalse(stencilConfig.getCacheAutoRefresh());
+    }
+
+    @Test
+    public void shouldReturnConfiguredValueIfCacheTtlMsConfigIsSet() {
+        Map<String, String> configMap = new HashMap<String, String>() {{
+            put(SCHEMA_REGISTRY_STENCIL_CACHE_TTL_MS_KEY, "7800");
+        }};
+        Configuration config = getConfig(configMap);
+        StencilClientOrchestrator stencilClientOrchestrator = new StencilClientOrchestrator(config);
+        StencilConfig stencilConfig = stencilClientOrchestrator.createStencilConfig();
+        assertEquals(Long.valueOf(7800), stencilConfig.getCacheTtlMs());
+    }
+
+    @Test
+    public void shouldReturnDefaultValueIfCacheTtlMsConfigIsNotSet() {
+        Map<String, String> configMap = new HashMap<>();
+
+        Configuration config = getConfig(configMap);
+        StencilClientOrchestrator stencilClientOrchestrator = new StencilClientOrchestrator(config);
+        StencilConfig stencilConfig = stencilClientOrchestrator.createStencilConfig();
+        assertEquals(Long.valueOf(7200000), stencilConfig.getCacheTtlMs());
+    }
+
+    @Test
+    public void shouldReturnVersionBasedIfRefreshStrategyConfigIsSet() {
+        Map<String, String> configMap = new HashMap<String, String>() {{
+            put(SCHEMA_REGISTRY_STENCIL_REFRESH_STRATEGY_KEY, "VERSION_BASED_REFRESH");
+        }};
+        Configuration config = getConfig(configMap);
+        StencilClientOrchestrator stencilClientOrchestrator = new StencilClientOrchestrator(config);
+        StencilConfig stencilConfig = stencilClientOrchestrator.createStencilConfig();
+        assertEquals(SchemaRefreshStrategy.versionBasedRefresh().getClass(), stencilConfig.getRefreshStrategy().getClass());
+    }
+
+    @Test
+    public void shouldReturnLongPollingIfRefreshStrategyConfigIsNotSet() {
+        Map<String, String> configMap = new HashMap<>();
+
+        Configuration config = getConfig(configMap);
+        StencilClientOrchestrator stencilClientOrchestrator = new StencilClientOrchestrator(config);
+        StencilConfig stencilConfig = stencilClientOrchestrator.createStencilConfig();
+        assertEquals(SchemaRefreshStrategy.longPollingStrategy().getClass(), stencilConfig.getRefreshStrategy().getClass());
+    }
+
+    @Test
+    public void shouldReturnLongPollingIfRefreshStrategyConfigIsInvalid() {
+        Map<String, String> configMap = new HashMap<String, String>() {{
+            put(SCHEMA_REGISTRY_STENCIL_REFRESH_STRATEGY_KEY, "xyz");
+        }};
+        Configuration config = getConfig(configMap);
+        StencilClientOrchestrator stencilClientOrchestrator = new StencilClientOrchestrator(config);
+        StencilConfig stencilConfig = stencilClientOrchestrator.createStencilConfig();
+        assertEquals(SchemaRefreshStrategy.longPollingStrategy().getClass(), stencilConfig.getRefreshStrategy().getClass());
+    }
+
+    @Test
+    public void shouldReturnConfiguredValueIfFetchBackoffMinMsConfigIsSet() {
+        Map<String, String> configMap = new HashMap<String, String>() {{
+            put(SCHEMA_REGISTRY_STENCIL_FETCH_BACKOFF_MIN_MS_KEY, "7800");
+        }};
+        Configuration config = getConfig(configMap);
+        StencilClientOrchestrator stencilClientOrchestrator = new StencilClientOrchestrator(config);
+        StencilConfig stencilConfig = stencilClientOrchestrator.createStencilConfig();
+        assertEquals(Long.valueOf(7800), stencilConfig.getFetchBackoffMinMs());
+    }
+
+    @Test
+    public void shouldReturnDefaultValueIfFetchBackoffMinMsConfigIsNotSet() {
+        Map<String, String> configMap = new HashMap<>();
+
+        Configuration config = getConfig(configMap);
+        StencilClientOrchestrator stencilClientOrchestrator = new StencilClientOrchestrator(config);
+        StencilConfig stencilConfig = stencilClientOrchestrator.createStencilConfig();
+        assertEquals(Long.valueOf(5000), stencilConfig.getFetchBackoffMinMs());
+    }
+
+    @Test
+    public void shouldReturnConfiguredValueIfFetchRetriesConfigIsSet() {
+        Map<String, String> configMap = new HashMap<String, String>() {{
+            put(SCHEMA_REGISTRY_STENCIL_FETCH_RETRIES_KEY, "9");
+        }};
+        Configuration config = getConfig(configMap);
+        StencilClientOrchestrator stencilClientOrchestrator = new StencilClientOrchestrator(config);
+        StencilConfig stencilConfig = stencilClientOrchestrator.createStencilConfig();
+        assertEquals(Integer.valueOf(9), stencilConfig.getFetchRetries());
+    }
+
+    @Test
+    public void shouldReturnDefaultValueIfFetchRetriesConfigIsNotSet() {
+        Map<String, String> configMap = new HashMap<>();
+
+        Configuration config = getConfig(configMap);
+        StencilClientOrchestrator stencilClientOrchestrator = new StencilClientOrchestrator(config);
+        StencilConfig stencilConfig = stencilClientOrchestrator.createStencilConfig();
+        assertEquals(Integer.valueOf(4), stencilConfig.getFetchRetries());
+    }
+
+    @Test
     public void shouldReturnEmptyHeadersIfHeadersConfigIsNotSet() {
         Map<String, String> configMap = new HashMap<>();
         Configuration config = getConfig(configMap);
@@ -212,23 +340,4 @@ public class StencilClientOrchestratorTest {
         assertEquals("key3: val3", stencilConfig.getFetchHeaders().get(2).toString());
     }
 
-    @Test
-    public void shouldReturnTrueIfStencilAutoRefreshEnabled() {
-        when(configuration.getBoolean(SCHEMA_REGISTRY_STENCIL_ENABLE_KEY, SCHEMA_REGISTRY_STENCIL_ENABLE_DEFAULT)).thenReturn(true);
-        when(configuration.getString(SCHEMA_REGISTRY_STENCIL_URLS_KEY, SCHEMA_REGISTRY_STENCIL_URLS_DEFAULT)).thenReturn("http://localhost/latest,");
-        when(configuration.getBoolean(SCHEMA_REGISTRY_STENCIL_CACHE_AUTO_REFRESH_KEY, SCHEMA_REGISTRY_STENCIL_CACHE_AUTO_REFRESH_DEFAULT)).thenReturn(true);
-        when(configuration.getString(SCHEMA_REGISTRY_STENCIL_REFRESH_STRATEGY_KEY, SCHEMA_REGISTRY_STENCIL_REFRESH_STRATEGY_DEFAULT)).thenReturn(SCHEMA_REGISTRY_STENCIL_REFRESH_STRATEGY_DEFAULT);
-        StencilClientOrchestrator stencilClientOrchestrator = new StencilClientOrchestrator(configuration);
-        assertTrue(stencilClientOrchestrator.getStencilCacheAutoRefreshEnable());
-    }
-
-    @Test
-    public void shouldReturnFalseIfStencilAutoRefreshDisabled() {
-        when(configuration.getBoolean(SCHEMA_REGISTRY_STENCIL_ENABLE_KEY, SCHEMA_REGISTRY_STENCIL_ENABLE_DEFAULT)).thenReturn(true);
-        when(configuration.getString(SCHEMA_REGISTRY_STENCIL_URLS_KEY, SCHEMA_REGISTRY_STENCIL_URLS_DEFAULT)).thenReturn("http://localhost/latest,");
-        when(configuration.getBoolean(SCHEMA_REGISTRY_STENCIL_CACHE_AUTO_REFRESH_KEY, SCHEMA_REGISTRY_STENCIL_CACHE_AUTO_REFRESH_DEFAULT)).thenReturn(false);
-        when(configuration.getString(SCHEMA_REGISTRY_STENCIL_REFRESH_STRATEGY_KEY, SCHEMA_REGISTRY_STENCIL_REFRESH_STRATEGY_DEFAULT)).thenReturn(SCHEMA_REGISTRY_STENCIL_REFRESH_STRATEGY_DEFAULT);
-        StencilClientOrchestrator stencilClientOrchestrator = new StencilClientOrchestrator(configuration);
-        assertFalse(stencilClientOrchestrator.getStencilCacheAutoRefreshEnable());
-    }
 }
