@@ -1,5 +1,6 @@
 package com.gotocompany.dagger.common.core;
 
+import com.gotocompany.dagger.consumer.TestApiLogMessage;
 import com.gotocompany.dagger.consumer.TestBookingLogMessage;
 import org.junit.Before;
 import org.junit.Test;
@@ -37,5 +38,17 @@ public class FieldDescriptorCacheTest {
     public void shouldReturnOriginalFieldCount() {
         FieldDescriptorCache fieldDescriptorCache = new FieldDescriptorCache(TestBookingLogMessage.getDescriptor());
         assertEquals(49, fieldDescriptorCache.getOriginalFieldCount(TestBookingLogMessage.getDescriptor()));
+    }
+
+    @Test
+    public void shouldThrowExceptionIfFieldNotPresentInCacheForFieldCount() {
+        FieldDescriptorCache fieldDescriptorCache = new FieldDescriptorCache(TestBookingLogMessage.getDescriptor());
+        assertThrows(NullPointerException.class, () -> fieldDescriptorCache.getOriginalFieldCount(TestApiLogMessage.getDescriptor()));
+    }
+
+    @Test
+    public void shouldThrowExceptionIfFieldNotPresentInCacheForFieldIndex() {
+        FieldDescriptorCache fieldDescriptorCache = new FieldDescriptorCache(TestBookingLogMessage.getDescriptor());
+        assertThrows(NullPointerException.class, () -> fieldDescriptorCache.getOriginalFieldIndex(TestApiLogMessage.getDescriptor().findFieldByName("event_timestamp")));
     }
 }
