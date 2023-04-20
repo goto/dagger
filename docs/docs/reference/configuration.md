@@ -426,7 +426,7 @@ Defines the timeout in milliseconds while fetching the descriptor set from the S
 
 #### `SCHEMA_REGISTRY_STENCIL_CACHE_AUTO_REFRESH`
 
-Defines whether to enable/disable the auto schema refresh. Please note that auto schema refresh will only work for additions in Enum types in the Proto. It will ignore any new field additions at the root or nested level, unless the job is restarted.
+Defines whether to enable/disable the auto schema refresh. Please note that auto schema refresh will only work for additions in Enum types in the Proto. It will not fail for other scenarios but it will just ignore any new field additions at the root or nested level, unless the job is restarted.
 
 * Example value: `true`
 * Type: `optional`
