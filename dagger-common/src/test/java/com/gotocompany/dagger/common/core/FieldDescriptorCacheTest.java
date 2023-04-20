@@ -43,12 +43,12 @@ public class FieldDescriptorCacheTest {
     @Test
     public void shouldThrowExceptionIfFieldNotPresentInCacheForFieldCount() {
         FieldDescriptorCache fieldDescriptorCache = new FieldDescriptorCache(TestBookingLogMessage.getDescriptor());
-        assertThrows(NullPointerException.class, () -> fieldDescriptorCache.getOriginalFieldCount(TestApiLogMessage.getDescriptor()));
+        assertThrows("The Proto Descriptor com.gotocompany.dagger.consumer.TestApiLogMessage was not found in the cache", IllegalArgumentException.class, () -> fieldDescriptorCache.getOriginalFieldCount(TestApiLogMessage.getDescriptor()));
     }
 
     @Test
     public void shouldThrowExceptionIfFieldNotPresentInCacheForFieldIndex() {
         FieldDescriptorCache fieldDescriptorCache = new FieldDescriptorCache(TestBookingLogMessage.getDescriptor());
-        assertThrows(NullPointerException.class, () -> fieldDescriptorCache.getOriginalFieldIndex(TestApiLogMessage.getDescriptor().findFieldByName("event_timestamp")));
+        assertThrows("The Field Descriptor com.gotocompany.dagger.consumer.TestApiLogMessage.event_timestamp was not found in the cache", IllegalArgumentException.class, () -> fieldDescriptorCache.getOriginalFieldIndex(TestApiLogMessage.getDescriptor().findFieldByName("event_timestamp")));
     }
 }
