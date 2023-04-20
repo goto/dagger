@@ -38,9 +38,9 @@ public class FieldDescriptorCache implements Serializable {
     }
 
     public int getOriginalFieldIndex(Descriptors.FieldDescriptor fieldDescriptor) {
-        if (!fieldDescriptorIndexMap.containsKey(fieldDescriptor.getFullName()))
+        if (!fieldDescriptorIndexMap.containsKey(fieldDescriptor.getFullName())) {
             throw new IllegalArgumentException("The Field Descriptor " + fieldDescriptor.getFullName() + " was not found in the cache");
-
+        }
         return fieldDescriptorIndexMap.get(fieldDescriptor.getFullName());
     }
 
@@ -50,9 +50,9 @@ public class FieldDescriptorCache implements Serializable {
     }
 
     public int getOriginalFieldCount(Descriptors.Descriptor descriptor) {
-        if (!protoDescriptorArityMap.containsKey(descriptor.getFullName()))
+        if (!protoDescriptorArityMap.containsKey(descriptor.getFullName())) {
             throw new IllegalArgumentException("The Proto Descriptor " + descriptor.getFullName() + " was not found in the cache");
-
+        }
         return protoDescriptorArityMap.get(descriptor.getFullName());
     }
 }
