@@ -381,7 +381,7 @@ Enable/Disable to produce large messages to Kafka. by default, it's configuratio
 
 #### `SINK_KAFKA_LINGER_MS`
 
-Defines the max interval the sink should we wait for the sink/producer buffer to fill
+Defines the max interval in milliseconds, the producer will wait for the sink/producer buffer to fill.
 
 * Example value: `1000`
 * Type: `optional`
