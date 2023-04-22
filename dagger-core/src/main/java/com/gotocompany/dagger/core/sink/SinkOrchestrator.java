@@ -107,9 +107,17 @@ public class SinkOrchestrator implements TelemetryPublisher {
             kafkaProducerConfigs.setProperty(Constants.SINK_KAFKA_MAX_REQUEST_SIZE_KEY, Constants.SINK_KAFKA_MAX_REQUEST_SIZE_DEFAULT);
         }
         String lingerMs = configuration.getString(Constants.SINK_KAFKA_LINGER_MS_KEY, Constants.SINK_KAFKA_LINGER_MS_DEFAULT);
+        validateLingerMs(lingerMs);
         kafkaProducerConfigs.setProperty(Constants.SINK_KAFKA_LINGER_MS_CONFIG_KEY, lingerMs);
 
         return kafkaProducerConfigs;
+    }
+
+    private void validateLingerMs(String lingerMs) {
+        int x = Integer.parseInt(lingerMs);
+        if (x < 0) {
+            throw new IllegalArgumentException("Linger Ms value should be an unsigned integer");
+        }
     }
 
     @Override
