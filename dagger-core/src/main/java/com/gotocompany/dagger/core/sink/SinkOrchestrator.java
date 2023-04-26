@@ -114,9 +114,10 @@ public class SinkOrchestrator implements TelemetryPublisher {
     }
 
     private void validateLingerMs(String lingerMs) {
-        int x = Integer.parseInt(lingerMs);
-        if (x < 0) {
-            throw new IllegalArgumentException("Linger Ms value should be an unsigned integer");
+        try {
+            Integer.parseInt(lingerMs);
+        } catch (IllegalArgumentException e) {
+            throw new IllegalArgumentException("Provided value for Linger Ms : " + lingerMs+ " is not a valid integer , Error: " + e.getMessage() );
         }
     }
 
