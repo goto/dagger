@@ -33,15 +33,14 @@ public class TypeHandlerFactory {
     public static TypeHandler getTypeHandler(final Descriptors.FieldDescriptor fieldDescriptor) {
         int newHashCode = fieldDescriptor.hashCode();
 
-        // this means we have already created and persisted the handler corresponding to
-        // the field descriptor in the map and hence we can directly return it
+        /* this means we have already created and persisted the handler corresponding to
+         the field descriptor in the map and hence we can directly return it */
         if (typeHandlerMap.containsKey(fieldDescriptor.getFullName()) && typeHandlerMap.get(fieldDescriptor.getFullName()).getKey() == newHashCode) {
             Pair<Integer, TypeHandler> pair = typeHandlerMap.get(fieldDescriptor.getFullName());
             return pair.getValue();
-        }
-        // this means that either it is a new field not encountered before or same field but with an updated field descriptor object
-        // in either case, we create a new handler and persist it in the map
-        else {
+        } else {
+            /* this means that either it is a new field not encountered before and/or same field but with an updated field descriptor object
+            in either case, we create a new handler and persist it in the map */
             TypeHandler handler = getSpecificHandlers(fieldDescriptor)
                     .stream()
                     .filter(TypeHandler::canHandle)

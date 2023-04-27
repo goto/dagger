@@ -13,7 +13,6 @@ import com.gotocompany.dagger.consumer.TestRepeatedEnumMessage;
 import org.junit.Before;
 import org.junit.Test;
 
-import java.io.Serializable;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
@@ -40,10 +39,8 @@ public class TypeHandlerFactoryTest {
     @Test
     public void shouldReturnDifferentCopiesOfHandlerObjectWhenFieldDescriptorFullNameIsSameButHashCodeIsDifferent() {
         Descriptors.FieldDescriptor mapFieldDescriptor1 = TestBookingLogMessage.getDescriptor().findFieldByName("metadata");
-
         Descriptors.FieldDescriptor mapFieldDescriptor2 = mock(Descriptors.FieldDescriptor.class);
         when(mapFieldDescriptor2.getFullName()).thenReturn(mapFieldDescriptor1.getFullName());
-
 
         TypeHandler typeHandler1 = TypeHandlerFactory.getTypeHandler(mapFieldDescriptor1);
         TypeHandler typeHandler2 = TypeHandlerFactory.getTypeHandler(mapFieldDescriptor2);
@@ -153,13 +150,5 @@ public class TypeHandlerFactoryTest {
         TypeHandler newTypeHandler = TypeHandlerFactory.getTypeHandler(primitiveFieldDescriptor);
         assertEquals(PrimitiveTypeHandler.class, newTypeHandler.getClass());
         assertEquals(typeHandler, newTypeHandler);
-    }
-
-    public static class SerializableFieldDescriptor implements Serializable {
-        public Descriptors.FieldDescriptor fieldDescriptor;
-
-        SerializableFieldDescriptor(Descriptors.FieldDescriptor fieldDescriptor) {
-            this.fieldDescriptor = fieldDescriptor;
-        }
     }
 }
