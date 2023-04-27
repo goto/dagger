@@ -1,7 +1,11 @@
 package com.gotocompany.dagger.common.serde.typehandler;
 
 import com.google.protobuf.Descriptors;
-import com.gotocompany.dagger.common.serde.typehandler.complex.*;
+import com.gotocompany.dagger.common.serde.typehandler.complex.EnumHandler;
+import com.gotocompany.dagger.common.serde.typehandler.complex.MapHandler;
+import com.gotocompany.dagger.common.serde.typehandler.complex.MessageHandler;
+import com.gotocompany.dagger.common.serde.typehandler.complex.StructMessageHandler;
+import com.gotocompany.dagger.common.serde.typehandler.complex.TimestampHandler;
 import com.gotocompany.dagger.common.serde.typehandler.repeated.RepeatedEnumHandler;
 import com.gotocompany.dagger.common.serde.typehandler.repeated.RepeatedMessageHandler;
 import com.gotocompany.dagger.common.serde.typehandler.repeated.RepeatedPrimitiveHandler;
@@ -12,16 +16,21 @@ import com.gotocompany.dagger.consumer.TestNestedRepeatedMessage;
 import com.gotocompany.dagger.consumer.TestRepeatedEnumMessage;
 import org.junit.Before;
 import org.junit.Test;
-
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotEquals;
-import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
+import org.junit.runner.RunWith;
+import org.powermock.api.mockito.PowerMockito;
+import org.powermock.core.classloader.annotations.PrepareForTest;
+import org.powermock.modules.junit4.PowerMockRunner;
+
+@PrepareForTest(Descriptors.FieldDescriptor.class)
+@RunWith(PowerMockRunner.class)
 public class TypeHandlerFactoryTest {
     @Before
     public void setup() {
@@ -39,7 +48,7 @@ public class TypeHandlerFactoryTest {
     @Test
     public void shouldReturnDifferentCopiesOfHandlerObjectWhenFieldDescriptorFullNameIsSameButHashCodeIsDifferent() {
         Descriptors.FieldDescriptor mapFieldDescriptor1 = TestBookingLogMessage.getDescriptor().findFieldByName("metadata");
-        Descriptors.FieldDescriptor mapFieldDescriptor2 = mock(Descriptors.FieldDescriptor.class);
+        Descriptors.FieldDescriptor mapFieldDescriptor2 = PowerMockito.mock(Descriptors.FieldDescriptor.class);
         when(mapFieldDescriptor2.getFullName()).thenReturn(mapFieldDescriptor1.getFullName());
 
         TypeHandler typeHandler1 = TypeHandlerFactory.getTypeHandler(mapFieldDescriptor1);
