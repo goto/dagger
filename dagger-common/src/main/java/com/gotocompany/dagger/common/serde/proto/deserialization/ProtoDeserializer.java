@@ -4,12 +4,11 @@ import com.google.protobuf.Descriptors;
 import com.google.protobuf.DynamicMessage;
 import com.google.protobuf.InvalidProtocolBufferException;
 import com.gotocompany.dagger.common.core.FieldDescriptorCache;
+import com.gotocompany.dagger.common.core.StencilClientOrchestrator;
 import com.gotocompany.dagger.common.exceptions.DescriptorNotFoundException;
 import com.gotocompany.dagger.common.exceptions.serde.DaggerDeserializationException;
-import com.gotocompany.dagger.common.serde.typehandler.RowFactory;
-import com.gotocompany.dagger.common.core.StencilClientOrchestrator;
 import com.gotocompany.dagger.common.serde.DaggerDeserializer;
-import com.gotocompany.stencil.config.StencilConfig;
+import com.gotocompany.dagger.common.serde.typehandler.RowFactory;
 import org.apache.flink.api.common.typeinfo.TypeInformation;
 import org.apache.flink.streaming.connectors.kafka.KafkaDeserializationSchema;
 import org.apache.flink.types.Row;
@@ -32,7 +31,7 @@ public class ProtoDeserializer implements KafkaDeserializationSchema<Row>, Dagge
     private final StencilClientOrchestrator stencilClientOrchestrator;
     private final TypeInformation<Row> typeInformation;
     private final FieldDescriptorCache fieldDescriptorCache;
-    private final StencilConfig stencilConfig;
+    private final boolean stencilAutoRefreshEnable;
 
     /**
      * Instantiates a new Proto deserializer.
@@ -48,7 +47,7 @@ public class ProtoDeserializer implements KafkaDeserializationSchema<Row>, Dagge
         this.stencilClientOrchestrator = stencilClientOrchestrator;
         this.typeInformation = new ProtoType(protoClassName, rowtimeAttributeName, stencilClientOrchestrator).getRowType();
         this.fieldDescriptorCache = new FieldDescriptorCache(getProtoParser());
-        this.stencilConfig = stencilClientOrchestrator.createStencilConfig();
+        this.stencilAutoRefreshEnable = stencilClientOrchestrator.createStencilConfig().getCacheAutoRefresh();
     }
 
     @Override
@@ -87,7 +86,7 @@ public class ProtoDeserializer implements KafkaDeserializationSchema<Row>, Dagge
 
     private Row createDefaultInvalidRow(DynamicMessage defaultInstance) {
         Row row;
-        if (stencilConfig.getCacheAutoRefresh()) {
+        if (stencilAutoRefreshEnable) {
             row = RowFactory.createRow(defaultInstance, 2, fieldDescriptorCache);
         } else {
             row = RowFactory.createRow(defaultInstance, 2);
@@ -99,11 +98,12 @@ public class ProtoDeserializer implements KafkaDeserializationSchema<Row>, Dagge
 
     private Row addTimestampFieldToRow(DynamicMessage proto) {
         Row finalRecord;
-        if (stencilConfig.getCacheAutoRefresh()) {
+        if (stencilAutoRefreshEnable) {
             finalRecord = RowFactory.createRow(proto, 2, fieldDescriptorCache);
         } else {
             finalRecord = RowFactory.createRow(proto, 2);
         }
+
         Descriptors.FieldDescriptor fieldDescriptor = proto.getDescriptorForType().findFieldByNumber(timestampFieldIndex);
         DynamicMessage timestampProto = (DynamicMessage) proto.getField(fieldDescriptor);
         List<Descriptors.FieldDescriptor> timestampFields = timestampProto.getDescriptorForType().getFields();
