@@ -154,7 +154,7 @@ public class StencilClientOrchestratorTest {
         Configuration config = getConfig(configMap);
         StencilClientOrchestrator stencilClientOrchestrator = new StencilClientOrchestrator(config);
         StencilConfig stencilConfig = stencilClientOrchestrator.createStencilConfig();
-        assertEquals(SCHEMA_REGISTRY_STENCIL_FETCH_TIMEOUT_MS_DEFAULT, stencilConfig.getFetchTimeoutMs());
+        assertEquals(Integer.valueOf(10000), stencilConfig.getFetchTimeoutMs());
     }
 
     @Test
@@ -218,7 +218,7 @@ public class StencilClientOrchestratorTest {
         Configuration config = getConfig(configMap);
         StencilClientOrchestrator stencilClientOrchestrator = new StencilClientOrchestrator(config);
         StencilConfig stencilConfig = stencilClientOrchestrator.createStencilConfig();
-        assertEquals(Long.valueOf(7200000), stencilConfig.getCacheTtlMs());
+        assertEquals(Long.valueOf(900000), stencilConfig.getCacheTtlMs());
     }
 
     @Test
@@ -271,7 +271,7 @@ public class StencilClientOrchestratorTest {
         Configuration config = getConfig(configMap);
         StencilClientOrchestrator stencilClientOrchestrator = new StencilClientOrchestrator(config);
         StencilConfig stencilConfig = stencilClientOrchestrator.createStencilConfig();
-        assertEquals(Long.valueOf(5000), stencilConfig.getFetchBackoffMinMs());
+        assertEquals(Long.valueOf(60000), stencilConfig.getFetchBackoffMinMs());
     }
 
     @Test
