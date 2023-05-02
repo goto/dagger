@@ -1,7 +1,5 @@
 package com.gotocompany.dagger.common.core;
 
-import java.util.concurrent.TimeUnit;
-
 public class Constants {
     public static final String SCHEMA_REGISTRY_STENCIL_ENABLE_KEY = "SCHEMA_REGISTRY_STENCIL_ENABLE";
     public static final boolean SCHEMA_REGISTRY_STENCIL_ENABLE_DEFAULT = false;
