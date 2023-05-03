@@ -1,6 +1,8 @@
 package com.gotocompany.dagger.common.serde.typehandler;
 
+import com.google.protobuf.DescriptorProtos;
 import com.google.protobuf.Descriptors;
+import com.google.protobuf.InvalidProtocolBufferException;
 import com.gotocompany.dagger.common.serde.typehandler.complex.EnumHandler;
 import com.gotocompany.dagger.common.serde.typehandler.complex.MapHandler;
 import com.gotocompany.dagger.common.serde.typehandler.complex.MessageHandler;
@@ -12,25 +14,19 @@ import com.gotocompany.dagger.common.serde.typehandler.repeated.RepeatedPrimitiv
 import com.gotocompany.dagger.common.serde.typehandler.repeated.RepeatedStructMessageHandler;
 import com.gotocompany.dagger.consumer.TestBookingLogMessage;
 import com.gotocompany.dagger.consumer.TestFeedbackLogMessage;
+import com.gotocompany.dagger.consumer.TestGrpcResponse;
 import com.gotocompany.dagger.consumer.TestNestedRepeatedMessage;
 import com.gotocompany.dagger.consumer.TestRepeatedEnumMessage;
 import org.junit.Before;
 import org.junit.Test;
+
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotEquals;
-import static org.mockito.Mockito.when;
 
-import org.junit.runner.RunWith;
-import org.powermock.api.mockito.PowerMockito;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.junit4.PowerMockRunner;
-
-@PrepareForTest(Descriptors.FieldDescriptor.class)
-@RunWith(PowerMockRunner.class)
 public class TypeHandlerFactoryTest {
     @Before
     public void setup() {
@@ -42,20 +38,28 @@ public class TypeHandlerFactoryTest {
         Descriptors.FieldDescriptor mapFieldDescriptor = TestBookingLogMessage.getDescriptor().findFieldByName("metadata");
         TypeHandler typeHandler1 = TypeHandlerFactory.getTypeHandler(mapFieldDescriptor);
         TypeHandler typeHandler2 = TypeHandlerFactory.getTypeHandler(mapFieldDescriptor);
+
         assertEquals(typeHandler1, typeHandler2);
     }
 
     @Test
-    public void shouldReturnDifferentCopiesOfHandlerObjectWhenFieldDescriptorFullNameIsSameButHashCodeIsDifferent() {
-        Descriptors.FieldDescriptor mapFieldDescriptor1 = TestBookingLogMessage.getDescriptor().findFieldByName("metadata");
-        Descriptors.FieldDescriptor mapFieldDescriptor2 = PowerMockito.mock(Descriptors.FieldDescriptor.class);
-        when(mapFieldDescriptor2.getFullName()).thenReturn(mapFieldDescriptor1.getFullName());
+    public void shouldReturnDifferentCopiesOfHandlerObjectWhenFieldDescriptorFullNameIsSameButHashCodeIsDifferent() throws Descriptors.DescriptorValidationException, InvalidProtocolBufferException {
+        /* get a field descriptor in the usual way */
+        Descriptors.FieldDescriptor mapFieldDescriptor1 = TestGrpcResponse.getDescriptor().findFieldByName("success");
+
+        /* serialize descriptor to byte[], then deserialize to get a new object of field descriptor */
+        byte[] descriptorByteArray = TestGrpcResponse.getDescriptor().getFile().toProto().toByteArray();
+        DescriptorProtos.FileDescriptorProto fileDescriptorProto = DescriptorProtos.FileDescriptorProto.parseFrom(descriptorByteArray);
+        Descriptors.FileDescriptor fileDescriptor = Descriptors.FileDescriptor.buildFrom(fileDescriptorProto, new Descriptors.FileDescriptor[]{});
+        Descriptors.FieldDescriptor mapFieldDescriptor2 = fileDescriptor
+                .findMessageTypeByName("TestGrpcResponse")
+                .findFieldByName("success");
 
         TypeHandler typeHandler1 = TypeHandlerFactory.getTypeHandler(mapFieldDescriptor1);
         TypeHandler typeHandler2 = TypeHandlerFactory.getTypeHandler(mapFieldDescriptor2);
+        assertNotEquals(mapFieldDescriptor1.hashCode(), mapFieldDescriptor2.hashCode());
         assertNotEquals(typeHandler1, typeHandler2);
     }
-
 
     @Test
     public void shouldReturnMapHandlerIfMapFieldDescriptorPassed() {
