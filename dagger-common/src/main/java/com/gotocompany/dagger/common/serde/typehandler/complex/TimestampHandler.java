@@ -26,7 +26,7 @@ import java.util.TimeZone;
  * The type Timestamp proto handler.
  */
 public class TimestampHandler implements TypeHandler {
-    private static final int SECOND_TO_MS_FACTOR = 1000;
+    private static final long SECOND_TO_MS_FACTOR = 1000L;
     private static final long DEFAULT_SECONDS_VALUE = 0L;
     private static final int DEFAULT_NANOS_VALUE = 0;
     private static final int MS_TO_NANOS_FACTOR = 1000_000;
