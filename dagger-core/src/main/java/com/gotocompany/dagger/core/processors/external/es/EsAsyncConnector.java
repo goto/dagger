@@ -70,7 +70,8 @@ public class EsAsyncConnector extends AsyncConnector {
             ).setHttpClientConfigCallback(httpClientBuilder ->
                     httpClientBuilder
                             .setDefaultCredentialsProvider(getCredentialsProvider())
-                            .setDefaultRequestConfig(getRequestConfig())).setMaxRetryTimeoutMillis(esSourceConfig.getRetryTimeout()).build();
+                            .setDefaultRequestConfig(getRequestConfig())).build();
+//                    .setMaxRetryTimeoutMillis(esSourceConfig.getRetryTimeout()).build();
         }
     }
 

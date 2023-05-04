@@ -64,7 +64,6 @@ dependencies {
     minimalJar('com.gotocompany:depot:0.4.2') {
         exclude group: 'org.apache.httpcomponents'
         exclude group: 'com.google.protobuf'
-        exclude group: 'com.datadoghq'
         exclude group: 'com.google.cloud.bigtable'
         exclude module: 'io.grpc'
         exclude group: 'com.gotocompany:stencil'
@@ -84,14 +83,14 @@ dependencies {
     dependenciesJar project(path: ':dagger-functions', configuration: 'dependenciesFunctionsJar')
 
     dependenciesJar 'org.apache.flink:flink-connector-kafka_2.11:' + flinkVersion
-    dependenciesJar 'com.google.protobuf:protobuf-java:3.1.0'
-    dependenciesJar 'com.google.protobuf:protobuf-java-util:3.1.0'
+    dependenciesJar 'com.google.protobuf:protobuf-java:3.22.2'
+    dependenciesJar 'com.google.protobuf:protobuf-java-util:3.22.2'
     dependenciesJar 'org.influxdb:influxdb-java:2.8'
-    dependenciesJar 'org.elasticsearch.client:elasticsearch-rest-client:6.6.1'
+    dependenciesJar 'org.elasticsearch.client:elasticsearch-rest-client:8.6.2'
     dependenciesJar ('com.google.cloud.bigtable:bigtable-hbase-2.x:2.7.2') {
         exclude module: 'io.grpc'
     }
-    dependenciesJar 'org.asynchttpclient:async-http-client:2.10.1'
+    dependenciesJar 'org.asynchttpclient:async-http-client:2.12.3'
     dependenciesJar 'io.vertx:vertx-pg-client:3.9.0'
     dependenciesJar 'org.apache.commons:commons-pool2:2.4.3'
     dependenciesJar 'org.apache.parquet:parquet-protobuf:1.12.2'
