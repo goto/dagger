@@ -26,7 +26,7 @@ def flinkVersion = rootProject.flinkVersion
 version = rootProject.file('version.txt').text.trim()
 
 def minimalVersion = version
-def dependenciesVersion = "0.3.2"
+def dependenciesVersion = "0.3.3"
 
 description = """dagger to the heart!"""
 
@@ -67,18 +67,18 @@ dependencies {
         exclude group: 'com.datadoghq'
         exclude group: 'com.google.cloud.bigtable'
         exclude module: 'io.grpc'
+        exclude group: 'com.gotocompany:stencil'
     }
     minimalJar 'io.grpc:grpc-all:1.53.0'
-    compileOnly 'org.projectlombok:lombok:1.18.8'
-    annotationProcessor 'org.projectlombok:lombok:1.18.8'
+    compileOnly 'org.projectlombok:lombok:1.18.26'
+    annotationProcessor 'org.projectlombok:lombok:1.18.26'
 
-    implementation 'org.slf4j:slf4j-log4j12:1.7.7'
+    implementation 'org.slf4j:slf4j-log4j12:2.0.5'
     implementation 'org.apache.flink:flink-streaming-java_2.11:' + flinkVersion
     implementation 'org.apache.flink:flink-clients_2.11:' + flinkVersion
     implementation 'org.apache.flink:flink-table:' + flinkVersion
     implementation 'org.apache.flink:flink-table-api-java-bridge_2.11:' + flinkVersion
     implementation 'org.apache.flink:flink-table-planner_2.11:' + flinkVersion
-    implementation 'com.gotocompany:stencil:0.4.0'
 
     dependenciesJar project(path: ':dagger-common', configuration: 'dependenciesCommonJar')
     dependenciesJar project(path: ':dagger-functions', configuration: 'dependenciesFunctionsJar')
