@@ -61,14 +61,11 @@ configurations {
 dependencies {
     minimalJar project(path: ':dagger-common', configuration: 'minimalCommonJar')
     minimalJar project(path: ':dagger-functions', configuration: 'minimalFunctionsJar')
-    minimalJar('com.gotocompany:depot:0.4.2') {
-        exclude group: 'org.apache.httpcomponents'
+    minimalJar('com.gotocompany:depot:0.5.0') {
         exclude group: 'com.google.protobuf'
         exclude group: 'com.google.cloud.bigtable'
-        exclude module: 'io.grpc'
         exclude group: 'com.gotocompany:stencil'
     }
-    minimalJar 'io.grpc:grpc-all:1.53.0'
     compileOnly 'org.projectlombok:lombok:1.18.26'
     annotationProcessor 'org.projectlombok:lombok:1.18.26'
 
@@ -86,14 +83,14 @@ dependencies {
     dependenciesJar 'com.google.protobuf:protobuf-java:3.22.2'
     dependenciesJar 'com.google.protobuf:protobuf-java-util:3.22.2'
     dependenciesJar 'org.influxdb:influxdb-java:2.8'
-    dependenciesJar 'org.elasticsearch.client:elasticsearch-rest-client:8.6.2'
-    dependenciesJar ('com.google.cloud.bigtable:bigtable-hbase-2.x:2.7.2') {
-        exclude module: 'io.grpc'
+    dependenciesJar ('org.elasticsearch.client:elasticsearch-rest-client:8.7.1') {
+        exclude group: "org.apache.httpcomponent"
     }
+    dependenciesJar ('com.google.cloud.bigtable:bigtable-hbase-2.x:2.7.2')
     dependenciesJar 'org.asynchttpclient:async-http-client:2.12.3'
     dependenciesJar 'io.vertx:vertx-pg-client:3.9.0'
-    dependenciesJar 'org.apache.commons:commons-pool2:2.4.3'
-    dependenciesJar 'org.apache.parquet:parquet-protobuf:1.12.2'
+    dependenciesJar 'org.apache.commons:commons-pool2:2.11.1'
+    dependenciesJar 'org.apache.parquet:parquet-protobuf:1.12.3'
 
     testImplementation project(':dagger-common').sourceSets.test.output
     testImplementation 'junit:junit:4.13'
