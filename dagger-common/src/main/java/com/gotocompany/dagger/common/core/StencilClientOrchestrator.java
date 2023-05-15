@@ -1,7 +1,6 @@
 package com.gotocompany.dagger.common.core;
 
 import com.gotocompany.dagger.common.configuration.Configuration;
-import com.gotocompany.dagger.common.serde.typehandler.TypeHandlerFactory;
 import com.gotocompany.stencil.StencilClientFactory;
 import com.gotocompany.stencil.cache.SchemaRefreshStrategy;
 import com.gotocompany.stencil.client.StencilClient;
