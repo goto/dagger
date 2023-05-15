@@ -55,7 +55,7 @@ public class TypeHandlerFactory {
     /**
      * Clear type handler map.
      */
-    public static void clearTypeHandlerMap() {
+    protected static void clearTypeHandlerMap() {
         typeHandlerMap.clear();
     }
 
