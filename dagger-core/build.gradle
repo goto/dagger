@@ -61,7 +61,7 @@ configurations {
 dependencies {
     minimalJar project(path: ':dagger-common', configuration: 'minimalCommonJar')
     minimalJar project(path: ':dagger-functions', configuration: 'minimalFunctionsJar')
-    minimalJar('com.gotocompany:depot:0.4.0') {
+    minimalJar('com.gotocompany:depot:0.4.9') {
         exclude group: 'org.apache.httpcomponents'
         exclude group: 'com.google.protobuf'
         exclude group: 'com.datadoghq'
