@@ -1,5 +1,9 @@
 package com.gotocompany.dagger.core.processors.external.http;
 
+import com.google.protobuf.Descriptors;
+import com.gotocompany.dagger.common.metrics.managers.MeterStatsManager;
+import com.gotocompany.dagger.common.serde.typehandler.TypeHandler;
+import com.gotocompany.dagger.common.serde.typehandler.TypeHandlerFactory;
 import com.gotocompany.dagger.core.exception.HttpFailureException;
 import com.gotocompany.dagger.core.metrics.aspects.ExternalSourceAspects;
 import com.gotocompany.dagger.core.metrics.reporters.ErrorReporter;
@@ -7,15 +11,11 @@ import com.gotocompany.dagger.core.processors.ColumnNameManager;
 import com.gotocompany.dagger.core.processors.common.OutputMapping;
 import com.gotocompany.dagger.core.processors.common.PostResponseTelemetry;
 import com.gotocompany.dagger.core.processors.common.RowManager;
-import com.gotocompany.dagger.common.metrics.managers.MeterStatsManager;
-import com.gotocompany.dagger.common.serde.typehandler.TypeHandler;
-import com.gotocompany.dagger.common.serde.typehandler.TypeHandlerFactory;
-import com.google.protobuf.Descriptors;
 import com.jayway.jsonpath.JsonPath;
 import com.jayway.jsonpath.PathNotFoundException;
+import io.netty.util.internal.StringUtil;
 import org.apache.flink.streaming.api.functions.async.ResultFuture;
 import org.apache.flink.types.Row;
-
 import org.asynchttpclient.AsyncCompletionHandler;
 import org.asynchttpclient.Response;
 import org.slf4j.Logger;
@@ -23,9 +23,14 @@ import org.slf4j.LoggerFactory;
 
 import java.time.Instant;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.Map;
+import java.util.Collections;
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.List;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 /**
  * The Http response handler.
@@ -86,7 +91,8 @@ public class HttpResponseHandler extends AsyncCompletionHandler<Object> {
             successHandler(response);
         } else {
             postResponseTelemetry.validateResponseCode(meterStatsManager, statusCode);
-            failureHandler("Received status code : " + statusCode);
+            boolean shouldFailOnError = (httpSourceConfig.isFailOnErrors() ? shouldFailOnError(statusCode) : false);
+            failureHandler("Received status code : " + statusCode, shouldFailOnError);
         }
         return response;
     }
@@ -94,7 +100,7 @@ public class HttpResponseHandler extends AsyncCompletionHandler<Object> {
     @Override
     public void onThrowable(Throwable t) {
         meterStatsManager.markEvent(ExternalSourceAspects.OTHER_ERRORS);
-        failureHandler(t.getMessage());
+        failureHandler(t.getMessage(), httpSourceConfig.isFailOnErrors());
     }
 
     private void successHandler(Response response) {
@@ -123,17 +129,35 @@ public class HttpResponseHandler extends AsyncCompletionHandler<Object> {
      * Failure handler.
      *
      * @param logMessage the log message
+     * @param shouldFailOnErrors should fail on error
      */
-    public void failureHandler(String logMessage) {
+    public void failureHandler(String logMessage, boolean shouldFailOnErrors) {
         postResponseTelemetry.sendFailureTelemetry(meterStatsManager, startTime);
         LOGGER.error(logMessage);
         Exception httpFailureException = new HttpFailureException(logMessage);
-        if (httpSourceConfig.isFailOnErrors()) {
+        if (shouldFailOnErrors) {
             reportAndThrowError(httpFailureException);
         } else {
             errorReporter.reportNonFatalException(httpFailureException);
         }
         resultFuture.complete(Collections.singleton(rowManager.getAll()));
+    }
+
+    private boolean shouldFailOnError(Integer statusCode) {
+        if (statusCode == 0 || StringUtil.isNullOrEmpty(httpSourceConfig.getExcludeFailOnErrorsCodeRange())) {
+            return true;
+        }
+        return !getFailOnErrorCodeRanges(httpSourceConfig.getExcludeFailOnErrorsCodeRange()).contains(statusCode);
+    }
+
+    private HashSet<Integer> getFailOnErrorCodeRanges(String input) {
+        String[] ranges = input.split(",");
+        HashSet<Integer> statusSet = new HashSet<Integer>();
+        Arrays.stream(ranges).forEach(range -> {
+            List<Integer> rangeList = Arrays.stream(range.split("-")).map(Integer::parseInt).collect(Collectors.toList());
+            IntStream.rangeClosed(rangeList.get(0), rangeList.get(rangeList.size() - 1)).forEach(statusCode -> statusSet.add(statusCode));
+        });
+        return statusSet;
     }
 
     private void setField(String key, Object value, int fieldIndex) {

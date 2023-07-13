@@ -96,7 +96,7 @@ public class HttpAsyncConnectorTest {
         externalMetricConfig = new ExternalMetricConfig("metricId-http-01", shutDownPeriod, telemetryEnabled);
 
         defaultHttpSourceConfig = new HttpSourceConfig("http://localhost:8080/test", "", "POST", "{\"key\": \"%s\"}",
-                "customer_id", "", "", "123", "234", false, httpConfigType, "345",
+                "customer_id", "", "", "123", "234", false, null, httpConfigType, "345",
                 headers, outputMapping, "metricId_02", false);
     }
 
@@ -186,7 +186,7 @@ public class HttpAsyncConnectorTest {
     public void shouldCompleteExceptionallyWhenRequestVariableIsInvalid() throws Exception {
         when(defaultDescriptorManager.getDescriptor(inputProtoClasses[0])).thenReturn(TestBookingLogMessage.getDescriptor());
         String invalidRequestVariable = "invalid_variable";
-        defaultHttpSourceConfig = new HttpSourceConfig("http://localhost:8080/test", "", "POST", "{\"key\": \"%s\"}", invalidRequestVariable, "", "", "123", "234", false, httpConfigType, "345", headers, outputMapping, "metricId_02", false);
+        defaultHttpSourceConfig = new HttpSourceConfig("http://localhost:8080/test", "", "POST", "{\"key\": \"%s\"}", invalidRequestVariable, "", "", "123", "234", false, null, httpConfigType, "345", headers, outputMapping, "metricId_02", false);
         when(httpClient.preparePost("http://localhost:8080/test")).thenReturn(boundRequestBuilder);
         when(boundRequestBuilder.setBody("{\"key\": \"123456\"}")).thenReturn(boundRequestBuilder);
         HttpAsyncConnector httpAsyncConnector = new HttpAsyncConnector(defaultHttpSourceConfig, externalMetricConfig, schemaConfig, httpClient, errorReporter, meterStatsManager, defaultDescriptorManager);
@@ -209,7 +209,7 @@ public class HttpAsyncConnectorTest {
     @Test
     public void shouldCompleteExceptionallyWhenEndpointVariableIsEmptyAndRequiredInPattern() throws Exception {
         String emptyRequestVariable = "";
-        defaultHttpSourceConfig = new HttpSourceConfig("http://localhost:8080/test", "", "POST", "{\"key\": \"%s\"}", emptyRequestVariable, "", "", "123", "234", false, httpConfigType, "345", headers, outputMapping, "metricId_02", false);
+        defaultHttpSourceConfig = new HttpSourceConfig("http://localhost:8080/test", "", "POST", "{\"key\": \"%s\"}", emptyRequestVariable, "", "", "123", "234", false, null, httpConfigType, "345", headers, outputMapping, "metricId_02", false);
         when(defaultDescriptorManager.getDescriptor(inputProtoClasses[0])).thenReturn(TestBookingLogMessage.getDescriptor());
         when(httpClient.preparePost("http://localhost:8080/test")).thenReturn(boundRequestBuilder);
         when(boundRequestBuilder.setBody("{\"key\": \"123456\"}")).thenReturn(boundRequestBuilder);
@@ -226,7 +226,7 @@ public class HttpAsyncConnectorTest {
     @Test
     public void shouldEnrichWhenEndpointVariableIsEmptyAndNotRequiredInPattern() throws Exception {
         String emptyRequestVariable = "";
-        defaultHttpSourceConfig = new HttpSourceConfig("http://localhost:8080/test", "", "POST", "{\"key\": \"static\"}", emptyRequestVariable, "", "", "123", "234", false, httpConfigType, "345", headers, outputMapping, "metricId_02", false);
+        defaultHttpSourceConfig = new HttpSourceConfig("http://localhost:8080/test", "", "POST", "{\"key\": \"static\"}", emptyRequestVariable, "", "", "123", "234", false, null, httpConfigType, "345", headers, outputMapping, "metricId_02", false);
         HttpAsyncConnector httpAsyncConnector = new HttpAsyncConnector(defaultHttpSourceConfig, externalMetricConfig, schemaConfig, httpClient, errorReporter, meterStatsManager, defaultDescriptorManager);
 
         when(httpClient.preparePost("http://localhost:8080/test")).thenReturn(boundRequestBuilder);
@@ -246,7 +246,7 @@ public class HttpAsyncConnectorTest {
     @Test
     public void shouldCompleteExceptionallyWhenEndpointPatternIsInvalid() throws Exception {
         String invalidRequestPattern = "{\"key\": \"%\"}";
-        defaultHttpSourceConfig = new HttpSourceConfig("http://localhost:8080/test", "", "POST", invalidRequestPattern, "customer_id", "", "", "123", "234", false, httpConfigType, "345", headers, outputMapping, "metricId_02", false);
+        defaultHttpSourceConfig = new HttpSourceConfig("http://localhost:8080/test", "", "POST", invalidRequestPattern, "customer_id", "", "", "123", "234", false, null, httpConfigType, "345", headers, outputMapping, "metricId_02", false);
         when(defaultDescriptorManager.getDescriptor(inputProtoClasses[0])).thenReturn(TestBookingLogMessage.getDescriptor());
         when(httpClient.preparePost("http://localhost:8080/test")).thenReturn(boundRequestBuilder);
         when(boundRequestBuilder.setBody("{\"key\": \"123456\"}")).thenReturn(boundRequestBuilder);
@@ -261,7 +261,7 @@ public class HttpAsyncConnectorTest {
 
     @Test
     public void shouldGetDescriptorFromOutputProtoIfTypeNotGiven() throws Exception {
-        defaultHttpSourceConfig = new HttpSourceConfig("http://localhost:8080/test", "", "POST", "{\"key\": \"%s\"}", "customer_id", "", "", "123", "234", false, null, "345", headers, outputMapping, "metricId_02", false);
+        defaultHttpSourceConfig = new HttpSourceConfig("http://localhost:8080/test", "", "POST", "{\"key\": \"%s\"}", "customer_id", "", "", "123", "234", false, null, null, "345", headers, outputMapping, "metricId_02", false);
         when(httpClient.preparePost("http://localhost:8080/test")).thenReturn(boundRequestBuilder);
         when(boundRequestBuilder.setBody("{\"key\": \"123456\"}")).thenReturn(boundRequestBuilder);
         when(stencilClientOrchestrator.getStencilClient()).thenReturn(stencilClient);
@@ -276,7 +276,7 @@ public class HttpAsyncConnectorTest {
 
     @Test
     public void shouldGetDescriptorFromTypeIfGiven() throws Exception {
-        defaultHttpSourceConfig = new HttpSourceConfig("http://localhost:8080/test", "", "POST", "{\"key\": \"%s\"}", "customer_id", "", "", "123", "234", false, "TestBookingLogMessage", "345", headers, outputMapping, "metricId_02", false);
+        defaultHttpSourceConfig = new HttpSourceConfig("http://localhost:8080/test", "", "POST", "{\"key\": \"%s\"}", "customer_id", "", "", "123", "234", false, null, "TestBookingLogMessage", "345", headers, outputMapping, "metricId_02", false);
         when(httpClient.preparePost("http://localhost:8080/test")).thenReturn(boundRequestBuilder);
         when(boundRequestBuilder.setBody("{\"key\": \"123456\"}")).thenReturn(boundRequestBuilder);
         when(stencilClientOrchestrator.getStencilClient()).thenReturn(stencilClient);
@@ -292,7 +292,7 @@ public class HttpAsyncConnectorTest {
     @Test
     public void shouldCompleteExceptionallyWhenEndpointPatternIsIncompatible() throws Exception {
         String invalidRequestPattern = "{\"key\": \"%d\"}";
-        defaultHttpSourceConfig = new HttpSourceConfig("http://localhost:8080/test", "", "POST", invalidRequestPattern, "customer_id", "", "", "123", "234", false, httpConfigType, "345", headers, outputMapping, "metricId_02", false);
+        defaultHttpSourceConfig = new HttpSourceConfig("http://localhost:8080/test", "", "POST", invalidRequestPattern, "customer_id", "", "", "123", "234", false, null, httpConfigType, "345", headers, outputMapping, "metricId_02", false);
         when(defaultDescriptorManager.getDescriptor(inputProtoClasses[0])).thenReturn(TestBookingLogMessage.getDescriptor());
         when(httpClient.preparePost("http://localhost:8080/test")).thenReturn(boundRequestBuilder);
         when(boundRequestBuilder.setBody("{\"key\": \"123456\"}")).thenReturn(boundRequestBuilder);
@@ -343,7 +343,7 @@ public class HttpAsyncConnectorTest {
         when(stencilClientOrchestrator.getStencilClient()).thenReturn(stencilClient);
         when(defaultDescriptorManager.getDescriptor(inputProtoClasses[0])).thenReturn(TestBookingLogMessage.getDescriptor());
         HttpSourceConfig dynamicHeaderHttpSourceConfig = new HttpSourceConfig("http://localhost:8080/test", "", "POST", "{\"key\": \"%s\"}",
-                "customer_id", "{\"X_KEY\": \"%s\"}", "customer_id", "123", "234", false, httpConfigType, "345",
+                "customer_id", "{\"X_KEY\": \"%s\"}", "customer_id", "123", "234", false, null, httpConfigType, "345",
                 headers, outputMapping, "metricId_02", false);
         HttpAsyncConnector httpAsyncConnector = new HttpAsyncConnector(dynamicHeaderHttpSourceConfig, externalMetricConfig, schemaConfig, httpClient, errorReporter, meterStatsManager, defaultDescriptorManager);
 
@@ -361,7 +361,7 @@ public class HttpAsyncConnectorTest {
         when(stencilClientOrchestrator.getStencilClient()).thenReturn(stencilClient);
         when(defaultDescriptorManager.getDescriptor(inputProtoClasses[0])).thenReturn(TestBookingLogMessage.getDescriptor());
         HttpSourceConfig dynamicHeaderHttpSourceConfig = new HttpSourceConfig("http://localhost:8080/test", "", "POST", "{\"key\": \"%s\"}",
-                "customer_id", "{\"X_KEY\": \"%s\"}", "customer_ids", "123", "234", false, httpConfigType, "345",
+                "customer_id", "{\"X_KEY\": \"%s\"}", "customer_ids", "123", "234", false, null, httpConfigType, "345",
                 headers, outputMapping, "metricId_02", false);
         HttpAsyncConnector httpAsyncConnector = new HttpAsyncConnector(dynamicHeaderHttpSourceConfig, externalMetricConfig, schemaConfig, httpClient, errorReporter, meterStatsManager, defaultDescriptorManager);
         httpAsyncConnector.open(flinkConfiguration);
@@ -376,7 +376,7 @@ public class HttpAsyncConnectorTest {
     public void shouldCompleteExceptionallyWhenHeaderVariableIsInvalid() throws Exception {
         when(defaultDescriptorManager.getDescriptor(inputProtoClasses[0])).thenReturn(TestBookingLogMessage.getDescriptor());
         String invalidHeaderVariable = "invalid_variable";
-        defaultHttpSourceConfig = new HttpSourceConfig("http://localhost:8080/test", "", "POST", "{\"key\": \"%s\"}", "customer_id", "{\"key\": \"%s\"}", invalidHeaderVariable, "123", "234", false, httpConfigType, "345", headers, outputMapping, "metricId_02", false);
+        defaultHttpSourceConfig = new HttpSourceConfig("http://localhost:8080/test", "", "POST", "{\"key\": \"%s\"}", "customer_id", "{\"key\": \"%s\"}", invalidHeaderVariable, "123", "234", false, null, httpConfigType, "345", headers, outputMapping, "metricId_02", false);
         when(httpClient.preparePost("http://localhost:8080/test")).thenReturn(boundRequestBuilder);
         when(boundRequestBuilder.setBody("{\"key\": \"123456\"}")).thenReturn(boundRequestBuilder);
         HttpAsyncConnector httpAsyncConnector = new HttpAsyncConnector(defaultHttpSourceConfig, externalMetricConfig, schemaConfig, httpClient, errorReporter, meterStatsManager, defaultDescriptorManager);
@@ -399,7 +399,7 @@ public class HttpAsyncConnectorTest {
     @Test
     public void shouldCompleteExceptionallyWhenHeaderPatternIsIncompatible() throws Exception {
         String invalidHeaderPattern = "{\"key\": \"%d\"}";
-        defaultHttpSourceConfig = new HttpSourceConfig("http://localhost:8080/test", "", "POST", "{\"key\": \"%s\"}", "customer_id", invalidHeaderPattern, "customer_id", "123", "234", false, httpConfigType, "345", headers, outputMapping, "metricId_02", false);
+        defaultHttpSourceConfig = new HttpSourceConfig("http://localhost:8080/test", "", "POST", "{\"key\": \"%s\"}", "customer_id", invalidHeaderPattern, "customer_id", "123", "234", false, null, httpConfigType, "345", headers, outputMapping, "metricId_02", false);
         when(defaultDescriptorManager.getDescriptor(inputProtoClasses[0])).thenReturn(TestBookingLogMessage.getDescriptor());
         when(httpClient.preparePost("http://localhost:8080/test")).thenReturn(boundRequestBuilder);
         when(boundRequestBuilder.setBody("{\"key\": \"123456\"}")).thenReturn(boundRequestBuilder);
@@ -414,7 +414,17 @@ public class HttpAsyncConnectorTest {
 
     @Test
     public void shouldThrowExceptionInTimeoutIfFailOnErrorIsTrue() throws Exception {
-        HttpSourceConfig httpSourceConfig = new HttpSourceConfig("http://localhost:8080/test", "", "POST", "{\"key\": \"%s\"}", "customer_id", "", "", "123", "234", true, httpConfigType, "345", headers, outputMapping, "metricId_02", false);
+        HttpSourceConfig httpSourceConfig = new HttpSourceConfig("http://localhost:8080/test", "", "POST", "{\"key\": \"%s\"}", "customer_id", "", "", "123", "234", true, null, httpConfigType, "345", headers, outputMapping, "metricId_02", false);
+        HttpAsyncConnector httpAsyncConnector = new HttpAsyncConnector(httpSourceConfig, externalMetricConfig, schemaConfig, httpClient, errorReporter, meterStatsManager, defaultDescriptorManager);
+
+        httpAsyncConnector.timeout(streamData, resultFuture);
+
+        verify(resultFuture, times(1)).completeExceptionally(any(TimeoutException.class));
+    }
+
+    @Test
+    public void shouldThrowExceptionInTimeoutIfFailOnErrorIsTrueWithFailOnErrorCodeRange() throws Exception {
+        HttpSourceConfig httpSourceConfig = new HttpSourceConfig("http://localhost:8080/test", "", "POST", "{\"key\": \"%s\"}", "customer_id", "", "", "123", "234", true, "400-600", httpConfigType, "345", headers, outputMapping, "metricId_02", false);
         HttpAsyncConnector httpAsyncConnector = new HttpAsyncConnector(httpSourceConfig, externalMetricConfig, schemaConfig, httpClient, errorReporter, meterStatsManager, defaultDescriptorManager);
 
         httpAsyncConnector.timeout(streamData, resultFuture);
@@ -424,7 +434,17 @@ public class HttpAsyncConnectorTest {
 
     @Test
     public void shouldReportFatalInTimeoutIfFailOnErrorIsTrue() throws Exception {
-        HttpSourceConfig httpSourceConfig = new HttpSourceConfig("http://localhost:8080/test", "", "POST", "{\"key\": \"%s\"}", "customer_id", "", "", "123", "234", true, httpConfigType, "345", headers, outputMapping, "metricId_02", false);
+        HttpSourceConfig httpSourceConfig = new HttpSourceConfig("http://localhost:8080/test", "", "POST", "{\"key\": \"%s\"}", "customer_id", "", "", "123", "234", true, null, httpConfigType, "345", headers, outputMapping, "metricId_02", false);
+        HttpAsyncConnector httpAsyncConnector = new HttpAsyncConnector(httpSourceConfig, externalMetricConfig, schemaConfig, httpClient, errorReporter, meterStatsManager, defaultDescriptorManager);
+
+        httpAsyncConnector.timeout(streamData, resultFuture);
+
+        verify(errorReporter, times(1)).reportFatalException(any(TimeoutException.class));
+    }
+
+    @Test
+    public void shouldReportFatalInTimeoutIfFailOnErrorIsTrueWithFailOnErrorCodeRange() throws Exception {
+        HttpSourceConfig httpSourceConfig = new HttpSourceConfig("http://localhost:8080/test", "", "POST", "{\"key\": \"%s\"}", "customer_id", "", "", "123", "234", true, "401-600", httpConfigType, "345", headers, outputMapping, "metricId_02", false);
         HttpAsyncConnector httpAsyncConnector = new HttpAsyncConnector(httpSourceConfig, externalMetricConfig, schemaConfig, httpClient, errorReporter, meterStatsManager, defaultDescriptorManager);
 
         httpAsyncConnector.timeout(streamData, resultFuture);
@@ -434,7 +454,7 @@ public class HttpAsyncConnectorTest {
 
     @Test
     public void shouldReportNonFatalInTimeoutIfFailOnErrorIsFalse() {
-        HttpSourceConfig httpSourceConfig = new HttpSourceConfig("http://localhost:8080/test", "", "POST", "{\"key\": \"%s\"}", "customer_id", "", "", "123", "234", false, httpConfigType, "345", headers, outputMapping, "metricId_02", false);
+        HttpSourceConfig httpSourceConfig = new HttpSourceConfig("http://localhost:8080/test", "", "POST", "{\"key\": \"%s\"}", "customer_id", "", "", "123", "234", false, null, httpConfigType, "345", headers, outputMapping, "metricId_02", false);
         HttpAsyncConnector httpAsyncConnector = new HttpAsyncConnector(httpSourceConfig, externalMetricConfig, schemaConfig, httpClient, errorReporter, meterStatsManager, defaultDescriptorManager);
 
         httpAsyncConnector.timeout(streamData, resultFuture);
@@ -454,7 +474,7 @@ public class HttpAsyncConnectorTest {
     public void shouldThrowExceptionIfUnsupportedHttpVerbProvided() throws Exception {
         when(defaultDescriptorManager.getDescriptor(inputProtoClasses[0])).thenReturn(TestBookingLogMessage.getDescriptor());
 
-        HttpSourceConfig httpSourceConfig = new HttpSourceConfig("http://localhost:8080/test", "", "PATCH", "{\"key\": \"%s\"}", "customer_id", "", "", "123", "234", true, httpConfigType, "345", headers, outputMapping, "metricId_02", false);
+        HttpSourceConfig httpSourceConfig = new HttpSourceConfig("http://localhost:8080/test", "", "PATCH", "{\"key\": \"%s\"}", "customer_id", "", "", "123", "234", true, null, httpConfigType, "345", headers, outputMapping, "metricId_02", false);
         HttpAsyncConnector httpAsyncConnector = new HttpAsyncConnector(httpSourceConfig, externalMetricConfig, schemaConfig, httpClient, errorReporter, meterStatsManager, defaultDescriptorManager);
 
         httpAsyncConnector.open(flinkConfiguration);
