@@ -7,6 +7,9 @@ buildscript {
         maven {
             url "https://plugins.gradle.org/m2/"
         }
+        maven {
+            url 'https://repo1.maven.org/maven2'
+        }
     }
     dependencies {
         classpath 'com.github.jengelman.gradle.plugins:shadow:6.1.0'
@@ -72,7 +75,7 @@ dependencies {
         exclude group: 'com.google.protobuf', module: 'protobuf-java-util'
         exclude group: "io.grpc"
     }
-    minimalJar ('com.gotocompany:stencil:0.6.0') {
+    minimalJar('com.gotocompany:stencil:0.6.0') {
         exclude group: 'com.google.protobuf', module: 'protobuf-java'
         exclude group: 'com.google.protobuf', module: 'protobuf-java-util'
     }
@@ -92,7 +95,7 @@ dependencies {
     dependenciesJar(group: 'com.google.cloud', name: 'google-cloud-bigquerystorage', version: '2.39.1') {
         exclude group: "io.grpc"
     }
-    dependenciesJar(group: 'com.google.cloud', name: 'google-cloud-bigtable', version: '2.24.1'){
+    dependenciesJar(group: 'com.google.cloud', name: 'google-cloud-bigtable', version: '2.24.1') {
         exclude group: "io.grpc"
     }
     dependenciesJar(group: 'com.google.cloud', name: 'google-cloud-bigquery', version: '2.29.0') {
@@ -116,6 +119,7 @@ dependencies {
     testImplementation 'com.github.tomakehurst:wiremock-standalone:2.27.0'
     testImplementation 'org.jmockit:jmockit:1.25'
     testImplementation 'org.mockito:mockito-core:2.25.1'
+    testImplementation 'io.grpc:grpc-all:1.55.1'
     testImplementation 'org.powermock:powermock-module-junit4:2.0.0-beta.5'
     testImplementation 'org.powermock:powermock-api-mockito2:2.0.0-beta.5'
     testImplementation 'com.google.guava:guava:30.0-jre'
