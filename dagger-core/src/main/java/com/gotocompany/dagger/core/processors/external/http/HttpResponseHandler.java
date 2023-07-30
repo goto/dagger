@@ -99,6 +99,7 @@ public class HttpResponseHandler extends AsyncCompletionHandler<Object> {
 
     @Override
     public void onThrowable(Throwable t) {
+        t.printStackTrace();
         meterStatsManager.markEvent(ExternalSourceAspects.OTHER_ERRORS);
         failureHandler(t.getMessage(), httpSourceConfig.isFailOnErrors());
     }
@@ -147,10 +148,10 @@ public class HttpResponseHandler extends AsyncCompletionHandler<Object> {
         if (statusCode == 0 || StringUtil.isNullOrEmpty(httpSourceConfig.getExcludeFailOnErrorsCodeRange())) {
             return true;
         }
-        return !getFailOnErrorCodeRanges(httpSourceConfig.getExcludeFailOnErrorsCodeRange()).contains(statusCode);
+        return !getExcludeFailOnErrorCodes(httpSourceConfig.getExcludeFailOnErrorsCodeRange()).contains(statusCode);
     }
 
-    private HashSet<Integer> getFailOnErrorCodeRanges(String input) {
+    private HashSet<Integer> getExcludeFailOnErrorCodes(String input) {
         String[] ranges = input.split(",");
         HashSet<Integer> statusSet = new HashSet<Integer>();
         Arrays.stream(ranges).forEach(range -> {
