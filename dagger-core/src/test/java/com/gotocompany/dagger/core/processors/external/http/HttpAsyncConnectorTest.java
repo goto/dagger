@@ -26,10 +26,7 @@ import org.junit.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
+import java.util.*;
 import java.util.concurrent.TimeoutException;
 
 import static org.junit.Assert.*;
@@ -137,6 +134,33 @@ public class HttpAsyncConnectorTest {
         httpAsyncConnector.open(flinkConfiguration);
 
         verify(meterStatsManager, times(1)).register("source_metricId", "HTTP.metricId-http-01", ExternalSourceAspects.values());
+    }
+
+    @Test
+    public void shouldReturnEmptySetIfFailOnErrorsExclusionCodeRangeNULL() throws Exception {
+        HttpAsyncConnector httpAsyncConnector = new HttpAsyncConnector(defaultHttpSourceConfig, externalMetricConfig, schemaConfig, httpClient, errorReporter, meterStatsManager, defaultDescriptorManager);
+        Set<Integer> failOnErrorsExclusionSet = httpAsyncConnector.getFailOnErrorsExclusionSet(null);
+        assertTrue(failOnErrorsExclusionSet.isEmpty());
+    }
+
+    @Test
+    public void shouldReturnEmptySetIfFailOnErrorsExclusionCodeRangeEmpty() throws Exception {
+        HttpAsyncConnector httpAsyncConnector = new HttpAsyncConnector(defaultHttpSourceConfig, externalMetricConfig, schemaConfig, httpClient, errorReporter, meterStatsManager, defaultDescriptorManager);
+        Set<Integer> failOnErrorsExclusionSet = httpAsyncConnector.getFailOnErrorsExclusionSet("");
+        assertTrue(failOnErrorsExclusionSet.isEmpty());
+    }
+
+    @Test
+    public void shouldReturnSetIfFailOnErrorsExclusionCodeRangeProvided() throws Exception {
+        HttpAsyncConnector httpAsyncConnector = new HttpAsyncConnector(defaultHttpSourceConfig, externalMetricConfig, schemaConfig, httpClient, errorReporter, meterStatsManager, defaultDescriptorManager);
+        Set<Integer> failOnErrorsExclusionSet = httpAsyncConnector.getFailOnErrorsExclusionSet("400,410-499");
+        assertTrue(failOnErrorsExclusionSet.contains(400));
+        assertFalse(failOnErrorsExclusionSet.contains(401));
+        assertFalse(failOnErrorsExclusionSet.contains(409));
+        assertTrue(failOnErrorsExclusionSet.contains(410));
+        assertTrue(failOnErrorsExclusionSet.contains(429));
+        assertTrue(failOnErrorsExclusionSet.contains(499));
+        assertTrue(failOnErrorsExclusionSet.size() == 91);
     }
 
     @Test
@@ -423,7 +447,7 @@ public class HttpAsyncConnectorTest {
     }
 
     @Test
-    public void shouldThrowExceptionInTimeoutIfFailOnErrorIsTrueWithFailOnErrorCodeRange() throws Exception {
+    public void shouldThrowExceptionInTimeoutIfFailOnErrorIsTrueWithExcludeFailOnErrorCodeRange() throws Exception {
         HttpSourceConfig httpSourceConfig = new HttpSourceConfig("http://localhost:8080/test", "", "POST", "{\"key\": \"%s\"}", "customer_id", "", "", "123", "234", true, "400-600", httpConfigType, "345", headers, outputMapping, "metricId_02", false);
         HttpAsyncConnector httpAsyncConnector = new HttpAsyncConnector(httpSourceConfig, externalMetricConfig, schemaConfig, httpClient, errorReporter, meterStatsManager, defaultDescriptorManager);
 
@@ -443,7 +467,7 @@ public class HttpAsyncConnectorTest {
     }
 
     @Test
-    public void shouldReportFatalInTimeoutIfFailOnErrorIsTrueWithFailOnErrorCodeRange() throws Exception {
+    public void shouldReportFatalInTimeoutIfFailOnErrorIsTrueWithExcludeFailOnErrorCodeRange() throws Exception {
         HttpSourceConfig httpSourceConfig = new HttpSourceConfig("http://localhost:8080/test", "", "POST", "{\"key\": \"%s\"}", "customer_id", "", "", "123", "234", true, "401-600", httpConfigType, "345", headers, outputMapping, "metricId_02", false);
         HttpAsyncConnector httpAsyncConnector = new HttpAsyncConnector(httpSourceConfig, externalMetricConfig, schemaConfig, httpClient, errorReporter, meterStatsManager, defaultDescriptorManager);
 

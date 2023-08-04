@@ -13,7 +13,6 @@ import com.gotocompany.dagger.core.processors.common.PostResponseTelemetry;
 import com.gotocompany.dagger.core.processors.common.RowManager;
 import com.jayway.jsonpath.JsonPath;
 import com.jayway.jsonpath.PathNotFoundException;
-import io.netty.util.internal.StringUtil;
 import org.apache.flink.streaming.api.functions.async.ResultFuture;
 import org.apache.flink.types.Row;
 import org.asynchttpclient.AsyncCompletionHandler;
@@ -25,12 +24,8 @@ import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Map;
 import java.util.Collections;
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.List;
+import java.util.Set;
 import java.util.regex.Pattern;
-import java.util.stream.Collectors;
-import java.util.stream.IntStream;
 
 /**
  * The Http response handler.
@@ -44,6 +39,7 @@ public class HttpResponseHandler extends AsyncCompletionHandler<Object> {
     private Descriptors.Descriptor descriptor;
     private ResultFuture<Row> resultFuture;
     private HttpSourceConfig httpSourceConfig;
+    private Set<Integer> failOnErrorsExclusionSet;
     private MeterStatsManager meterStatsManager;
     private Instant startTime;
     private ErrorReporter errorReporter;
@@ -53,20 +49,22 @@ public class HttpResponseHandler extends AsyncCompletionHandler<Object> {
     /**
      * Instantiates a new Http response handler.
      *
-     * @param httpSourceConfig      the http source config
-     * @param meterStatsManager     the meter stats manager
-     * @param rowManager            the row manager
-     * @param columnNameManager     the column name manager
-     * @param descriptor            the descriptor
-     * @param resultFuture          the result future
-     * @param errorReporter         the error reporter
-     * @param postResponseTelemetry the post response telemetry
+     * @param httpSourceConfig          the http source config
+     * @param failOnErrorsExclusionSet  the fail on error exclusion set
+     * @param meterStatsManager         the meter stats manager
+     * @param rowManager                the row manager
+     * @param columnNameManager         the column name manager
+     * @param descriptor                the descriptor
+     * @param resultFuture              the result future
+     * @param errorReporter             the error reporter
+     * @param postResponseTelemetry     the post response telemetry
      */
-    public HttpResponseHandler(HttpSourceConfig httpSourceConfig, MeterStatsManager meterStatsManager, RowManager rowManager,
+    public HttpResponseHandler(HttpSourceConfig httpSourceConfig, Set<Integer> failOnErrorsExclusionSet, MeterStatsManager meterStatsManager, RowManager rowManager,
                                ColumnNameManager columnNameManager, Descriptors.Descriptor descriptor, ResultFuture<Row> resultFuture,
                                ErrorReporter errorReporter, PostResponseTelemetry postResponseTelemetry) {
 
         this.httpSourceConfig = httpSourceConfig;
+        this.failOnErrorsExclusionSet = failOnErrorsExclusionSet;
         this.meterStatsManager = meterStatsManager;
         this.rowManager = rowManager;
         this.columnNameManager = columnNameManager;
@@ -91,8 +89,7 @@ public class HttpResponseHandler extends AsyncCompletionHandler<Object> {
             successHandler(response);
         } else {
             postResponseTelemetry.validateResponseCode(meterStatsManager, statusCode);
-            boolean shouldFailOnError = (httpSourceConfig.isFailOnErrors() ? shouldFailOnError(statusCode) : false);
-            failureHandler("Received status code : " + statusCode, shouldFailOnError);
+            failureHandler("Received status code : " + statusCode, statusCode);
         }
         return response;
     }
@@ -101,7 +98,7 @@ public class HttpResponseHandler extends AsyncCompletionHandler<Object> {
     public void onThrowable(Throwable t) {
         t.printStackTrace();
         meterStatsManager.markEvent(ExternalSourceAspects.OTHER_ERRORS);
-        failureHandler(t.getMessage(), httpSourceConfig.isFailOnErrors());
+        failureHandler(t.getMessage(), 0);
     }
 
     private void successHandler(Response response) {
@@ -130,13 +127,13 @@ public class HttpResponseHandler extends AsyncCompletionHandler<Object> {
      * Failure handler.
      *
      * @param logMessage the log message
-     * @param shouldFailOnErrors should fail on error
+     * @param statusCode the status code
      */
-    public void failureHandler(String logMessage, boolean shouldFailOnErrors) {
+    public void failureHandler(String logMessage, Integer statusCode) {
         postResponseTelemetry.sendFailureTelemetry(meterStatsManager, startTime);
         LOGGER.error(logMessage);
         Exception httpFailureException = new HttpFailureException(logMessage);
-        if (shouldFailOnErrors) {
+        if (shouldFailOnError(statusCode)) {
             reportAndThrowError(httpFailureException);
         } else {
             errorReporter.reportNonFatalException(httpFailureException);
@@ -145,20 +142,10 @@ public class HttpResponseHandler extends AsyncCompletionHandler<Object> {
     }
 
     private boolean shouldFailOnError(Integer statusCode) {
-        if (statusCode == 0 || StringUtil.isNullOrEmpty(httpSourceConfig.getExcludeFailOnErrorsCodeRange())) {
+         if (httpSourceConfig.isFailOnErrors() && (statusCode == 0 || !failOnErrorsExclusionSet.contains(statusCode))) {
             return true;
         }
-        return !getExcludeFailOnErrorCodes(httpSourceConfig.getExcludeFailOnErrorsCodeRange()).contains(statusCode);
-    }
-
-    private HashSet<Integer> getExcludeFailOnErrorCodes(String input) {
-        String[] ranges = input.split(",");
-        HashSet<Integer> statusSet = new HashSet<Integer>();
-        Arrays.stream(ranges).forEach(range -> {
-            List<Integer> rangeList = Arrays.stream(range.split("-")).map(Integer::parseInt).collect(Collectors.toList());
-            IntStream.rangeClosed(rangeList.get(0), rangeList.get(rangeList.size() - 1)).forEach(statusCode -> statusSet.add(statusCode));
-        });
-        return statusSet;
+        return false;
     }
 
     private void setField(String key, Object value, int fieldIndex) {
