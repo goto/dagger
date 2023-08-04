@@ -139,21 +139,33 @@ public class HttpAsyncConnectorTest {
     @Test
     public void shouldReturnEmptySetIfFailOnErrorsExclusionCodeRangeNULL() throws Exception {
         HttpAsyncConnector httpAsyncConnector = new HttpAsyncConnector(defaultHttpSourceConfig, externalMetricConfig, schemaConfig, httpClient, errorReporter, meterStatsManager, defaultDescriptorManager);
-        Set<Integer> failOnErrorsExclusionSet = httpAsyncConnector.getFailOnErrorsExclusionSet(null);
+
+        httpAsyncConnector.open(flinkConfiguration);
+
+        Set<Integer> failOnErrorsExclusionSet = httpAsyncConnector.getFailOnErrorsExclusionSet();
         assertTrue(failOnErrorsExclusionSet.isEmpty());
     }
 
     @Test
     public void shouldReturnEmptySetIfFailOnErrorsExclusionCodeRangeEmpty() throws Exception {
         HttpAsyncConnector httpAsyncConnector = new HttpAsyncConnector(defaultHttpSourceConfig, externalMetricConfig, schemaConfig, httpClient, errorReporter, meterStatsManager, defaultDescriptorManager);
-        Set<Integer> failOnErrorsExclusionSet = httpAsyncConnector.getFailOnErrorsExclusionSet("");
+
+        httpAsyncConnector.open(flinkConfiguration);
+
+        Set<Integer> failOnErrorsExclusionSet = httpAsyncConnector.getFailOnErrorsExclusionSet();
         assertTrue(failOnErrorsExclusionSet.isEmpty());
     }
 
     @Test
     public void shouldReturnSetIfFailOnErrorsExclusionCodeRangeProvided() throws Exception {
+        defaultHttpSourceConfig = new HttpSourceConfig("http://localhost:8080/test", "", "POST", "{\"key\": \"%s\"}",
+                "customer_id", "", "", "123", "234", true, "400,410-499", httpConfigType, "345",
+                headers, outputMapping, "metricId_02", false);
         HttpAsyncConnector httpAsyncConnector = new HttpAsyncConnector(defaultHttpSourceConfig, externalMetricConfig, schemaConfig, httpClient, errorReporter, meterStatsManager, defaultDescriptorManager);
-        Set<Integer> failOnErrorsExclusionSet = httpAsyncConnector.getFailOnErrorsExclusionSet("400,410-499");
+
+        httpAsyncConnector.open(flinkConfiguration);
+
+        Set<Integer> failOnErrorsExclusionSet = httpAsyncConnector.getFailOnErrorsExclusionSet();
         assertTrue(failOnErrorsExclusionSet.contains(400));
         assertFalse(failOnErrorsExclusionSet.contains(401));
         assertFalse(failOnErrorsExclusionSet.contains(409));
