@@ -245,10 +245,10 @@ public class GrpcSourceConfig implements Serializable, SourceConfig {
     /**
      * Sets grpc arg keepalive timeout ms.
      *
-     * @param grpcArgKeepaliveTimeOutMs the grpc arg keepalive timeout ms
+     * @param grpcArgKeepaliveTimeoutMs the grpc arg keepalive timeout ms
      */
-    public void setGrpcArgKeepaliveTimeOutMs(String grpcArgKeepaliveTimeOutMs) {
-        this.grpcArgKeepaliveTimeoutMs = grpcArgKeepaliveTimeOutMs;
+    public void setGrpcArgKeepaliveTimeoutMs(String grpcArgKeepaliveTimeoutMs) {
+        this.grpcArgKeepaliveTimeoutMs = grpcArgKeepaliveTimeoutMs;
     }
 
     /**
