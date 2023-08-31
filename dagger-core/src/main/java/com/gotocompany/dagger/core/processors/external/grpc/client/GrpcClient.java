@@ -99,7 +99,7 @@ public class GrpcClient {
      * Close channel.
      */
     public void close() {
-        if (decoratedChannel != null && decoratedChannel.isShutdown()) {
+        if (decoratedChannel != null && !decoratedChannel.isShutdown()) {
             decoratedChannel.shutdown();
         }
         this.decoratedChannel = null;
