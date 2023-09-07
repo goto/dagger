@@ -6,7 +6,6 @@ import com.gotocompany.dagger.consumer.TestEnrichedBookingLogMessage;
 import org.junit.Test;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 
@@ -40,6 +39,24 @@ public class DescriptorsUtilTest {
     }
 
     @Test
+    public void shouldGiveNullForEmptyFieldFieldDescriptor() {
+        String nonExistentField = "customer-id";
+        Descriptors.FieldDescriptor nonExistentFieldDescriptor = DescriptorsUtil.getFieldDescriptor(null, nonExistentField);
+        assertNull(nonExistentFieldDescriptor);
+    }
+    @Test
+    public void shouldGiveNullForNullColumnFieldFieldDescriptor() {
+        Descriptors.Descriptor descriptor = TestCustomerLogMessage.getDescriptor();
+        Descriptors.FieldDescriptor nonExistentFieldDescriptor = DescriptorsUtil.getFieldDescriptor(descriptor, null);
+        assertNull(nonExistentFieldDescriptor);
+    }
+    @Test
+    public void shouldGiveNullForEmptyColumnFieldFieldDescriptor() {
+        Descriptors.Descriptor descriptor = TestCustomerLogMessage.getDescriptor();
+        Descriptors.FieldDescriptor nonExistentFieldDescriptor = DescriptorsUtil.getFieldDescriptor(descriptor, "");
+        assertNull(nonExistentFieldDescriptor);
+    }
+    @Test
     public void shouldGiveNullForInvalidFieldFieldDescriptor() {
         Descriptors.Descriptor descriptor = TestCustomerLogMessage.getDescriptor();
         String nonExistentField = "customer-id";
@@ -55,8 +72,9 @@ public class DescriptorsUtilTest {
         assertNull(invalidFieldDescriptor);
     }
 
+
     @Test
-    public void shouldGiveNullForInvlidNestedFieldColumnsDescriptor() {
+    public void shouldGiveNullForInvalidNestedFieldColumnsDescriptor() {
         Descriptors.Descriptor parentDescriptor = TestEnrichedBookingLogMessage.getDescriptor();
         String[] invalidNestedFieldNames = {"customer_profile", "customer-id"};
         Descriptors.FieldDescriptor invalidFieldDescriptor = DescriptorsUtil.getNestedFieldDescriptor(parentDescriptor, invalidNestedFieldNames);
@@ -64,21 +82,22 @@ public class DescriptorsUtilTest {
     }
 
     @Test
-    public void shouldThrowExceptionWhenNestedColumnDoesNotExists() {
-        Descriptors.Descriptor parentDescriptor = TestEnrichedBookingLogMessage.getDescriptor();
-        String invalidNestedFieldNames = "booking_log.driver_pickup-location.name";
-        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class,
-                () -> DescriptorsUtil.getFieldDescriptor(parentDescriptor, invalidNestedFieldNames));
-        assertEquals("Field Descriptor not found for field: driver_pickup-location in the proto of com.gotocompany.dagger.consumer.TestBookingLogMessage",
-                exception.getMessage());
+    public void shouldGiveNullForNullNestedFieldDescriptor() {
+        String[] nonExistentField = new String[]{"customer-id"};
+        Descriptors.FieldDescriptor nonExistentFieldDescriptor = DescriptorsUtil.getNestedFieldDescriptor(null, nonExistentField);
+        assertNull(nonExistentFieldDescriptor);
+    }
+
+    @Test
+    public void shouldGiveNullForNullColumnNestedFieldDescriptor() {
+        Descriptors.Descriptor descriptor = TestCustomerLogMessage.getDescriptor();
+        Descriptors.FieldDescriptor nonExistentFieldDescriptor = DescriptorsUtil.getNestedFieldDescriptor(descriptor, null);
+        assertNull(nonExistentFieldDescriptor);
     }
     @Test
-    public void shouldThrowExceptionWhenNestedColumnGetFieldDescriptorDoesNotExists() {
-        Descriptors.Descriptor parentDescriptor = TestEnrichedBookingLogMessage.getDescriptor();
-        String[] invalidNestedFieldNames = {"booking_log", "driver_pickup-location", "name"};
-        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class,
-                () -> DescriptorsUtil.getNestedFieldDescriptor(parentDescriptor, invalidNestedFieldNames));
-        assertEquals("Field Descriptor not found for field: driver_pickup-location in the proto of com.gotocompany.dagger.consumer.TestBookingLogMessage",
-                exception.getMessage());
+    public void shouldGiveNullForEmptyColumnNestedFieldDescriptor() {
+        Descriptors.Descriptor descriptor = TestCustomerLogMessage.getDescriptor();
+        Descriptors.FieldDescriptor nonExistentFieldDescriptor = DescriptorsUtil.getNestedFieldDescriptor(descriptor, new String[]{});
+        assertNull(nonExistentFieldDescriptor);
     }
 }

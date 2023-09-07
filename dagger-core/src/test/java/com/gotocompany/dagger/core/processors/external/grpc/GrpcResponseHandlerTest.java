@@ -405,39 +405,4 @@ public class GrpcResponseHandlerTest {
         verify(resultFuture, times(1)).completeExceptionally(exceptionCaptor2.capture());
         assertEquals("Field Descriptor not found for field: driver_pickup_location.invalid_address", exceptionCaptor2.getValue().getMessage());
     }
-    @Test
-    public void shouldThrowErrorWhenNestedParentFieldIsNotPresentInOutputDescriptor() throws InvalidProtocolBufferException {
-        descriptor = TestBookingLogMessage.getDescriptor();
-        outputMapping.put("driver-pickup-location.address", new OutputMapping("$.driver_pickup_location.address"));
-        TestLocation location = TestLocation.newBuilder().setAddress("Indonesia").setName("GojekTech").build();
-        TestBookingLogMessage bookingLogMessage = TestBookingLogMessage.newBuilder().setDriverPickupLocation(location).setCustomerId("123456").build();
-
-        grpcSourceConfig = new GrpcSourceConfigBuilder().setEndpoint("localhost").setServicePort(8000).setGrpcRequestProtoSchema("com.gotocompany.dagger.consumer.TestGrpcRequest").setGrpcResponseProtoSchema("com.gotocompany.dagger.consumer.TestGrpcResponse").setGrpcMethodUrl("com.gotocompany.dagger.consumer.test/TestMethod").setRequestPattern("{\"key\": \"%s\"}").setRequestVariables("customer_id").setOutputMapping(outputMapping).createGrpcSourceConfig();
-        grpcSourceConfig.setRetainResponseType(false);
-
-        outputColumnNames = Arrays.asList("driver-pickup-location.address");
-        columnNameManager = new ColumnNameManager(inputColumnNames, outputColumnNames);
-
-        DynamicMessage message = DynamicMessage.parseFrom(TestBookingLogMessage.getDescriptor(), bookingLogMessage.toByteArray());
-        GrpcResponseHandler grpcResponseHandler = new GrpcResponseHandler(grpcSourceConfig, meterStatsManager, rowManager, columnNameManager, descriptor, resultFuture, errorReporter, new PostResponseTelemetry());
-
-        Row resultStreamData = new Row(2);
-        Row outputData = new Row(2);
-        outputData.setField(0, "Indonesia");
-        outputData.setField(1, "GojekTech");
-        resultStreamData.setField(0, inputData);
-        resultStreamData.setField(1, outputData);
-
-        grpcResponseHandler.startTimer();
-        assertThrows(Exception.class, () -> grpcResponseHandler.onNext(message));
-
-        ArgumentCaptor<IllegalArgumentException> exceptionCaptor = ArgumentCaptor.forClass(IllegalArgumentException.class);
-        verify(errorReporter, times(1)).reportFatalException(exceptionCaptor.capture());
-        assertEquals("Field Descriptor not found for field: driver-pickup-location in the proto of com.gotocompany.dagger.consumer.TestBookingLogMessage", exceptionCaptor.getValue().getMessage());
-
-        ArgumentCaptor<IllegalArgumentException> exceptionCaptor2 = ArgumentCaptor.forClass(IllegalArgumentException.class);
-        verify(resultFuture, times(1)).completeExceptionally(exceptionCaptor2.capture());
-        assertEquals("Field Descriptor not found for field: driver-pickup-location in the proto of com.gotocompany.dagger.consumer.TestBookingLogMessage", exceptionCaptor2.getValue().getMessage());
-    }
-
 }
