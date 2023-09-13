@@ -1,18 +1,19 @@
 package com.gotocompany.dagger.common.serde.typehandler.repeated;
 
-import com.gotocompany.dagger.common.core.FieldDescriptorCache;
-import org.apache.flink.api.common.typeinfo.TypeInformation;
-import org.apache.flink.api.common.typeinfo.Types;
-import org.apache.flink.api.java.typeutils.ObjectArrayTypeInfo;
-
 import com.google.protobuf.Descriptors;
 import com.google.protobuf.DynamicMessage;
 import com.google.protobuf.InvalidProtocolBufferException;
+import com.gotocompany.dagger.common.core.FieldDescriptorCache;
+import com.gotocompany.dagger.common.exceptions.serde.EnumFieldNotFoundException;
 import com.gotocompany.dagger.consumer.TestBookingLogMessage;
 import com.gotocompany.dagger.consumer.TestEnumMessage;
 import com.gotocompany.dagger.consumer.TestRepeatedEnumMessage;
+import org.apache.flink.api.common.typeinfo.TypeInformation;
+import org.apache.flink.api.common.typeinfo.Types;
+import org.apache.flink.api.java.typeutils.ObjectArrayTypeInfo;
 import org.apache.parquet.example.data.simple.SimpleGroup;
 import org.apache.parquet.schema.GroupType;
+import org.junit.Assert;
 import org.junit.Test;
 
 import java.util.ArrayList;
@@ -27,6 +28,7 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
 public class RepeatedEnumHandlerTest {
+
     @Test
     public void shouldReturnTrueIfRepeatedEnumFieldDescriptorIsPassed() {
         Descriptors.FieldDescriptor repeatedEnumFieldDescriptor = TestRepeatedEnumMessage.getDescriptor().findFieldByName("test_enums");
@@ -49,15 +51,6 @@ public class RepeatedEnumHandlerTest {
         RepeatedEnumHandler repeatedEnumHandler = new RepeatedEnumHandler(otherFieldDescriptor);
 
         assertFalse(repeatedEnumHandler.canHandle());
-    }
-
-    @Test
-    public void shouldReturnTheSameBuilderWithoutSettingAnyValue() {
-        Descriptors.FieldDescriptor repeatedEnumFieldDescriptor = TestRepeatedEnumMessage.getDescriptor().findFieldByName("test_enums");
-        RepeatedEnumHandler repeatedEnumHandler = new RepeatedEnumHandler(repeatedEnumFieldDescriptor);
-        DynamicMessage.Builder builder = DynamicMessage.newBuilder(repeatedEnumFieldDescriptor.getContainingType());
-
-        assertEquals(Collections.EMPTY_LIST, repeatedEnumHandler.transformToProtoBuilder(builder, 123).getField(repeatedEnumFieldDescriptor));
     }
 
     @Test
@@ -219,5 +212,81 @@ public class RepeatedEnumHandlerTest {
         String[] actualEnumArray = (String[]) repeatedEnumHandler.transformFromParquet(simpleGroup);
 
         assertArrayEquals(new String[0], actualEnumArray);
+    }
+
+    @Test
+    public void shouldReturnSameBuilderIfFieldIsDifferentType() {
+        Descriptors.FieldDescriptor otherFieldDescriptor = TestBookingLogMessage.getDescriptor().findFieldByName("order_number");
+        DynamicMessage.Builder builder = DynamicMessage.newBuilder(TestBookingLogMessage.getDescriptor());
+        RepeatedEnumHandler repeatedEnumHandler = new RepeatedEnumHandler(otherFieldDescriptor);
+
+        repeatedEnumHandler.transformToProtoBuilder(builder, "abc");
+        assertEquals("", builder.getField(otherFieldDescriptor));
+    }
+
+    @Test
+    public void shouldReturnSameBuilderIfFieldIsSetAsNull() {
+        Descriptors.FieldDescriptor descriptor = TestRepeatedEnumMessage.getDescriptor().findFieldByName("test_enums");
+        DynamicMessage.Builder builder = DynamicMessage.newBuilder(TestRepeatedEnumMessage.getDescriptor());
+
+        RepeatedEnumHandler repeatedEnumHandler = new RepeatedEnumHandler(descriptor);
+
+        repeatedEnumHandler.transformToProtoBuilder(builder, null);
+        assertEquals(Collections.emptyList(), builder.getField(descriptor));
+    }
+
+    @Test
+    public void shouldSetValueIfValueIsArray() {
+        Descriptors.FieldDescriptor descriptor = TestRepeatedEnumMessage.getDescriptor().findFieldByName("test_enums");
+        DynamicMessage.Builder builder = DynamicMessage.newBuilder(TestRepeatedEnumMessage.getDescriptor());
+
+        RepeatedEnumHandler repeatedEnumHandler = new RepeatedEnumHandler(descriptor);
+        String[] a = {"FIRST_ENUM_VALUE"};
+
+        repeatedEnumHandler.transformToProtoBuilder(builder, a);
+        assertEquals(Collections.singletonList(TestEnumMessage.Enum.FIRST_ENUM_VALUE.getValueDescriptor()), builder.getField(descriptor));
+    }
+
+    @Test
+    public void shouldSetValueIfValueIsList() {
+        Descriptors.FieldDescriptor descriptor = TestRepeatedEnumMessage.getDescriptor().findFieldByName("test_enums");
+        DynamicMessage.Builder builder = DynamicMessage.newBuilder(TestRepeatedEnumMessage.getDescriptor());
+
+        RepeatedEnumHandler repeatedEnumHandler = new RepeatedEnumHandler(descriptor);
+
+        repeatedEnumHandler.transformToProtoBuilder(builder, Collections.singletonList("FIRST_ENUM_VALUE"));
+        assertEquals(Collections.singletonList(TestEnumMessage.Enum.FIRST_ENUM_VALUE.getValueDescriptor()), builder.getField(descriptor));
+    }
+
+    @Test
+    public void shouldIncludeDataInProtoSerializedFormat() throws InvalidProtocolBufferException {
+        Descriptors.FieldDescriptor descriptor = TestRepeatedEnumMessage.getDescriptor().findFieldByName("test_enums");
+        DynamicMessage.Builder builder = DynamicMessage.newBuilder(TestRepeatedEnumMessage.getDescriptor());
+
+        RepeatedEnumHandler repeatedEnumHandler = new RepeatedEnumHandler(descriptor);
+
+        repeatedEnumHandler.transformToProtoBuilder(builder, Collections.singletonList("FIRST_ENUM_VALUE"));
+        byte[] byteData = builder.build().toByteArray();
+        DynamicMessage message = DynamicMessage.parseFrom(TestRepeatedEnumMessage.getDescriptor(), byteData);
+        assertEquals(Collections.singletonList(TestEnumMessage.Enum.FIRST_ENUM_VALUE.getValueDescriptor()), message.getField(descriptor));
+    }
+
+    @Test
+    public void shouldThrowErrorIfEnumValueNotFound() {
+        Descriptors.FieldDescriptor descriptor = TestRepeatedEnumMessage.getDescriptor().findFieldByName("test_enums");
+        DynamicMessage.Builder builder = DynamicMessage.newBuilder(TestRepeatedEnumMessage.getDescriptor());
+
+        RepeatedEnumHandler repeatedEnumHandler = new RepeatedEnumHandler(descriptor);
+        EnumFieldNotFoundException exception = Assert.assertThrows(EnumFieldNotFoundException.class, () -> repeatedEnumHandler.transformToProtoBuilder(builder, Collections.singletonList("test_enum")));
+        assertEquals("field: test_enum not found in com.gotocompany.dagger.consumer.TestRepeatedEnumMessage.test_enums", exception.getMessage());
+    }
+
+    @Test
+    public void shouldThrowErrorIfValueIsNotListOrArray() {
+        Descriptors.FieldDescriptor descriptor = TestRepeatedEnumMessage.getDescriptor().findFieldByName("test_enums");
+        DynamicMessage.Builder builder = DynamicMessage.newBuilder(TestRepeatedEnumMessage.getDescriptor());
+
+        RepeatedEnumHandler repeatedEnumHandler = new RepeatedEnumHandler(descriptor);
+        Assert.assertThrows(ClassCastException.class, () -> repeatedEnumHandler.transformToProtoBuilder(builder, "test_enum"));
     }
 }
