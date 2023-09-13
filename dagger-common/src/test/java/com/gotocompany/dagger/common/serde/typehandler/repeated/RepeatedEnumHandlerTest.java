@@ -17,7 +17,9 @@ import org.junit.Assert;
 import org.junit.Test;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
+import java.util.List;
 
 import static org.apache.parquet.schema.PrimitiveType.PrimitiveTypeName.BINARY;
 import static org.apache.parquet.schema.PrimitiveType.PrimitiveTypeName.INT64;
@@ -265,10 +267,12 @@ public class RepeatedEnumHandlerTest {
 
         RepeatedEnumHandler repeatedEnumHandler = new RepeatedEnumHandler(descriptor);
 
-        repeatedEnumHandler.transformToProtoBuilder(builder, Collections.singletonList("FIRST_ENUM_VALUE"));
+        repeatedEnumHandler.transformToProtoBuilder(builder, Arrays.asList("FIRST_ENUM_VALUE", "SECOND_ENUM_VALUE"));
         byte[] byteData = builder.build().toByteArray();
         DynamicMessage message = DynamicMessage.parseFrom(TestRepeatedEnumMessage.getDescriptor(), byteData);
-        assertEquals(Collections.singletonList(TestEnumMessage.Enum.FIRST_ENUM_VALUE.getValueDescriptor()), message.getField(descriptor));
+
+        List<Descriptors.EnumValueDescriptor> expected = Arrays.asList(TestEnumMessage.Enum.FIRST_ENUM_VALUE.getValueDescriptor(), TestEnumMessage.Enum.SECOND_ENUM_VALUE.getValueDescriptor());
+        assertEquals(expected, message.getField(descriptor));
     }
 
     @Test
