@@ -1,18 +1,19 @@
 package com.gotocompany.dagger.common.serde.typehandler.repeated;
 
+import com.google.gson.Gson;
+import com.google.protobuf.Descriptors;
+import com.google.protobuf.DynamicMessage;
 import com.gotocompany.dagger.common.core.FieldDescriptorCache;
+import com.gotocompany.dagger.common.exceptions.serde.EnumFieldNotFoundException;
 import com.gotocompany.dagger.common.serde.parquet.SimpleGroupValidation;
 import com.gotocompany.dagger.common.serde.typehandler.TypeHandler;
 import org.apache.flink.api.common.typeinfo.TypeInformation;
 import org.apache.flink.api.common.typeinfo.Types;
 import org.apache.flink.api.java.typeutils.ObjectArrayTypeInfo;
-
-import com.google.gson.Gson;
-import com.google.protobuf.Descriptors;
-import com.google.protobuf.DynamicMessage;
 import org.apache.parquet.example.data.simple.SimpleGroup;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -41,7 +42,26 @@ public class RepeatedEnumHandler implements TypeHandler {
 
     @Override
     public DynamicMessage.Builder transformToProtoBuilder(DynamicMessage.Builder builder, Object field) {
+        if (!canHandle() || field == null) {
+            return builder;
+        }
+        List<Object> rowElements = field.getClass().isArray() ? Arrays.asList((Object[]) field) : (List) field;
+
+        List<Descriptors.EnumValueDescriptor> value = rowElements.stream()
+                .map(this::getEnumValue)
+                .collect(Collectors.toList());
+
+        builder.setField(fieldDescriptor, value);
         return builder;
+    }
+
+    private Descriptors.EnumValueDescriptor getEnumValue(Object field) {
+        String stringValue = String.valueOf(field).trim();
+        Descriptors.EnumValueDescriptor valueByName = fieldDescriptor.getEnumType().findValueByName(stringValue);
+        if (valueByName == null) {
+            throw new EnumFieldNotFoundException("field: " + stringValue + " not found in " + fieldDescriptor.getFullName());
+        }
+        return valueByName;
     }
 
     @Override
