@@ -28,6 +28,10 @@ public class GrpcClient {
 
     private ManagedChannel decoratedChannel;
 
+    private final long defaultKeepAliveTimeout = 20000L;
+
+    private final long defaultKeepAliveInterval = Long.MAX_VALUE;
+
     /**
      * Instantiates a new Grpc client.
      *
@@ -47,12 +51,12 @@ public class GrpcClient {
     }
 
     protected  ManagedChannelBuilder<?> decorateManagedChannelBuilder(ManagedChannelBuilder<?> channelBuilder) {
-        if (StringUtils.isNotEmpty(grpcConfig.getGrpcArgKeepaliveTimeMs())) {
-            channelBuilder = channelBuilder.keepAliveTime(Long.parseLong(grpcConfig.getGrpcArgKeepaliveTimeMs()), TimeUnit.MILLISECONDS);
-        }
-        if (StringUtils.isNotEmpty(grpcConfig.getGrpcArgKeepaliveTimeoutMs())) {
-            channelBuilder = channelBuilder.keepAliveTimeout(Long.parseLong(grpcConfig.getGrpcArgKeepaliveTimeoutMs()), TimeUnit.MILLISECONDS);
-        }
+
+        long keepAliveInterval = StringUtils.isNotEmpty(grpcConfig.getGrpcArgKeepaliveTimeMs()) ? Long.parseLong(grpcConfig.getGrpcArgKeepaliveTimeMs()): defaultKeepAliveInterval;
+        long keepAliveTimeout = StringUtils.isNotEmpty(grpcConfig.getGrpcArgKeepaliveTimeoutMs()) ? Long.parseLong(grpcConfig.getGrpcArgKeepaliveTimeoutMs()): defaultKeepAliveTimeout;
+
+        channelBuilder = channelBuilder.keepAliveTime(keepAliveInterval, TimeUnit.MILLISECONDS).keepAliveTimeout(keepAliveTimeout, TimeUnit.MILLISECONDS);
+
         if (grpcConfig.getHeaders() != null && !grpcConfig.getHeaders().isEmpty()) {
             Metadata metadata = new Metadata();
             for (Map.Entry<String, String> header : grpcConfig.getHeaders().entrySet()) {

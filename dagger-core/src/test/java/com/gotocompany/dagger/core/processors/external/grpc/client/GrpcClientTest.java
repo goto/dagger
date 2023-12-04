@@ -43,24 +43,6 @@ public class GrpcClientTest {
     }
 
     @Test
-    public void channelBuilderShouldNotBeDecoratedWithKeepaliveORTimeoutMS() {
-        GrpcClient grpcClient = new GrpcClient(grpcSourceConfig);
-        grpcClient.decorateManagedChannelBuilder(channelBuilder);
-        verify(channelBuilder, never()).keepAliveTime(anyLong(), any());
-        verify(channelBuilder, never()).keepAliveTimeout(anyLong(), any());
-    }
-
-    @Test
-    public void channelBuilderShouldBeDecoratedWithKeepaliveMS() {
-        when(grpcSourceConfig.getGrpcArgKeepaliveTimeMs()).thenReturn("1000");
-
-        GrpcClient grpcClient = new GrpcClient(grpcSourceConfig);
-        grpcClient.decorateManagedChannelBuilder(channelBuilder);
-        verify(channelBuilder, times(1)).keepAliveTime(Long.parseLong("1000"), TimeUnit.MILLISECONDS);
-        verify(channelBuilder, never()).keepAliveTimeout(anyLong(), any());
-    }
-
-    @Test
     public void channelBuilderShouldBeDecoratedWithKeepaliveAndTimeOutMS() {
         when(grpcSourceConfig.getGrpcArgKeepaliveTimeMs()).thenReturn("1000");
         when(grpcSourceConfig.getGrpcArgKeepaliveTimeoutMs()).thenReturn("100");
