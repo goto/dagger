@@ -52,8 +52,8 @@ public class GrpcClient {
 
     protected  ManagedChannelBuilder<?> decorateManagedChannelBuilder(ManagedChannelBuilder<?> channelBuilder) {
 
-        long keepAliveInterval = StringUtils.isNotEmpty(grpcConfig.getGrpcArgKeepaliveTimeMs()) ? Long.parseLong(grpcConfig.getGrpcArgKeepaliveTimeMs()): defaultKeepAliveInterval;
-        long keepAliveTimeout = StringUtils.isNotEmpty(grpcConfig.getGrpcArgKeepaliveTimeoutMs()) ? Long.parseLong(grpcConfig.getGrpcArgKeepaliveTimeoutMs()): defaultKeepAliveTimeout;
+        long keepAliveInterval = StringUtils.isNotEmpty(grpcConfig.getGrpcArgKeepaliveTimeMs()) ? Long.parseLong(grpcConfig.getGrpcArgKeepaliveTimeMs()) : defaultKeepAliveInterval;
+        long keepAliveTimeout = StringUtils.isNotEmpty(grpcConfig.getGrpcArgKeepaliveTimeoutMs()) ? Long.parseLong(grpcConfig.getGrpcArgKeepaliveTimeoutMs()) : defaultKeepAliveTimeout;
 
         channelBuilder = channelBuilder.keepAliveTime(keepAliveInterval, TimeUnit.MILLISECONDS).keepAliveTimeout(keepAliveTimeout, TimeUnit.MILLISECONDS);
 
