@@ -10,6 +10,8 @@ public class GrpcSourceConfigBuilder {
     private String grpcRequestProtoSchema;
     private String grpcResponseProtoSchema;
     private String grpcMethodUrl;
+    private String grpcArgKeepaliveTimeMs;
+    private String grpcArgKeepaliveTimeoutMs;
     private String requestPattern;
     private String requestVariables;
     private Map<String, OutputMapping> outputMapping;
@@ -108,8 +110,18 @@ public class GrpcSourceConfigBuilder {
         return this;
     }
 
+    public GrpcSourceConfigBuilder setGrpcArgKeepaliveTimeMs(String grpcArgKeepaliveTimeMs) {
+        this.grpcArgKeepaliveTimeMs = grpcArgKeepaliveTimeMs;
+        return this;
+    }
+
+    public GrpcSourceConfigBuilder setGrpcArgKeepaliveTimeoutMs(String grpcArgKeepaliveTimeoutMs) {
+        this.grpcArgKeepaliveTimeoutMs = grpcArgKeepaliveTimeoutMs;
+        return this;
+    }
+
     public GrpcSourceConfig createGrpcSourceConfig() {
-        return new GrpcSourceConfig(endpoint, servicePort, grpcRequestProtoSchema, grpcResponseProtoSchema, grpcMethodUrl, requestPattern, requestVariables,
+        return new GrpcSourceConfig(endpoint, servicePort, grpcRequestProtoSchema, grpcResponseProtoSchema, grpcMethodUrl, grpcArgKeepaliveTimeMs, grpcArgKeepaliveTimeoutMs, requestPattern, requestVariables,
                 streamTimeout, connectTimeout, failOnErrors, grpcStencilUrl, type, retainResponseType, headers, outputMapping, metricId, capacity);
     }
 }
