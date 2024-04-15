@@ -1,0 +1,1 @@
+"use strict";(self.webpackChunkdagger=self.webpackChunkdagger||[]).push([[7472],{5513:e=>{e.exports=JSON.parse('{"title":"Recent posts","items":[{"title":"Introducing Dagger Documentation page","permalink":"/dagger/blog/introducing-dagger"}]}')}}]);
