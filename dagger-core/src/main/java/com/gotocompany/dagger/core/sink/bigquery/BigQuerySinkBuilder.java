@@ -44,6 +44,7 @@ public class BigQuerySinkBuilder {
         configMap.put("SCHEMA_REGISTRY_STENCIL_FETCH_HEADERS", "");
         configMap.put("SINK_METRICS_APPLICATION_PREFIX", "dagger_");
         configMap.put("SINK_BIGQUERY_ROW_INSERT_ID_ENABLE", "false");
+        configMap.put("SINK_BIGQUERY_STORAGE_API_ENABLE", "true");
         return new Configuration(ParameterTool.fromMap(configMap));
     }
 
