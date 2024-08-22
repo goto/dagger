@@ -19,7 +19,7 @@ buildscript {
 
 plugins {
     id 'maven-publish'
-    id 'com.jfrog.artifactory' version '4.17.0'
+    id 'com.jfrog.artifactory' version '4.33.1'
     id 'com.github.johnrengelman.shadow' version '6.1.0'
 }
 
