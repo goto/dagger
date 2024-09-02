@@ -8,10 +8,6 @@ subprojects {
         mavenCentral()
         jcenter()
         maven { url "https://repository.apache.org/content/repositories/snapshots/" }
-        maven {
-            url "http://artifactory-gopay.golabs.io/artifactory/gopay-release-local"
-            allowInsecureProtocol true
-        }
     }
 
     apply plugin: 'java'
