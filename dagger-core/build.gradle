@@ -111,6 +111,7 @@ dependencies {
     dependenciesJar 'io.vertx:vertx-pg-client:3.9.0'
     dependenciesJar 'org.apache.commons:commons-pool2:2.4.3'
     dependenciesJar 'org.apache.parquet:parquet-protobuf:1.12.2'
+    dependenciesJar 'io.gtflabs.infrastructure-engineering:kafka-security:0.5.1'
 
     testImplementation project(':dagger-common').sourceSets.test.output
     testImplementation 'junit:junit:4.13.1'
