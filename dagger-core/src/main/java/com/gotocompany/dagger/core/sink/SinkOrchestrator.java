@@ -7,6 +7,7 @@ import com.gotocompany.dagger.core.sink.bigquery.BigQuerySinkBuilder;
 import com.gotocompany.dagger.core.sink.influx.ErrorHandler;
 import com.gotocompany.dagger.core.sink.influx.InfluxDBFactoryWrapper;
 import com.gotocompany.dagger.core.sink.influx.InfluxDBSink;
+import com.gotocompany.dagger.core.sink.kafka.util.SinkKafkaConfigUtil;
 import com.gotocompany.dagger.core.utils.Constants;
 import org.apache.flink.api.connector.sink.Sink;
 import org.apache.flink.connector.base.DeliveryGuarantee;
@@ -107,11 +108,15 @@ public class SinkOrchestrator implements TelemetryPublisher {
             kafkaProducerConfigs.setProperty(Constants.SINK_KAFKA_COMPRESSION_TYPE_KEY, Constants.SINK_KAFKA_COMPRESSION_TYPE_DEFAULT);
             kafkaProducerConfigs.setProperty(Constants.SINK_KAFKA_MAX_REQUEST_SIZE_KEY, Constants.SINK_KAFKA_MAX_REQUEST_SIZE_DEFAULT);
         }
-        if (StringUtils.isNotEmpty(configuration.getString(Constants.SINK_KAFKA_SASL_LOGIN_CALLBACK_HANDLER_CLASS_KEY, StringUtils.EMPTY))) {
-            kafkaProducerConfigs.setProperty(Constants.SASL_LOGIN_CALLBACK_HANDLER_CLASS, configuration.getString(Constants.SINK_KAFKA_SASL_LOGIN_CALLBACK_HANDLER_CLASS_KEY, StringUtils.EMPTY));
+        String sinkKafkaSaslLoginCallbackHandlerClass = configuration.getString(Constants.SINK_KAFKA_SASL_LOGIN_CALLBACK_HANDLER_CLASS_KEY, StringUtils.EMPTY);
+        if (StringUtils.isNotEmpty(sinkKafkaSaslLoginCallbackHandlerClass)) {
+            kafkaProducerConfigs.setProperty(SinkKafkaConfigUtil.getKafkaConfigKey(Constants.SINK_KAFKA_SASL_LOGIN_CALLBACK_HANDLER_CLASS_KEY),
+                    sinkKafkaSaslLoginCallbackHandlerClass);
         }
-        if (StringUtils.isNotEmpty(configuration.getString(Constants.SINK_KAFKA_SASL_JAAS_CONFIG_KEY, StringUtils.EMPTY))) {
-            kafkaProducerConfigs.setProperty(Constants.SASL_JAAS_CONFIG, configuration.getString(Constants.SINK_KAFKA_SASL_JAAS_CONFIG_KEY, StringUtils.EMPTY));
+        String sinkKafkaSaslJaasConfig = configuration.getString(Constants.SINK_KAFKA_SASL_JAAS_CONFIG_KEY, StringUtils.EMPTY);
+        if (StringUtils.isNotEmpty(sinkKafkaSaslJaasConfig)) {
+            kafkaProducerConfigs.setProperty(SinkKafkaConfigUtil.getKafkaConfigKey(Constants.SINK_KAFKA_SASL_JAAS_CONFIG_KEY),
+                    sinkKafkaSaslJaasConfig);
         }
         String lingerMs = configuration.getString(Constants.SINK_KAFKA_LINGER_MS_KEY, Constants.SINK_KAFKA_LINGER_MS_DEFAULT);
         validateLingerMs(lingerMs);

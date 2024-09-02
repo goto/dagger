@@ -85,9 +85,6 @@ public class Constants {
     public static final String SINK_KAFKA_SASL_LOGIN_CALLBACK_HANDLER_CLASS_KEY= "SINK_KAFKA_SASL_LOGIN_CALLBACK_HANDLER_CLASS";
     public static final String SINK_KAFKA_SASL_JAAS_CONFIG_KEY = "SINK_KAFKA_SASL_JAAS_CONFIG";
 
-    public static final String SASL_LOGIN_CALLBACK_HANDLER_CLASS= "sasl.login.callback.handler.class";
-    public static final String SASL_JAAS_CONFIG = "sasl.jaas.config";
-
     public static final String ES_TYPE = "ES";
     public static final String HTTP_TYPE = "HTTP";
     public static final String PG_TYPE = "PG";
