@@ -13,6 +13,7 @@ import org.apache.flink.connector.base.DeliveryGuarantee;
 import org.apache.flink.connector.kafka.sink.KafkaSink;
 import org.apache.flink.streaming.connectors.kafka.FlinkKafkaProducerBase;
 import org.apache.flink.types.Row;
+import org.apache.commons.lang.StringUtils;
 
 import com.gotocompany.dagger.common.configuration.Configuration;
 import com.gotocompany.dagger.common.core.StencilClientOrchestrator;
@@ -105,6 +106,12 @@ public class SinkOrchestrator implements TelemetryPublisher {
         if (configuration.getBoolean(Constants.SINK_KAFKA_PRODUCE_LARGE_MESSAGE_ENABLE_KEY, Constants.SINK_KAFKA_PRODUCE_LARGE_MESSAGE_ENABLE_DEFAULT)) {
             kafkaProducerConfigs.setProperty(Constants.SINK_KAFKA_COMPRESSION_TYPE_KEY, Constants.SINK_KAFKA_COMPRESSION_TYPE_DEFAULT);
             kafkaProducerConfigs.setProperty(Constants.SINK_KAFKA_MAX_REQUEST_SIZE_KEY, Constants.SINK_KAFKA_MAX_REQUEST_SIZE_DEFAULT);
+        }
+        if (StringUtils.isNotEmpty(configuration.getString(Constants.SINK_KAFKA_SASL_LOGIN_CALLBACK_HANDLER_CLASS_KEY, StringUtils.EMPTY))) {
+            kafkaProducerConfigs.setProperty(Constants.SASL_LOGIN_CALLBACK_HANDLER_CLASS, configuration.getString(Constants.SINK_KAFKA_SASL_LOGIN_CALLBACK_HANDLER_CLASS_KEY, StringUtils.EMPTY));
+        }
+        if (StringUtils.isNotEmpty(configuration.getString(Constants.SINK_KAFKA_SASL_JAAS_CONFIG_KEY, StringUtils.EMPTY))) {
+            kafkaProducerConfigs.setProperty(Constants.SASL_JAAS_CONFIG, configuration.getString(Constants.SINK_KAFKA_SASL_JAAS_CONFIG_KEY, StringUtils.EMPTY));
         }
         String lingerMs = configuration.getString(Constants.SINK_KAFKA_LINGER_MS_KEY, Constants.SINK_KAFKA_LINGER_MS_DEFAULT);
         validateLingerMs(lingerMs);

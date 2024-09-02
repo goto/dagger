@@ -34,6 +34,7 @@ import static com.gotocompany.dagger.common.core.Constants.INPUT_STREAMS;
 import static com.gotocompany.dagger.common.core.Constants.STREAM_INPUT_SCHEMA_PROTO_CLASS;
 import static com.gotocompany.dagger.common.core.Constants.STREAM_INPUT_SCHEMA_TABLE;
 import static com.gotocompany.dagger.core.utils.Constants.*;
+import static com.gotocompany.dagger.core.utils.Constants.SOURCE_KAFKA_CONSUMER_CONFIG_SASL_LOGIN_CALLBACK_HANDLER_CLASS_CONFIG_KEY;
 import static com.gotocompany.dagger.core.utils.Constants.STREAM_SOURCE_PARQUET_FILE_DATE_RANGE_KEY;
 
 public class StreamConfig {
@@ -119,6 +120,10 @@ public class StreamConfig {
     @SerializedName(SOURCE_KAFKA_CONSUMER_CONFIG_SASL_JAAS_CONFIG_KEY)
     @Getter
     private String saslJaasConfig;
+
+    @SerializedName(SOURCE_KAFKA_CONSUMER_CONFIG_SASL_LOGIN_CALLBACK_HANDLER_CLASS_CONFIG_KEY)
+    @Getter
+    private String saslLoginCallbackHandlerClassConfig;
 
     @SerializedName(STREAM_INPUT_STREAM_NAME_KEY)
     @Getter
