@@ -8,7 +8,8 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class SinkKafkaConfigUtil {
-    private static final Pattern SINK_KAFKA_BUILT_IN_CONFIG_REGEX = Pattern.compile("SINK_KAFKA_BUILT_IN_CONFIG_(.*)");
+
+    private static final Pattern SINK_KAFKA_PRODUCER_CONFIG_REGEX = Pattern.compile("SINK_KAFKA_PRODUCER_CONFIG_(.*)", Pattern.CASE_INSENSITIVE);
 
     public static Properties parseBuiltInKafkaProperties(Configuration configuration) {
         Properties properties = new Properties();
@@ -17,7 +18,7 @@ public class SinkKafkaConfigUtil {
                 .keySet();
 
         for (String key : configKeys) {
-            Matcher matcher = SINK_KAFKA_BUILT_IN_CONFIG_REGEX.matcher(key);
+            Matcher matcher = SINK_KAFKA_PRODUCER_CONFIG_REGEX.matcher(key);
             if (matcher.find()) {
                 String kafkaConfigKey = matcher.group(1)
                         .toLowerCase()
