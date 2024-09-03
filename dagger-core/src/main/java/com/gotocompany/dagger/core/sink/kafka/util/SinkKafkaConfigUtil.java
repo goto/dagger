@@ -12,11 +12,11 @@ public class SinkKafkaConfigUtil {
 
     public static Properties parseBuiltInKafkaProperties(Configuration configuration) {
         Properties properties = new Properties();
-        Set<String> builtInKeys = configuration.getParam()
+        Set<String> configKeys = configuration.getParam()
                 .getConfiguration()
                 .keySet();
 
-        for (String key : builtInKeys) {
+        for (String key : configKeys) {
             Matcher matcher = SINK_KAFKA_BUILT_IN_CONFIG_REGEX.matcher(key);
             if (matcher.find()) {
                 String kafkaConfigKey = matcher.group(1)
