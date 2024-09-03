@@ -26,6 +26,9 @@ import static org.mockito.MockitoAnnotations.initMocks;
 
 public class SinkOrchestratorTest {
 
+    private static final String SINK_KAFKA_PRODUCER_CONFIG_SASL_LOGIN_CALLBACK_HANDLER_CLASS = "SINK_KAFKA_PRODUCER_CONFIG_SASL_LOGIN_CALLBACK_HANDLER_CLASS";
+    private static final String SASL_LOGIN_CALLBACK_HANDLER_CLASS_VALUE = "com.gotocompany.dagger.core.sink.kafka.util.SinkKafkaConfigUtil";
+
     private Configuration configuration;
     private StencilClientOrchestrator stencilClientOrchestrator;
     private SinkOrchestrator sinkOrchestrator;
@@ -71,14 +74,19 @@ public class SinkOrchestratorTest {
 
     @Test
     public void shouldSetKafkaProducerConfigurations() throws Exception {
+        Map<String, String> additionalParameters = new HashMap<>();
+        additionalParameters.put(SINK_KAFKA_PRODUCER_CONFIG_SASL_LOGIN_CALLBACK_HANDLER_CLASS, SASL_LOGIN_CALLBACK_HANDLER_CLASS_VALUE);
         when(configuration.getString(eq(Constants.SINK_KAFKA_BROKERS_KEY), anyString())).thenReturn("10.200.216.87:6668");
         when(configuration.getBoolean(eq(Constants.SINK_KAFKA_PRODUCE_LARGE_MESSAGE_ENABLE_KEY), anyBoolean())).thenReturn(true);
         when(configuration.getString(eq(Constants.SINK_KAFKA_LINGER_MS_KEY), anyString())).thenReturn("1000");
+        when(configuration.getParam()).thenReturn(ParameterTool.fromMap(additionalParameters));
+        when(configuration.getString(eq(SINK_KAFKA_PRODUCER_CONFIG_SASL_LOGIN_CALLBACK_HANDLER_CLASS), anyString())).thenReturn(SASL_LOGIN_CALLBACK_HANDLER_CLASS_VALUE);
         Properties producerProperties = sinkOrchestrator.getProducerProperties(configuration);
 
         assertEquals(producerProperties.getProperty("compression.type"), "snappy");
         assertEquals(producerProperties.getProperty("max.request.size"), "20971520");
         assertEquals(producerProperties.getProperty("linger.ms"), "1000");
+        assertEquals(producerProperties.getProperty("sasl.login.callback.handler.class"), SASL_LOGIN_CALLBACK_HANDLER_CLASS_VALUE);
     }
 
     @Test
