@@ -108,20 +108,11 @@ public class SinkOrchestrator implements TelemetryPublisher {
             kafkaProducerConfigs.setProperty(Constants.SINK_KAFKA_COMPRESSION_TYPE_KEY, Constants.SINK_KAFKA_COMPRESSION_TYPE_DEFAULT);
             kafkaProducerConfigs.setProperty(Constants.SINK_KAFKA_MAX_REQUEST_SIZE_KEY, Constants.SINK_KAFKA_MAX_REQUEST_SIZE_DEFAULT);
         }
-        String sinkKafkaSaslLoginCallbackHandlerClass = configuration.getString(Constants.SINK_KAFKA_SASL_LOGIN_CALLBACK_HANDLER_CLASS_KEY, StringUtils.EMPTY);
-        if (StringUtils.isNotEmpty(sinkKafkaSaslLoginCallbackHandlerClass)) {
-            kafkaProducerConfigs.setProperty(SinkKafkaConfigUtil.getKafkaConfigKey(Constants.SINK_KAFKA_SASL_LOGIN_CALLBACK_HANDLER_CLASS_KEY),
-                    sinkKafkaSaslLoginCallbackHandlerClass);
-        }
-        String sinkKafkaSaslJaasConfig = configuration.getString(Constants.SINK_KAFKA_SASL_JAAS_CONFIG_KEY, StringUtils.EMPTY);
-        if (StringUtils.isNotEmpty(sinkKafkaSaslJaasConfig)) {
-            kafkaProducerConfigs.setProperty(SinkKafkaConfigUtil.getKafkaConfigKey(Constants.SINK_KAFKA_SASL_JAAS_CONFIG_KEY),
-                    sinkKafkaSaslJaasConfig);
-        }
         String lingerMs = configuration.getString(Constants.SINK_KAFKA_LINGER_MS_KEY, Constants.SINK_KAFKA_LINGER_MS_DEFAULT);
         validateLingerMs(lingerMs);
         kafkaProducerConfigs.setProperty(Constants.SINK_KAFKA_LINGER_MS_CONFIG_KEY, lingerMs);
-
+        Properties dynamicProperties = SinkKafkaConfigUtil.parseBuiltInKafkaProperties(configuration);
+        kafkaProducerConfigs.putAll(dynamicProperties);
         return kafkaProducerConfigs;
     }
 

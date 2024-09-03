@@ -82,8 +82,6 @@ public class Constants {
     public static final String SINK_KAFKA_MAX_REQUEST_SIZE_KEY = "max.request.size";
     public static final String SINK_KAFKA_MAX_REQUEST_SIZE_DEFAULT = "20971520";
     public static final String SINK_KAFKA_LINGER_MS_DEFAULT = "0";
-    public static final String SINK_KAFKA_SASL_LOGIN_CALLBACK_HANDLER_CLASS_KEY= "SINK_KAFKA_SASL_LOGIN_CALLBACK_HANDLER_CLASS";
-    public static final String SINK_KAFKA_SASL_JAAS_CONFIG_KEY = "SINK_KAFKA_SASL_JAAS_CONFIG";
 
     public static final String ES_TYPE = "ES";
     public static final String HTTP_TYPE = "HTTP";
