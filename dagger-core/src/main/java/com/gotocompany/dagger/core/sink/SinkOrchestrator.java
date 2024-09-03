@@ -14,7 +14,6 @@ import org.apache.flink.connector.base.DeliveryGuarantee;
 import org.apache.flink.connector.kafka.sink.KafkaSink;
 import org.apache.flink.streaming.connectors.kafka.FlinkKafkaProducerBase;
 import org.apache.flink.types.Row;
-import org.apache.commons.lang.StringUtils;
 
 import com.gotocompany.dagger.common.configuration.Configuration;
 import com.gotocompany.dagger.common.core.StencilClientOrchestrator;
