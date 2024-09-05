@@ -29,6 +29,7 @@ import org.apache.kafka.clients.consumer.OffsetResetStrategy;
 
 import java.io.StringReader;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Properties;
 import java.util.regex.Pattern;
 import java.util.stream.Stream;
@@ -228,9 +229,11 @@ public class StreamConfig {
         if (configuration.getBoolean(SOURCE_KAFKA_CONSUME_LARGE_MESSAGE_ENABLE_KEY, SOURCE_KAFKA_CONSUME_LARGE_MESSAGE_ENABLE_DEFAULT)) {
             kafkaProps.setProperty(SOURCE_KAFKA_MAX_PARTITION_FETCH_BYTES_KEY, SOURCE_KAFKA_MAX_PARTITION_FETCH_BYTES_DEFAULT);
         }
-        Properties additionalKafkaProperties = new Properties();
-        additionalKafkaProperties.putAll(this.additionalConsumerConfigurations);
-        kafkaProps.putAll(KafkaConfigUtil.parseKafkaConfiguration(ConnectorType.SOURCE, additionalKafkaProperties));
+        if (Objects.nonNull(this.additionalConsumerConfigurations)) {
+            Properties additionalKafkaProperties = new Properties();
+            additionalKafkaProperties.putAll(this.additionalConsumerConfigurations);
+            kafkaProps.putAll(KafkaConfigUtil.parseKafkaConfiguration(ConnectorType.SOURCE, additionalKafkaProperties));
+        }
     }
 
     public Pattern getTopicPattern() {
