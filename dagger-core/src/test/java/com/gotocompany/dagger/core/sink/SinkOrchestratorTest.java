@@ -27,7 +27,7 @@ import static org.mockito.MockitoAnnotations.initMocks;
 public class SinkOrchestratorTest {
 
     private static final String SINK_KAFKA_PRODUCER_CONFIG_SASL_LOGIN_CALLBACK_HANDLER_CLASS = "SINK_KAFKA_PRODUCER_CONFIG_SASL_LOGIN_CALLBACK_HANDLER_CLASS";
-    private static final String SASL_LOGIN_CALLBACK_HANDLER_CLASS_VALUE = "com.gotocompany.dagger.core.sink.kafka.util.SinkKafkaConfigUtil";
+    private static final String SASL_LOGIN_CALLBACK_HANDLER_CLASS_VALUE = "com.gotocompany.dagger.core.utils.SinkKafkaConfigUtil";
 
     private Configuration configuration;
     private StencilClientOrchestrator stencilClientOrchestrator;
