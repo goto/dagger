@@ -25,7 +25,7 @@ public class DaggerKafkaConsumerAdditionalConfigurationsAdaptor extends TypeAdap
     public Map<String, String> read(JsonReader jsonReader) throws IOException {
         Pattern pattern = Pattern.compile(SOURCE_KAFKA_CONSUMER_CONFIG, Pattern.CASE_INSENSITIVE);
         Gson gson = new Gson();
-        Map<String,String> map = gson.fromJson(jsonReader, Map.class);
+        Map<String, String> map = gson.fromJson(jsonReader, Map.class);
         List<String> invalidProps = map.keySet().stream()
                 .filter(key -> !pattern.matcher(key).matches())
                 .collect(Collectors.toList());
