@@ -13,6 +13,8 @@ import org.aeonbits.owner.ConfigFactory;
 import org.apache.flink.api.connector.sink.Sink;
 import org.apache.flink.api.connector.sink.SinkWriter;
 import org.apache.flink.core.io.SimpleVersionedSerializer;
+import org.apache.flink.api.connector.sink.Committer;
+import org.apache.flink.api.connector.sink.GlobalCommitter;
 import org.apache.flink.types.Row;
 
 import java.io.IOException;
