@@ -15,8 +15,8 @@ public class KafkaConfigUtil {
 
     static {
         CONFIG_PATTERN = new HashMap<>();
-        CONFIG_PATTERN.put(ConnectorType.SOURCE, Pattern.compile("SOURCE_KAFKA_CONSUMER_CONFIG_(.*)", Pattern.CASE_INSENSITIVE));
-        CONFIG_PATTERN.put(ConnectorType.SINK, Pattern.compile("SINK_KAFKA_PRODUCER_CONFIG_(.*)", Pattern.CASE_INSENSITIVE));
+        CONFIG_PATTERN.put(ConnectorType.SOURCE, Pattern.compile(ConnectorType.SOURCE.getPrefixPattern(), Pattern.CASE_INSENSITIVE));
+        CONFIG_PATTERN.put(ConnectorType.SINK, Pattern.compile(ConnectorType.SINK.getPrefixPattern(), Pattern.CASE_INSENSITIVE));
     }
 
     public static Properties parseKafkaConfiguration(ConnectorType connectorType, Properties properties) {
