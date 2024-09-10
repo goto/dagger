@@ -30,8 +30,12 @@ For example :
 
 ## Sink Kafka Configuration
 
-There is only one sink kafka configuration in the properties file. Sink configuration is defined by properties having `SINK_KAFKA_PRODUCER_CONFIG`
+There is only one sink kafka configuration in the properties file. Sink configuration is defined by properties having `SINK_KAFKA_PRODUCER_CONFIG` prefix.
+Here are the predefined properties for sink kafka configuration:
+- SINK_KAFKA_LINGER_MS_KEY
+- SINK_KAFKA_BROKERS_KEY
+- SINK_KAFKA_TOPIC_KEY
 
-```properties
-
-```bash
+Additional kafka configurations can be passed through by introducing new properties with the `SINK_KAFKA_PRODUCER_CONFIG` prefix. 
+For example : `SINK_KAFKA_PRODUCER_CONFIG_SASL_LOGIN_CALLBACK_HANDLER_CLASS="io.confluent.kafka.clients.plugins.auth.token.TokenUserLoginCallbackHandler"`
+Example above will add `sasl.login.callback.handler.class` to the sink kafka configuration.
