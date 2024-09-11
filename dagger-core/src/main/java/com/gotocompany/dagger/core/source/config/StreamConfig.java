@@ -1,7 +1,7 @@
 package com.gotocompany.dagger.core.source.config;
 
 import com.google.gson.annotations.JsonAdapter;
-import com.gotocompany.dagger.core.enumeration.ConnectorType;
+import com.gotocompany.dagger.core.enumeration.KafkaConnectorTypesMetadata;
 import com.gotocompany.dagger.core.source.config.adapter.DaggerKafkaConsumerAdditionalConfigurationsAdaptor;
 import com.gotocompany.dagger.core.source.config.adapter.DaggerSASLMechanismAdaptor;
 import com.gotocompany.dagger.core.source.config.adapter.DaggerSSLKeyStoreFileTypeAdaptor;
@@ -232,7 +232,7 @@ public class StreamConfig {
         if (Objects.nonNull(this.additionalConsumerConfigurations)) {
             Properties additionalKafkaProperties = new Properties();
             additionalKafkaProperties.putAll(this.additionalConsumerConfigurations);
-            kafkaProps.putAll(KafkaConfigUtil.parseKafkaConfiguration(ConnectorType.SOURCE, additionalKafkaProperties));
+            kafkaProps.putAll(KafkaConfigUtil.parseKafkaConfiguration(KafkaConnectorTypesMetadata.SOURCE, additionalKafkaProperties));
         }
     }
 

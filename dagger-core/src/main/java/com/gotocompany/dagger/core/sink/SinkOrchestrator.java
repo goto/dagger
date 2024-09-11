@@ -1,6 +1,6 @@
 package com.gotocompany.dagger.core.sink;
 
-import com.gotocompany.dagger.core.enumeration.ConnectorType;
+import com.gotocompany.dagger.core.enumeration.KafkaConnectorTypesMetadata;
 import com.gotocompany.dagger.core.metrics.reporters.statsd.DaggerStatsDReporter;
 import com.gotocompany.dagger.core.metrics.telemetry.TelemetryPublisher;
 import com.gotocompany.dagger.core.metrics.telemetry.TelemetryTypes;
@@ -113,7 +113,7 @@ public class SinkOrchestrator implements TelemetryPublisher {
         String lingerMs = configuration.getString(Constants.SINK_KAFKA_LINGER_MS_KEY, Constants.SINK_KAFKA_LINGER_MS_DEFAULT);
         validateLingerMs(lingerMs);
         kafkaProducerConfigs.setProperty(Constants.SINK_KAFKA_LINGER_MS_CONFIG_KEY, lingerMs);
-        Properties dynamicProperties = KafkaConfigUtil.parseKafkaConfiguration(ConnectorType.SINK, Optional.ofNullable(configuration.getParam())
+        Properties dynamicProperties = KafkaConfigUtil.parseKafkaConfiguration(KafkaConnectorTypesMetadata.SINK, Optional.ofNullable(configuration.getParam())
                 .map(ParameterTool::getProperties)
                 .orElseGet(Properties::new));
         kafkaProducerConfigs.putAll(dynamicProperties);
