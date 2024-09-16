@@ -18,7 +18,7 @@ public class KafkaConfigUtil {
             if (matcher.find()) {
                 String kafkaConfigKey = matcher.group(1)
                         .toLowerCase()
-                        .replaceAll("_", ".");
+                        .replaceAll("_+", ".");
                 kafkaProperties.setProperty(kafkaConfigKey, properties.get(key).toString());
             }
         }
