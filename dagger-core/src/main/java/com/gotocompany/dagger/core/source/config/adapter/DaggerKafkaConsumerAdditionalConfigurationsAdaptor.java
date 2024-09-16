@@ -31,7 +31,10 @@ public class DaggerKafkaConsumerAdditionalConfigurationsAdaptor extends TypeAdap
         if (!invalidProps.isEmpty()) {
             throw new IllegalArgumentException("Invalid additional kafka consumer configuration properties found: " + invalidProps);
         }
-        return map;
+        return map.entrySet()
+                .stream()
+                .filter(entry -> entry.getValue() != null)
+                .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
     }
 
 }
