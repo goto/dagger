@@ -1,6 +1,8 @@
 package com.gotocompany.dagger.core.source.config;
 
 import com.google.gson.annotations.JsonAdapter;
+import com.gotocompany.dagger.core.enumeration.KafkaConnectorTypesMetadata;
+import com.gotocompany.dagger.core.source.config.adapter.DaggerKafkaConsumerAdditionalConfigurationsAdaptor;
 import com.gotocompany.dagger.core.source.config.adapter.DaggerSASLMechanismAdaptor;
 import com.gotocompany.dagger.core.source.config.adapter.DaggerSSLKeyStoreFileTypeAdaptor;
 import com.gotocompany.dagger.core.source.config.adapter.DaggerSSLProtocolAdaptor;
@@ -14,6 +16,7 @@ import com.gotocompany.dagger.core.source.parquet.SourceParquetSchemaMatchStrate
 import com.gotocompany.dagger.core.source.config.models.SourceDetails;
 import com.gotocompany.dagger.core.source.config.models.SourceName;
 import com.gotocompany.dagger.core.source.config.models.TimeRangePool;
+import com.gotocompany.dagger.core.utils.KafkaConfigUtil;
 import org.apache.flink.connector.kafka.source.enumerator.initializer.OffsetsInitializer;
 
 import com.google.gson.Gson;
@@ -26,6 +29,7 @@ import org.apache.kafka.clients.consumer.OffsetResetStrategy;
 
 import java.io.StringReader;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Properties;
 import java.util.regex.Pattern;
 import java.util.stream.Stream;
@@ -34,7 +38,6 @@ import static com.gotocompany.dagger.common.core.Constants.INPUT_STREAMS;
 import static com.gotocompany.dagger.common.core.Constants.STREAM_INPUT_SCHEMA_PROTO_CLASS;
 import static com.gotocompany.dagger.common.core.Constants.STREAM_INPUT_SCHEMA_TABLE;
 import static com.gotocompany.dagger.core.utils.Constants.*;
-import static com.gotocompany.dagger.core.utils.Constants.STREAM_SOURCE_PARQUET_FILE_DATE_RANGE_KEY;
 
 public class StreamConfig {
     private static final Gson GSON = new GsonBuilder()
@@ -154,6 +157,11 @@ public class StreamConfig {
     @Getter
     private SourceParquetSchemaMatchStrategy parquetSchemaMatchStrategy;
 
+    @SerializedName(SOURCE_KAFKA_CONSUMER_ADDITIONAL_CONFIGURATIONS)
+    @JsonAdapter(value = DaggerKafkaConsumerAdditionalConfigurationsAdaptor.class)
+    @Getter
+    private Map<String, String> additionalConsumerConfigurations;
+
     @SerializedName(STREAM_SOURCE_PARQUET_FILE_DATE_RANGE_KEY)
     @JsonAdapter(FileDateRangeAdaptor.class)
     @Getter
@@ -208,7 +216,7 @@ public class StreamConfig {
                 .stream()
                 .filter(e -> e.getKey().toLowerCase().startsWith(KAFKA_PREFIX))
                 .forEach(e -> kafkaProps.setProperty(parseVarName(e.getKey(), KAFKA_PREFIX), e.getValue()));
-        setAdditionalConfigs(kafkaProps, configuration);
+        setAdditionalKafkaConsumerConfigs(kafkaProps, configuration);
         return kafkaProps;
     }
 
@@ -217,9 +225,14 @@ public class StreamConfig {
         return String.join(".", names);
     }
 
-    private void setAdditionalConfigs(Properties kafkaProps, Configuration configuration) {
+    private void setAdditionalKafkaConsumerConfigs(Properties kafkaProps, Configuration configuration) {
         if (configuration.getBoolean(SOURCE_KAFKA_CONSUME_LARGE_MESSAGE_ENABLE_KEY, SOURCE_KAFKA_CONSUME_LARGE_MESSAGE_ENABLE_DEFAULT)) {
             kafkaProps.setProperty(SOURCE_KAFKA_MAX_PARTITION_FETCH_BYTES_KEY, SOURCE_KAFKA_MAX_PARTITION_FETCH_BYTES_DEFAULT);
+        }
+        if (Objects.nonNull(this.additionalConsumerConfigurations)) {
+            Properties additionalKafkaProperties = new Properties();
+            additionalKafkaProperties.putAll(this.additionalConsumerConfigurations);
+            kafkaProps.putAll(KafkaConfigUtil.parseKafkaConfiguration(KafkaConnectorTypesMetadata.SOURCE, additionalKafkaProperties));
         }
     }
 
