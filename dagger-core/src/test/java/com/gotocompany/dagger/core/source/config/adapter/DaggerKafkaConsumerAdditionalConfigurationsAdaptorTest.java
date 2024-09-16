@@ -27,17 +27,13 @@ public class DaggerKafkaConsumerAdditionalConfigurationsAdaptorTest {
         assertEquals(expectedResult, result);
     }
 
-    @Test
+    @Test(expected = IllegalArgumentException.class)
     public void shouldThrowExceptionForInvalidProperties() throws IOException {
         String input = "{\"SOURCE_KAFKA_CONSUMER_CONFIG_KEY_1\":\"value1\",\"SOURCE_KAFKA_CONSUMER_CONFIG_KEY_2\":\"value2\",\"INVALID_KEY\":\"value3\"}";
         JsonReader jsonReader = new JsonReader(new StringReader(input));
         DaggerKafkaConsumerAdditionalConfigurationsAdaptor daggerKafkaConsumerAdditionalConfigurationsAdaptor = new DaggerKafkaConsumerAdditionalConfigurationsAdaptor();
 
-        try {
-            daggerKafkaConsumerAdditionalConfigurationsAdaptor.read(jsonReader);
-        } catch (IllegalArgumentException e) {
-            assertEquals("Invalid additional kafka consumer configuration properties found: [INVALID_KEY]", e.getMessage());
-        }
+        daggerKafkaConsumerAdditionalConfigurationsAdaptor.read(jsonReader);
     }
 
 }
