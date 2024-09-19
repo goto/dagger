@@ -12,9 +12,14 @@ import org.apache.flink.api.connector.sink.Sink;
 import org.apache.flink.api.java.utils.ParameterTool;
 import org.junit.Assert;
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
 import org.mockito.Mock;
 
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.util.*;
 
 import static com.gotocompany.dagger.common.core.Constants.*;
@@ -36,6 +41,8 @@ public class SinkOrchestratorTest {
     private MetricsTelemetryExporter telemetryExporter;
     @Mock
     private DaggerStatsDReporter daggerStatsDReporter;
+    @Rule
+    public TemporaryFolder temporaryFolder = new TemporaryFolder();
 
     @Before
     public void setup() {
@@ -73,7 +80,7 @@ public class SinkOrchestratorTest {
     }
 
     @Test
-    public void shouldSetKafkaProducerConfigurations() throws Exception {
+    public void shouldSetKafkaProducerConfigurations() {
         Map<String, String> additionalParameters = new HashMap<>();
         additionalParameters.put(SINK_KAFKA_PRODUCER_CONFIG_SASL_LOGIN_CALLBACK_HANDLER_CLASS, SASL_LOGIN_CALLBACK_HANDLER_CLASS_VALUE);
         when(configuration.getString(eq(Constants.SINK_KAFKA_BROKERS_KEY), anyString())).thenReturn("10.200.216.87:6668");
@@ -81,12 +88,45 @@ public class SinkOrchestratorTest {
         when(configuration.getString(eq(Constants.SINK_KAFKA_LINGER_MS_KEY), anyString())).thenReturn("1000");
         when(configuration.getParam()).thenReturn(ParameterTool.fromMap(additionalParameters));
         when(configuration.getString(eq(SINK_KAFKA_PRODUCER_CONFIG_SASL_LOGIN_CALLBACK_HANDLER_CLASS), anyString())).thenReturn(SASL_LOGIN_CALLBACK_HANDLER_CLASS_VALUE);
+
         Properties producerProperties = sinkOrchestrator.getProducerProperties(configuration);
 
         assertEquals(producerProperties.getProperty("compression.type"), "snappy");
         assertEquals(producerProperties.getProperty("max.request.size"), "20971520");
         assertEquals(producerProperties.getProperty("linger.ms"), "1000");
         assertEquals(producerProperties.getProperty("sasl.login.callback.handler.class"), SASL_LOGIN_CALLBACK_HANDLER_CLASS_VALUE);
+    }
+
+    @Test
+    public void shouldParseSslPasswords() throws IOException {
+        File trustStorePasswordFile = writeDummyPasswordFile("truststore-password.txt", "truststore-password");
+        File keyStorePasswordFile = writeDummyPasswordFile("keystore-password.txt", "keystore-password");
+        when(configuration.getString(eq(Constants.SINK_KAFKA_SSL_TRUSTSTORE_PASSWORD_LOCATION_KEY), anyString())).thenReturn(trustStorePasswordFile.getAbsolutePath());
+        when(configuration.getString(eq(Constants.SINK_KAFKA_SSL_KEYSTORE_PASSWORD_LOCATION_KEY), anyString())).thenReturn(keyStorePasswordFile.getAbsolutePath());
+        when(configuration.getString(eq(Constants.SINK_KAFKA_BROKERS_KEY), anyString())).thenReturn("10.200.216.87:6668");
+        when(configuration.getBoolean(eq(Constants.SINK_KAFKA_PRODUCE_LARGE_MESSAGE_ENABLE_KEY), anyBoolean())).thenReturn(true);
+        when(configuration.getString(eq(Constants.SINK_KAFKA_LINGER_MS_KEY), anyString())).thenReturn("1000");
+
+        Properties producerProperties = sinkOrchestrator.getProducerProperties(configuration);
+
+        assertEquals(producerProperties.getProperty("ssl.truststore.password"), "truststore-password");
+        assertEquals(producerProperties.getProperty("ssl.keystore.password"), "keystore-password");
+    }
+
+    @Test
+    public void shouldThr() throws IOException {
+        File trustStorePasswordFile = writeDummyPasswordFile("truststore-password.txt", "truststore-password");
+        File keyStorePasswordFile = writeDummyPasswordFile("keystore-password.txt", "keystore-password");
+        when(configuration.getString(eq(Constants.SINK_KAFKA_SSL_TRUSTSTORE_PASSWORD_LOCATION_KEY), anyString())).thenReturn(trustStorePasswordFile.getAbsolutePath());
+        when(configuration.getString(eq(Constants.SINK_KAFKA_SSL_KEYSTORE_PASSWORD_LOCATION_KEY), anyString())).thenReturn(keyStorePasswordFile.getAbsolutePath());
+        when(configuration.getString(eq(Constants.SINK_KAFKA_BROKERS_KEY), anyString())).thenReturn("10.200.216.87:6668");
+        when(configuration.getBoolean(eq(Constants.SINK_KAFKA_PRODUCE_LARGE_MESSAGE_ENABLE_KEY), anyBoolean())).thenReturn(true);
+        when(configuration.getString(eq(Constants.SINK_KAFKA_LINGER_MS_KEY), anyString())).thenReturn("1000");
+
+        Properties producerProperties = sinkOrchestrator.getProducerProperties(configuration);
+
+        assertEquals(producerProperties.getProperty("ssl.truststore.password"), "truststore-password");
+        assertEquals(producerProperties.getProperty("ssl.keystore.password"), "keystore-password");
     }
 
     @Test
@@ -118,5 +158,13 @@ public class SinkOrchestratorTest {
         when(configuration.getParam()).thenReturn(ParameterTool.fromMap(Collections.emptyMap()));
         Sink sinkFunction = sinkOrchestrator.getSink(configuration, new String[]{}, stencilClientOrchestrator, daggerStatsDReporter);
         assertThat(sinkFunction, instanceOf(BigQuerySink.class));
+    }
+
+    private File writeDummyPasswordFile(String fileName, String password) throws IOException {
+        File passwordFile = temporaryFolder.newFile(fileName);
+        FileWriter writer = new FileWriter(passwordFile);
+        writer.write(password);
+        writer.close();
+        return passwordFile;
     }
 }

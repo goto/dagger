@@ -149,7 +149,7 @@ public class SinkOrchestrator implements TelemetryPublisher {
         }
         String sslKeystorePasswordFileLocation = configuration.getString(Constants.SINK_KAFKA_SSL_KEYSTORE_PASSWORD_LOCATION_KEY, StringUtils.EMPTY);
         if (StringUtils.isNotEmpty(sslKeystorePasswordFileLocation)) {
-            kafkaProps.setProperty(Constants.KAFKA_PROPS_SSL_TRUSTSTORE_PASSWORD_KEY, parsePasswordFile(sslKeystorePasswordFileLocation));
+            kafkaProps.setProperty(Constants.KAFKA_PROPS_SSL_KEYSTORE_PASSWORD_KEY, parsePasswordFile(sslKeystorePasswordFileLocation));
         }
     }
 
