@@ -330,7 +330,7 @@ public class AsyncHttpSinkTest {
         when(httpSinkConfig.getSinkHttpRequestMethod()).thenReturn(HttpRequestMethodType.POST);
         when(httpSinkConfig.getSinkHttpHeaders()).thenReturn(Collections.emptyMap());
         when(asyncHttpClient.sendAsync(anyString(), any(), any(), anyString()))
-                .thenReturn(new CompletableFuture<>());  // This future will never complete
+                .thenReturn(new CompletableFuture<>());
 
         writer.write(row, context);
 
@@ -346,7 +346,7 @@ public class AsyncHttpSinkTest {
                 mockWriter, Executors.newSingleThreadExecutor(), asyncHttpClient, httpSinkConfig, new MetricsCollector(daggerStatsDReporter));
 
         Row row = mock(Row.class);
-        when(row.toString()).thenReturn(new String(new char[1000000]).replace('\0', 'A'));  // 1MB payload
+        when(row.toString()).thenReturn(new String(new char[1000000]).replace('\0', 'A'));
         Sink.WriteContext context = mock(Sink.WriteContext.class);
 
         when(httpSinkConfig.getMaxConcurrentRequests()).thenReturn(1);
