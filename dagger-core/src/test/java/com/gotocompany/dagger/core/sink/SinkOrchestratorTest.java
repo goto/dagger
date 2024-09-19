@@ -113,20 +113,24 @@ public class SinkOrchestratorTest {
         assertEquals(producerProperties.getProperty("ssl.keystore.password"), "keystore-password");
     }
 
-    @Test
-    public void shouldThr() throws IOException {
-        File trustStorePasswordFile = writeDummyPasswordFile("truststore-password.txt", "truststore-password");
-        File keyStorePasswordFile = writeDummyPasswordFile("keystore-password.txt", "keystore-password");
-        when(configuration.getString(eq(Constants.SINK_KAFKA_SSL_TRUSTSTORE_PASSWORD_LOCATION_KEY), anyString())).thenReturn(trustStorePasswordFile.getAbsolutePath());
-        when(configuration.getString(eq(Constants.SINK_KAFKA_SSL_KEYSTORE_PASSWORD_LOCATION_KEY), anyString())).thenReturn(keyStorePasswordFile.getAbsolutePath());
+    @Test(expected = IllegalArgumentException.class)
+    public void shouldThrowWhenKeyStorePasswordIsNotExists() {
+        when(configuration.getString(eq(Constants.SINK_KAFKA_SSL_KEYSTORE_PASSWORD_LOCATION_KEY), anyString())).thenReturn("/non-exists.txt");
         when(configuration.getString(eq(Constants.SINK_KAFKA_BROKERS_KEY), anyString())).thenReturn("10.200.216.87:6668");
         when(configuration.getBoolean(eq(Constants.SINK_KAFKA_PRODUCE_LARGE_MESSAGE_ENABLE_KEY), anyBoolean())).thenReturn(true);
         when(configuration.getString(eq(Constants.SINK_KAFKA_LINGER_MS_KEY), anyString())).thenReturn("1000");
 
-        Properties producerProperties = sinkOrchestrator.getProducerProperties(configuration);
+        sinkOrchestrator.getProducerProperties(configuration);
+    }
 
-        assertEquals(producerProperties.getProperty("ssl.truststore.password"), "truststore-password");
-        assertEquals(producerProperties.getProperty("ssl.keystore.password"), "keystore-password");
+    @Test(expected = IllegalArgumentException.class)
+    public void shouldThrowWhenTrustStorePasswordIsNotExists() {
+        when(configuration.getString(eq(Constants.SINK_KAFKA_SSL_TRUSTSTORE_PASSWORD_LOCATION_KEY), anyString())).thenReturn("/non-exists.txt");
+        when(configuration.getString(eq(Constants.SINK_KAFKA_BROKERS_KEY), anyString())).thenReturn("10.200.216.87:6668");
+        when(configuration.getBoolean(eq(Constants.SINK_KAFKA_PRODUCE_LARGE_MESSAGE_ENABLE_KEY), anyBoolean())).thenReturn(true);
+        when(configuration.getString(eq(Constants.SINK_KAFKA_LINGER_MS_KEY), anyString())).thenReturn("1000");
+
+        sinkOrchestrator.getProducerProperties(configuration);
     }
 
     @Test
