@@ -139,11 +139,11 @@ publishing {
 protobuf {
     generatedFilesBaseDir = "$projectDir/src/generated"
     protoc {
-        artifact = "com.google.protobuf:protoc:3.1.0"
+        artifact = "com.google.protobuf:protoc:3.17.3"
     }
     plugins {
         grpc {
-            artifact = "io.grpc:protoc-gen-grpc-java:1.19.0"
+            artifact = "io.grpc:protoc-gen-grpc-java:1.60.1"
         }
     }
     generateProtoTasks {

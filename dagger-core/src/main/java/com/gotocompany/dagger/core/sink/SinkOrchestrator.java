@@ -10,6 +10,7 @@ import com.gotocompany.dagger.core.sink.influx.InfluxDBFactoryWrapper;
 import com.gotocompany.dagger.core.sink.influx.InfluxDBSink;
 import com.gotocompany.dagger.core.utils.KafkaConfigUtil;
 import com.gotocompany.dagger.core.utils.Constants;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.flink.api.connector.sink.Sink;
 import org.apache.flink.api.java.utils.ParameterTool;
 import org.apache.flink.connector.base.DeliveryGuarantee;
@@ -24,6 +25,9 @@ import com.gotocompany.dagger.core.sink.kafka.KafkaSerializationSchemaFactory;
 import com.gotocompany.dagger.core.sink.kafka.KafkaSerializerBuilder;
 import com.gotocompany.dagger.core.sink.log.LogSink;
 
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -117,6 +121,7 @@ public class SinkOrchestrator implements TelemetryPublisher {
                 .map(ParameterTool::getProperties)
                 .orElseGet(Properties::new));
         kafkaProducerConfigs.putAll(dynamicProperties);
+        setSslPasswordsFromFile(configuration, kafkaProducerConfigs);
         return kafkaProducerConfigs;
     }
 
@@ -135,5 +140,24 @@ public class SinkOrchestrator implements TelemetryPublisher {
 
     private void addMetric(String key, String value) {
         metrics.computeIfAbsent(key, k -> new ArrayList<>()).add(value);
+    }
+
+    private void setSslPasswordsFromFile(Configuration configuration, Properties kafkaProps) {
+        String sslTruststorePasswordFileLocation = configuration.getString(Constants.SINK_KAFKA_SSL_TRUSTSTORE_PASSWORD_LOCATION_KEY, StringUtils.EMPTY);
+        if (StringUtils.isNotEmpty(sslTruststorePasswordFileLocation)) {
+            kafkaProps.setProperty(Constants.KAFKA_PROPS_SSL_TRUSTSTORE_PASSWORD_KEY, parsePasswordFile(sslTruststorePasswordFileLocation));
+        }
+        String sslKeystorePasswordFileLocation = configuration.getString(Constants.SINK_KAFKA_SSL_KEYSTORE_PASSWORD_LOCATION_KEY, StringUtils.EMPTY);
+        if (StringUtils.isNotEmpty(sslKeystorePasswordFileLocation)) {
+            kafkaProps.setProperty(Constants.KAFKA_PROPS_SSL_TRUSTSTORE_PASSWORD_KEY, parsePasswordFile(sslKeystorePasswordFileLocation));
+        }
+    }
+
+    private String parsePasswordFile(String path) {
+        try {
+            return new String(Files.readAllBytes(Paths.get(path)));
+        } catch (IOException e) {
+            throw new IllegalArgumentException("Error reading password file: " + path, e);
+        }
     }
 }
