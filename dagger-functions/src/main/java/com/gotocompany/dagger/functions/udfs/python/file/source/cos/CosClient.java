@@ -16,10 +16,9 @@ import java.util.stream.Collectors;
 
 public class CosClient {
 
-    // TODO find better way to initialize clients
-    private final String ENV_COS_SECRET_ID = "COS_SECRET_ID";
-    private final String ENV_COS_SECRET_KEY = "COS_SECRET_KEY";
-    private final String ENV_COS_REGION = "COS_REGION";
+    private static final String ENV_COS_SECRET_ID = "COS_SECRET_ID";
+    private static final String ENV_COS_SECRET_KEY = "COS_SECRET_KEY";
+    private static final String ENV_COS_REGION = "COS_REGION";
 
     private final COSClient libCosClient;
 
