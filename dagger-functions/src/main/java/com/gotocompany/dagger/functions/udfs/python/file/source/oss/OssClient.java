@@ -15,8 +15,8 @@ import java.util.stream.Collectors;
 
 public class OssClient {
 
-    // TODO refactor to take this value from the configuration
-    private static final String endpoint = "oss-cn-hangzhou.aliyuncs.com";
+    private static final String ENV_OSS_ENDPOINT = "OSS_ENDPOINT";
+    private static final String DEFAULT_OSS_ENDPOINT = "oss-ap-southeast-1.aliyuncs.com";
 
     private final OSS libOssClient;
 
@@ -24,6 +24,10 @@ public class OssClient {
      * Instantiates a new Oss client.
      */
     public OssClient() {
+        String endpoint = System.getenv(ENV_OSS_ENDPOINT);
+        if (endpoint == null || endpoint.isEmpty()) {
+            endpoint = DEFAULT_OSS_ENDPOINT;
+        }
         try {
             libOssClient = new OSSClientBuilder().build(endpoint, CredentialsProviderFactory.newEnvironmentVariableCredentialsProvider());
         } catch (ClientException e) {
