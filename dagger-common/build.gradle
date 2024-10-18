@@ -65,6 +65,7 @@ dependencies {
         exclude module: "commons-compress"
     }
     dependenciesCommonJar group: 'com.google.cloud.bigdataoss', name: 'gcs-connector', version: 'hadoop2-2.2.16'
+    dependenciesCommonJar group: 'com.qcloud.cos', name: 'flink-cos-fs-hadoop', version: '1.10.0-0.1.10'
     dependenciesCommonJar 'org.apache.flink:flink-metrics-dropwizard:' + flinkVersion
     dependenciesCommonJar 'org.apache.flink:flink-json:' + flinkVersion
     dependenciesCommonJar 'com.jayway.jsonpath:json-path:2.4.0'
