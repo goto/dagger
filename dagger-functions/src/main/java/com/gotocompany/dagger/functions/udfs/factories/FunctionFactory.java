@@ -4,6 +4,7 @@ import com.gotocompany.dagger.functions.common.Constants;
 import com.gotocompany.dagger.functions.udfs.scalar.dart.store.DartDataStore;
 import com.gotocompany.dagger.functions.udfs.scalar.dart.store.DartDataStoreClient;
 import com.gotocompany.dagger.functions.udfs.scalar.dart.store.DefaultDartDataStore;
+import com.gotocompany.dagger.functions.udfs.scalar.dart.store.cos.CosDartClient;
 import com.gotocompany.dagger.functions.udfs.scalar.dart.store.gcs.GcsDartClient;
 import com.gotocompany.dagger.functions.udfs.scalar.dart.store.oss.OssDartClient;
 import org.apache.flink.table.api.bridge.java.StreamTableEnvironment;
@@ -155,6 +156,10 @@ public class FunctionFactory extends UdfFactory {
             case Constants.UDF_STORE_PROVIDER_OSS:
                 // TODO Check if OSS SDK supports projectID selection
                 dartDataStoreClient = new OssDartClient();
+                break;
+            case Constants.UDF_STORE_PROVIDER_COS:
+                // TODO Check if COS SDK supports projectID selection
+                dartDataStoreClient = new CosDartClient();
                 break;
             default:
                 throw new IllegalArgumentException("Unknown UDF Store Provider: " + udfStoreProvider);
