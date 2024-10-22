@@ -7,7 +7,7 @@ import com.gotocompany.dagger.functions.udfs.scalar.dart.types.MapCache;
 import com.gotocompany.dagger.functions.udfs.scalar.dart.types.SetCache;
 import com.gotocompany.dagger.functions.udfs.scalar.DartContains;
 import com.gotocompany.dagger.functions.udfs.scalar.DartGet;
-import com.gotocompany.dagger.functions.udfs.scalar.dart.store.DataStore;
+import com.gotocompany.dagger.functions.udfs.scalar.dart.store.DartDataStore;
 import org.apache.flink.shaded.jackson2.com.fasterxml.jackson.core.type.TypeReference;
 import org.apache.flink.shaded.jackson2.com.fasterxml.jackson.databind.JsonNode;
 import org.apache.flink.shaded.jackson2.com.fasterxml.jackson.databind.ObjectMapper;
@@ -21,11 +21,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-
 /**
  * The type Gcs data store.
  */
-public class GcsDataStore implements DataStore, Serializable {
+public class GcsDartDataStore implements DartDataStore, Serializable {
 
     private final String projectId;
 
@@ -33,71 +32,34 @@ public class GcsDataStore implements DataStore, Serializable {
 
     private GcsClient gcsClient;
 
-    private MeterStatsManager meterStatsManager;
-    private GaugeStatsManager gaugeStatsManager;
-
     /**
      * Instantiates a new Gcs data store.
      *
      * @param projectId the project id
      * @param bucketId  the bucket id
      */
-    public GcsDataStore(String projectId, String bucketId) {
+    public GcsDartDataStore(String projectId, String bucketId) {
         this.projectId = projectId;
         this.bucketId = bucketId;
     }
 
     @Override
-    public SetCache getSet(String setName) {
-
-        return new SetCache(getSetOfObjects(setName));
+    public SetCache getSet(String setName, MeterStatsManager meterStatsManager, GaugeStatsManager gaugeManager) {
+        return new SetCache(getSetOfObjects(setName, meterStatsManager, gaugeManager));
     }
 
     @Override
-    public MapCache getMap(String mapName) {
-        Map<String, String> mapOfObjects = getMapOfObjects(mapName);
+    public MapCache getMap(String mapName, MeterStatsManager meterStatsManager, GaugeStatsManager gaugeManager) {
+        Map<String, String> mapOfObjects = getMapOfObjects(mapName, meterStatsManager, gaugeManager);
         return new MapCache(mapOfObjects);
     }
 
-    /**
-     * Sets meter stats manager.
-     *
-     * @param meterStatsManager the meter stats manager
-     */
-    public void setMeterStatsManager(MeterStatsManager meterStatsManager) {
-        this.meterStatsManager = meterStatsManager;
-    }
-
-    /**
-     * Gets meter stats manager.
-     *
-     * @return the meter stats manager
-     */
-    public MeterStatsManager getMeterStatsManager() {
-        return this.meterStatsManager;
-    }
-
-    /**
-     * Sets gauge stats manager.
-     *
-     * @param gaugeStatsManager the gauge stats manager
-     */
-    public void setGaugeStatsManager(GaugeStatsManager gaugeStatsManager) {
-        this.gaugeStatsManager = gaugeStatsManager;
-    }
-
-    /**
-     * Gets gauge stats manager.
-     *
-     * @return the gauge stats manager
-     */
-    public GaugeStatsManager getGaugeStatsManager() {
-        return gaugeStatsManager;
-    }
-
-    private Map<String, String> getMapOfObjects(String dartName) {
-
-        String jsonData = getGcsClient().fetchJsonData(DartGet.class.getSimpleName(), getGaugeStatsManager(), this.bucketId, "dart-get/" + dartName);
+    private Map<String, String> getMapOfObjects(String dartName, MeterStatsManager meterManager, GaugeStatsManager gaugeManager) {
+        String jsonData = getGcsClient().fetchJsonData(
+                DartGet.class.getSimpleName(),
+                gaugeManager,
+                this.bucketId,
+                "dart-get/" + dartName);
 
         ObjectMapper mapper = new ObjectMapper();
 
@@ -105,15 +67,15 @@ public class GcsDataStore implements DataStore, Serializable {
         try {
             map = mapper.readValue(jsonData, Map.class);
         } catch (IOException e) {
-            getMeterStatsManager().markEvent(DartAspects.DART_GCS_FETCH_FAILURES);
+            meterManager.markEvent(DartAspects.DART_GCS_FETCH_FAILURES);
             e.printStackTrace();
         }
         return map;
     }
 
-    private Set<String> getSetOfObjects(String dartName) {
+    private Set<String> getSetOfObjects(String dartName, MeterStatsManager meterManager, GaugeStatsManager gaugeManager) {
 
-        String jsonData = getGcsClient().fetchJsonData(DartContains.class.getSimpleName(), getGaugeStatsManager(), this.bucketId, "dart-contains/" + dartName);
+        String jsonData = getGcsClient().fetchJsonData(DartContains.class.getSimpleName(), gaugeManager, this.bucketId, "dart-contains/" + dartName);
         ObjectMapper mapper = new ObjectMapper();
         try {
             ObjectNode node = (ObjectNode) mapper.readTree(jsonData);
@@ -124,7 +86,7 @@ public class GcsDataStore implements DataStore, Serializable {
 
             return new HashSet<>(list);
         } catch (Exception e) {
-            getMeterStatsManager().markEvent(DartAspects.DART_GCS_FETCH_FAILURES);
+            meterManager.markEvent(DartAspects.DART_GCS_FETCH_FAILURES);
             e.printStackTrace();
         }
 

@@ -38,4 +38,9 @@ public abstract class ScalarUdf extends ScalarFunction {
     public GaugeStatsManager getGaugeStatsManager() {
         return gaugeStatsManager;
     }
+
+    // For testing purpose only
+    public void setGaugeStatsManager(GaugeStatsManager gaugeStatsManager) {
+        this.gaugeStatsManager = gaugeStatsManager;
+    }
 }
