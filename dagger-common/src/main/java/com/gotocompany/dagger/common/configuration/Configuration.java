@@ -15,6 +15,10 @@ public class Configuration implements Serializable {
         return param;
     }
 
+    public String getString(String configKey) {
+        return param.get(configKey);
+    }
+
     public String getString(String configKey, String defaultValue) {
         return param.get(configKey, defaultValue);
     }

@@ -4,7 +4,7 @@ import com.gotocompany.dagger.common.metrics.managers.GaugeStatsManager;
 import com.gotocompany.dagger.common.metrics.managers.MeterStatsManager;
 import com.gotocompany.dagger.functions.exceptions.KeyDoesNotExistException;
 import com.gotocompany.dagger.functions.exceptions.TagDoesNotExistException;
-import com.gotocompany.dagger.functions.udfs.scalar.dart.store.gcs.GcsDartDataStore;
+import com.gotocompany.dagger.functions.udfs.scalar.dart.store.DefaultDartDataStore;
 import com.gotocompany.dagger.functions.udfs.scalar.dart.types.MapCache;
 import org.apache.flink.metrics.Gauge;
 import org.apache.flink.metrics.MetricGroup;
@@ -19,7 +19,7 @@ import static org.mockito.Mockito.*;
 import static org.mockito.MockitoAnnotations.initMocks;
 
 public class DartGetTest {
-    private GcsDartDataStore dataStore;
+    private DefaultDartDataStore dataStore;
 
     @Mock
     private MetricGroup metricGroup;
@@ -42,7 +42,7 @@ public class DartGetTest {
         when(functionContext.getMetricGroup()).thenReturn(metricGroup);
         when(metricGroup.addGroup("udf", "DartGet")).thenReturn(metricGroup);
         when(metricGroup.addGroup("DartGet")).thenReturn(metricGroup);
-        this.dataStore = mock(GcsDartDataStore.class);
+        this.dataStore = mock(DefaultDartDataStore.class);
 
         dartGet = new DartGet(dataStore);
 
