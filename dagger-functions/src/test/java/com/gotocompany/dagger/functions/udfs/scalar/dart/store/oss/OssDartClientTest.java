@@ -9,7 +9,6 @@ import org.junit.Test;
 import org.mockito.Mock;
 
 import java.io.ByteArrayInputStream;
-import java.io.IOException;
 
 import static org.mockito.Mockito.*;
 import static org.mockito.MockitoAnnotations.initMocks;
@@ -30,7 +29,7 @@ public class OssDartClientTest {
     }
 
     @Test
-    public void shouldGetObjectFile() throws IOException {
+    public void shouldGetObjectFile() {
         String bucketName = "bucket_name";
         String udfName = "DartGet";
         String dartName = "dart-get/path/to/data.json";
