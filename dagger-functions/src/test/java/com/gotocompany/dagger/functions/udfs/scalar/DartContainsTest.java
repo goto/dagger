@@ -4,7 +4,7 @@ import com.gotocompany.dagger.common.metrics.managers.GaugeStatsManager;
 import com.gotocompany.dagger.common.metrics.managers.MeterStatsManager;
 import com.gotocompany.dagger.functions.exceptions.TagDoesNotExistException;
 import com.gotocompany.dagger.functions.udfs.scalar.dart.store.DartDataStore;
-import com.gotocompany.dagger.functions.udfs.scalar.dart.store.gcs.GcsDartDataStore;
+import com.gotocompany.dagger.functions.udfs.scalar.dart.store.DefaultDartDataStore;
 import com.gotocompany.dagger.functions.udfs.scalar.dart.types.SetCache;
 import org.apache.flink.metrics.Gauge;
 import org.apache.flink.metrics.MetricGroup;
@@ -44,7 +44,7 @@ public class DartContainsTest {
         when(functionContext.getMetricGroup()).thenReturn(metricGroup);
         when(metricGroup.addGroup("udf", "DartContains")).thenReturn(metricGroup);
         when(metricGroup.addGroup("DartContains")).thenReturn(metricGroup);
-        this.dataStore = mock(GcsDartDataStore.class);
+        this.dataStore = mock(DefaultDartDataStore.class);
 
         dartContains = new DartContains(dataStore);
 

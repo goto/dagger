@@ -1,4 +1,4 @@
-package com.gotocompany.dagger.functions.udfs.scalar.dart.store.gcs;
+package com.gotocompany.dagger.functions.udfs.scalar.dart.store;
 
 import com.gotocompany.dagger.common.metrics.managers.GaugeStatsManager;
 import com.gotocompany.dagger.common.metrics.managers.MeterStatsManager;
@@ -7,7 +7,7 @@ import com.gotocompany.dagger.functions.udfs.scalar.dart.types.MapCache;
 import com.gotocompany.dagger.functions.udfs.scalar.dart.types.SetCache;
 import com.gotocompany.dagger.functions.udfs.scalar.DartContains;
 import com.gotocompany.dagger.functions.udfs.scalar.DartGet;
-import com.gotocompany.dagger.functions.udfs.scalar.dart.store.DartDataStore;
+import lombok.Getter;
 import org.apache.flink.shaded.jackson2.com.fasterxml.jackson.core.type.TypeReference;
 import org.apache.flink.shaded.jackson2.com.fasterxml.jackson.databind.JsonNode;
 import org.apache.flink.shaded.jackson2.com.fasterxml.jackson.databind.ObjectMapper;
@@ -22,24 +22,27 @@ import java.util.Map;
 import java.util.Set;
 
 /**
- * The type Gcs data store.
+ * DefaultDartDataStore would be able to fetch the darts from the object storage services,
+ * pass the relevant client which implements {@link DartDataStoreClient}
  */
-public class GcsDartDataStore implements DartDataStore, Serializable {
+public class DefaultDartDataStore implements DartDataStore, Serializable {
 
-    private final String projectId;
+    public static final String DART_GET_DIRECTORY = "dart-get/";
+    public static final String DART_CONTAINS_DIRECTORY = "dart-contains/";
 
     private final String bucketId;
 
-    private GcsClient gcsClient;
+    @Getter
+    private final DartDataStoreClient storeClient;
 
     /**
-     * Instantiates a new Gcs data store.
+     * Instantiates a new data store.
      *
-     * @param projectId the project id
-     * @param bucketId  the bucket id
+     * @param storeClient a {@link DartDataStoreClient} implementation for the respective object storage provider
+     * @param bucketId    the bucket id
      */
-    public GcsDartDataStore(String projectId, String bucketId) {
-        this.projectId = projectId;
+    public DefaultDartDataStore(DartDataStoreClient storeClient, String bucketId) {
+        this.storeClient = storeClient;
         this.bucketId = bucketId;
     }
 
@@ -55,11 +58,11 @@ public class GcsDartDataStore implements DartDataStore, Serializable {
     }
 
     private Map<String, String> getMapOfObjects(String dartName, MeterStatsManager meterManager, GaugeStatsManager gaugeManager) {
-        String jsonData = getGcsClient().fetchJsonData(
+        String jsonData = getStoreClient().fetchJsonData(
                 DartGet.class.getSimpleName(),
                 gaugeManager,
                 this.bucketId,
-                "dart-get/" + dartName);
+                DART_GET_DIRECTORY + dartName);
 
         ObjectMapper mapper = new ObjectMapper();
 
@@ -74,8 +77,7 @@ public class GcsDartDataStore implements DartDataStore, Serializable {
     }
 
     private Set<String> getSetOfObjects(String dartName, MeterStatsManager meterManager, GaugeStatsManager gaugeManager) {
-
-        String jsonData = getGcsClient().fetchJsonData(DartContains.class.getSimpleName(), gaugeManager, this.bucketId, "dart-contains/" + dartName);
+        String jsonData = getStoreClient().fetchJsonData(DartContains.class.getSimpleName(), gaugeManager, this.bucketId, DART_CONTAINS_DIRECTORY + dartName);
         ObjectMapper mapper = new ObjectMapper();
         try {
             ObjectNode node = (ObjectNode) mapper.readTree(jsonData);
@@ -91,17 +93,5 @@ public class GcsDartDataStore implements DartDataStore, Serializable {
         }
 
         return new HashSet<>();
-    }
-
-    /**
-     * Gets gcs client.
-     *
-     * @return the gcs client
-     */
-    GcsClient getGcsClient() {
-        if (this.gcsClient == null) {
-            this.gcsClient = new GcsClient(this.projectId);
-        }
-        return this.gcsClient;
     }
 }
