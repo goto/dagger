@@ -22,7 +22,7 @@ import java.util.Map;
 import java.util.Set;
 
 /**
- * DefaultDartDataStore would be able to fetch the darts from the object storage services,
+ * DefaultDartDataStore would be able to fetch the darts from the object storage services.
  * pass the relevant client which implements {@link DartDataStoreClient}
  */
 public class DefaultDartDataStore implements DartDataStore, Serializable {

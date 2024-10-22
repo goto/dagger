@@ -7,7 +7,7 @@ import com.gotocompany.dagger.functions.exceptions.TagDoesNotExistException;
 public interface DartDataStoreClient {
 
     /**
-     * If a client could provide implementation to this, use the default data store, else implement DartDataStore along with client implementation
+     * If a client could provide implementation to this, use the default data store, else implement DartDataStore along with client implementation.
      *
      * @param udfName           either "DartGet" or "DartContains"
      * @param gaugeStatsManager an instrumentation provider
