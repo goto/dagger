@@ -1,6 +1,8 @@
 package com.gotocompany.dagger.functions.udfs.factories;
 
 import com.gotocompany.dagger.functions.common.Constants;
+import com.gotocompany.dagger.functions.udfs.scalar.dart.store.DartDataStore;
+import com.gotocompany.dagger.functions.udfs.scalar.dart.store.gcs.GcsDartDataStore;
 import org.apache.flink.table.api.bridge.java.StreamTableEnvironment;
 
 import com.google.gson.Gson;
@@ -79,8 +81,9 @@ public class FunctionFactory extends UdfFactory {
     @Override
     public HashSet<ScalarUdf> getScalarUdfs() {
         HashSet<ScalarUdf> scalarUdfs = new HashSet<>();
-        scalarUdfs.add(DartContains.withGcsDataStore(getGcsProjectId(), getGcsBucketId()));
-        scalarUdfs.add(DartGet.withGcsDataStore(getGcsProjectId(), getGcsBucketId()));
+        DartDataStore dartDataSource = getDartDataSource();
+        scalarUdfs.add(new DartContains(dartDataSource));
+        scalarUdfs.add(new DartGet(dartDataSource));
         scalarUdfs.add(new Distance());
         scalarUdfs.add(new ElementAt(getProtosInInputStreams(), stencilClientOrchestrator));
         scalarUdfs.add(new EndOfMonth());
@@ -130,12 +133,10 @@ public class FunctionFactory extends UdfFactory {
         return aggregateUdfs;
     }
 
-    private String getGcsProjectId() {
-        return getConfiguration().getString(Constants.UDF_DART_GCS_PROJECT_ID_KEY, Constants.UDF_DART_GCS_PROJECT_ID_DEFAULT);
-    }
-
-    private String getGcsBucketId() {
-        return getConfiguration().getString(Constants.UDF_DART_GCS_BUCKET_ID_KEY, Constants.UDF_DART_GCS_BUCKET_ID_DEFAULT);
+    private DartDataStore getDartDataSource() {
+        String projectID = getConfiguration().getString(Constants.UDF_DART_GCS_PROJECT_ID_KEY, Constants.UDF_DART_GCS_PROJECT_ID_DEFAULT);
+        String bucketID = getConfiguration().getString(Constants.UDF_DART_GCS_BUCKET_ID_KEY, Constants.UDF_DART_GCS_BUCKET_ID_DEFAULT);
+        return new GcsDartDataStore(projectID, bucketID);
     }
 
     private LinkedHashMap<String, String> getProtosInInputStreams() {

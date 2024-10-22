@@ -1,23 +1,19 @@
 package com.gotocompany.dagger.functions.udfs.scalar;
 
-import com.gotocompany.dagger.common.metrics.managers.MeterStatsManager;
-import com.gotocompany.dagger.common.udfs.ScalarUdf;
 import com.gotocompany.dagger.functions.exceptions.KeyDoesNotExistException;
 import com.gotocompany.dagger.functions.udfs.scalar.dart.DartAspects;
-import com.gotocompany.dagger.functions.udfs.scalar.dart.store.gcs.GcsDataStore;
+import com.gotocompany.dagger.functions.udfs.scalar.dart.DartScalarUdf;
+import com.gotocompany.dagger.functions.udfs.scalar.dart.store.DartDataStore;
 import com.gotocompany.dagger.functions.udfs.scalar.dart.types.MapCache;
-import org.apache.flink.table.functions.FunctionContext;
 
 import java.util.HashMap;
 import java.util.Map;
 
-import static com.gotocompany.dagger.common.core.Constants.UDF_TELEMETRY_GROUP_KEY;
-
 /**
  * The DartGet udf.
  */
-public class DartGet extends ScalarUdf {
-    private final GcsDataStore dataStore;
+public class DartGet extends DartScalarUdf {
+    private final DartDataStore dataStore;
     private final Map<String, MapCache> cache;
 
     /**
@@ -25,29 +21,9 @@ public class DartGet extends ScalarUdf {
      *
      * @param dataStore the data store
      */
-    public DartGet(GcsDataStore dataStore) {
+    public DartGet(DartDataStore dataStore) {
         this.dataStore = dataStore;
         cache = new HashMap<>();
-    }
-
-    /**
-     * With gcs data store dart get.
-     *
-     * @param projectId the project id
-     * @param bucketId  the bucket id
-     * @return the dart get
-     */
-    public static DartGet withGcsDataStore(String projectId, String bucketId) {
-        return new DartGet(new GcsDataStore(projectId, bucketId));
-    }
-
-    @Override
-    public void open(FunctionContext context) throws Exception {
-        super.open(context);
-        MeterStatsManager meterStatsManager = new MeterStatsManager(context.getMetricGroup(), true);
-        meterStatsManager.register(UDF_TELEMETRY_GROUP_KEY, this.getName(), DartAspects.values());
-        dataStore.setMeterStatsManager(meterStatsManager);
-        dataStore.setGaugeStatsManager(getGaugeStatsManager());
     }
 
     /**
@@ -62,10 +38,10 @@ public class DartGet extends ScalarUdf {
      */
     public String eval(String collectionName, String key, Integer refreshRateInHours) {
         if (cache.isEmpty() || !cache.containsKey(collectionName) || cache.get(collectionName).hasExpired(refreshRateInHours) || cache.get(collectionName).isEmpty()) {
-            cache.put(collectionName, dataStore.getMap(collectionName));
-            dataStore.getMeterStatsManager().markEvent(DartAspects.DART_GCS_FETCH_SUCCESS);
+            cache.put(collectionName, dataStore.getMap(collectionName, getMeterStatsManager(), getGaugeStatsManager()));
+            getMeterStatsManager().markEvent(DartAspects.DART_GCS_FETCH_SUCCESS);
         }
-        dataStore.getMeterStatsManager().markEvent(DartAspects.DART_CACHE_HIT);
+        getMeterStatsManager().markEvent(DartAspects.DART_CACHE_HIT);
         return cache.get(collectionName).get(key);
     }
 
@@ -82,9 +58,8 @@ public class DartGet extends ScalarUdf {
         try {
             return eval(collectionName, key, refreshRateInHours);
         } catch (KeyDoesNotExistException e) {
-            dataStore.getMeterStatsManager().markEvent(DartAspects.DART_CACHE_MISS);
+            getMeterStatsManager().markEvent(DartAspects.DART_CACHE_MISS);
             return defaultValue;
         }
     }
-
 }
