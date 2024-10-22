@@ -34,7 +34,7 @@ public class DartGetTest {
     private GaugeStatsManager gaugeStatsManager;
 
     // Subject
-    DartGet dartGet;
+    private DartGet dartGet;
 
     @Before
     public void setUp() {
