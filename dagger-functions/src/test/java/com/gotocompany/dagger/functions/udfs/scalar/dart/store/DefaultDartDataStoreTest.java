@@ -35,13 +35,14 @@ public class DefaultDartDataStoreTest {
 
     @Before
     public void setUp() {
-        defaultDartDataStore = mock(DefaultDartDataStore.class);
+        // Subject
+        DartDataStoreClientProvider dartDataStoreClientProvider = mock(DartDataStoreClientProvider.class);
+        defaultDartDataStore = new DefaultDartDataStore(dartDataStoreClientProvider, "test-bucket");
+
         gcsDartClient = mock(GcsDartClient.class);
         meterStatsManager = mock(MeterStatsManager.class);
         gaugeStatsManager = mock(GaugeStatsManager.class);
-        when(defaultDartDataStore.getSet(anyString(), any(), any())).thenCallRealMethod();
-        when(defaultDartDataStore.getMap(anyString(), any(), any())).thenCallRealMethod();
-        when(defaultDartDataStore.getStoreClient()).thenReturn(gcsDartClient);
+        when(dartDataStoreClientProvider.getDartDataStoreClient()).thenReturn(gcsDartClient);
         listContent = Arrays.asList("listContent");
         mapContent = Collections.singletonMap("key", "value");
     }
