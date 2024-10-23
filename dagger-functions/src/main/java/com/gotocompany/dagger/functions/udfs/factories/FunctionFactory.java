@@ -2,12 +2,8 @@ package com.gotocompany.dagger.functions.udfs.factories;
 
 import com.gotocompany.dagger.functions.common.Constants;
 import com.gotocompany.dagger.functions.udfs.scalar.dart.store.DartDataStore;
-import com.gotocompany.dagger.functions.udfs.scalar.dart.store.DartDataStoreClient;
 import com.gotocompany.dagger.functions.udfs.scalar.dart.store.DartDataStoreClientProvider;
 import com.gotocompany.dagger.functions.udfs.scalar.dart.store.DefaultDartDataStore;
-import com.gotocompany.dagger.functions.udfs.scalar.dart.store.cos.CosDartClient;
-import com.gotocompany.dagger.functions.udfs.scalar.dart.store.gcs.GcsDartClient;
-import com.gotocompany.dagger.functions.udfs.scalar.dart.store.oss.OssDartClient;
 import org.apache.flink.table.api.bridge.java.StreamTableEnvironment;
 
 import com.google.gson.Gson;
