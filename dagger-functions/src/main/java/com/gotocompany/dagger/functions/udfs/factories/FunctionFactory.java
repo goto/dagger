@@ -3,6 +3,7 @@ package com.gotocompany.dagger.functions.udfs.factories;
 import com.gotocompany.dagger.functions.common.Constants;
 import com.gotocompany.dagger.functions.udfs.scalar.dart.store.DartDataStore;
 import com.gotocompany.dagger.functions.udfs.scalar.dart.store.DartDataStoreClient;
+import com.gotocompany.dagger.functions.udfs.scalar.dart.store.DartDataStoreClientProvider;
 import com.gotocompany.dagger.functions.udfs.scalar.dart.store.DefaultDartDataStore;
 import com.gotocompany.dagger.functions.udfs.scalar.dart.store.cos.CosDartClient;
 import com.gotocompany.dagger.functions.udfs.scalar.dart.store.gcs.GcsDartClient;
@@ -148,23 +149,7 @@ public class FunctionFactory extends UdfFactory {
             bucketID = getConfiguration().getString(Constants.UDF_DART_GCS_BUCKET_ID_KEY, Constants.UDF_DART_GCS_BUCKET_ID_DEFAULT);
         }
 
-        DartDataStoreClient dartDataStoreClient;
-        switch (udfStoreProvider) {
-            case Constants.UDF_STORE_PROVIDER_GCS:
-                dartDataStoreClient = new GcsDartClient(projectID);
-                break;
-            case Constants.UDF_STORE_PROVIDER_OSS:
-                // TODO Check if OSS SDK supports projectID selection
-                dartDataStoreClient = new OssDartClient();
-                break;
-            case Constants.UDF_STORE_PROVIDER_COS:
-                // TODO Check if COS SDK supports projectID selection
-                dartDataStoreClient = new CosDartClient();
-                break;
-            default:
-                throw new IllegalArgumentException("Unknown UDF Store Provider: " + udfStoreProvider);
-        }
-        return new DefaultDartDataStore(dartDataStoreClient, bucketID);
+        return new DefaultDartDataStore(new DartDataStoreClientProvider(udfStoreProvider, projectID), bucketID);
     }
 
     private LinkedHashMap<String, String> getProtosInInputStreams() {

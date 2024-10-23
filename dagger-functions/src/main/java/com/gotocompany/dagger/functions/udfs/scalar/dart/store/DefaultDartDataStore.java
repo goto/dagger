@@ -7,7 +7,6 @@ import com.gotocompany.dagger.functions.udfs.scalar.dart.types.MapCache;
 import com.gotocompany.dagger.functions.udfs.scalar.dart.types.SetCache;
 import com.gotocompany.dagger.functions.udfs.scalar.DartContains;
 import com.gotocompany.dagger.functions.udfs.scalar.DartGet;
-import lombok.Getter;
 import org.apache.flink.shaded.jackson2.com.fasterxml.jackson.core.type.TypeReference;
 import org.apache.flink.shaded.jackson2.com.fasterxml.jackson.databind.JsonNode;
 import org.apache.flink.shaded.jackson2.com.fasterxml.jackson.databind.ObjectMapper;
@@ -30,19 +29,17 @@ public class DefaultDartDataStore implements DartDataStore, Serializable {
     public static final String DART_GET_DIRECTORY = "dart-get/";
     public static final String DART_CONTAINS_DIRECTORY = "dart-contains/";
 
+    private final DartDataStoreClientProvider clientProvider;
     private final String bucketId;
-
-    @Getter
-    private final DartDataStoreClient storeClient;
 
     /**
      * Instantiates a new data store.
      *
-     * @param storeClient a {@link DartDataStoreClient} implementation for the respective object storage provider
-     * @param bucketId    the bucket id
+     * @param clientProvider a {@link DartDataStoreClient} implementation for the respective object storage provider
+     * @param bucketId       the bucket id
      */
-    public DefaultDartDataStore(DartDataStoreClient storeClient, String bucketId) {
-        this.storeClient = storeClient;
+    public DefaultDartDataStore(DartDataStoreClientProvider clientProvider, String bucketId) {
+        this.clientProvider = clientProvider;
         this.bucketId = bucketId;
     }
 
@@ -58,7 +55,7 @@ public class DefaultDartDataStore implements DartDataStore, Serializable {
     }
 
     private Map<String, String> getMapOfObjects(String dartName, MeterStatsManager meterManager, GaugeStatsManager gaugeManager) {
-        String jsonData = getStoreClient().fetchJsonData(
+        String jsonData = clientProvider.getDartDataStoreClient().fetchJsonData(
                 DartGet.class.getSimpleName(),
                 gaugeManager,
                 this.bucketId,
@@ -77,7 +74,7 @@ public class DefaultDartDataStore implements DartDataStore, Serializable {
     }
 
     private Set<String> getSetOfObjects(String dartName, MeterStatsManager meterManager, GaugeStatsManager gaugeManager) {
-        String jsonData = getStoreClient().fetchJsonData(DartContains.class.getSimpleName(), gaugeManager, this.bucketId, DART_CONTAINS_DIRECTORY + dartName);
+        String jsonData = clientProvider.getDartDataStoreClient().fetchJsonData(DartContains.class.getSimpleName(), gaugeManager, this.bucketId, DART_CONTAINS_DIRECTORY + dartName);
         ObjectMapper mapper = new ObjectMapper();
         try {
             ObjectNode node = (ObjectNode) mapper.readTree(jsonData);
