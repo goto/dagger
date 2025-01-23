@@ -21,6 +21,7 @@ public class Constants {
     public static final String UDF_STORE_PROVIDER_KEY = "UDF_STORE_PROVIDER";
     public static final String UDF_STORE_PROVIDER_GCS = "GCS";
     public static final String UDF_STORE_PROVIDER_OSS = "OSS";
+    public static final String UDF_STORE_PROVIDER_COS = "COS";
 
     public static final String PYTHON_UDF_CONFIG = "PYTHON_UDF_CONFIG";
     public static final String PYTHON_UDF_ENABLE_KEY = "PYTHON_UDF_ENABLE";
