@@ -153,7 +153,6 @@ public class FunctionFactory extends UdfFactory {
                 dartDataStoreClient = new GcsDartClient(projectID);
                 break;
             case Constants.UDF_STORE_PROVIDER_OSS:
-                // TODO Check if OSS SDK supports projectID selection
                 dartDataStoreClient = new OssDartClient();
                 break;
             default:
