@@ -2,11 +2,8 @@ package com.gotocompany.dagger.functions.udfs.factories;
 
 import com.gotocompany.dagger.functions.common.Constants;
 import com.gotocompany.dagger.functions.udfs.scalar.dart.store.DartDataStore;
-import com.gotocompany.dagger.functions.udfs.scalar.dart.store.DartDataStoreClient;
+import com.gotocompany.dagger.functions.udfs.scalar.dart.store.DartDataStoreClientProvider;
 import com.gotocompany.dagger.functions.udfs.scalar.dart.store.DefaultDartDataStore;
-import com.gotocompany.dagger.functions.udfs.scalar.dart.store.cos.CosDartClient;
-import com.gotocompany.dagger.functions.udfs.scalar.dart.store.gcs.GcsDartClient;
-import com.gotocompany.dagger.functions.udfs.scalar.dart.store.oss.OssDartClient;
 import org.apache.flink.table.api.bridge.java.StreamTableEnvironment;
 
 import com.google.gson.Gson;
@@ -148,21 +145,7 @@ public class FunctionFactory extends UdfFactory {
             bucketID = getConfiguration().getString(Constants.UDF_DART_GCS_BUCKET_ID_KEY, Constants.UDF_DART_GCS_BUCKET_ID_DEFAULT);
         }
 
-        DartDataStoreClient dartDataStoreClient;
-        switch (udfStoreProvider) {
-            case Constants.UDF_STORE_PROVIDER_GCS:
-                dartDataStoreClient = new GcsDartClient(projectID);
-                break;
-            case Constants.UDF_STORE_PROVIDER_OSS:
-                dartDataStoreClient = new OssDartClient();
-                break;
-            case Constants.UDF_STORE_PROVIDER_COS:
-                dartDataStoreClient = new CosDartClient();
-                break;
-            default:
-                throw new IllegalArgumentException("Unknown UDF Store Provider: " + udfStoreProvider);
-        }
-        return new DefaultDartDataStore(dartDataStoreClient, bucketID);
+        return new DefaultDartDataStore(new DartDataStoreClientProvider(udfStoreProvider, projectID), bucketID);
     }
 
     private LinkedHashMap<String, String> getProtosInInputStreams() {
