@@ -2,7 +2,10 @@ package com.gotocompany.dagger.functions.udfs.factories;
 
 import com.gotocompany.dagger.functions.common.Constants;
 import com.gotocompany.dagger.functions.udfs.scalar.dart.store.DartDataStore;
-import com.gotocompany.dagger.functions.udfs.scalar.dart.store.gcs.GcsDartDataStore;
+import com.gotocompany.dagger.functions.udfs.scalar.dart.store.DartDataStoreClient;
+import com.gotocompany.dagger.functions.udfs.scalar.dart.store.DefaultDartDataStore;
+import com.gotocompany.dagger.functions.udfs.scalar.dart.store.gcs.GcsDartClient;
+import com.gotocompany.dagger.functions.udfs.scalar.dart.store.oss.OssDartClient;
 import org.apache.flink.table.api.bridge.java.StreamTableEnvironment;
 
 import com.google.gson.Gson;
@@ -134,9 +137,28 @@ public class FunctionFactory extends UdfFactory {
     }
 
     private DartDataStore getDartDataSource() {
-        String projectID = getConfiguration().getString(Constants.UDF_DART_GCS_PROJECT_ID_KEY, Constants.UDF_DART_GCS_PROJECT_ID_DEFAULT);
-        String bucketID = getConfiguration().getString(Constants.UDF_DART_GCS_BUCKET_ID_KEY, Constants.UDF_DART_GCS_BUCKET_ID_DEFAULT);
-        return new GcsDartDataStore(projectID, bucketID);
+        String projectID = getConfiguration().getString(Constants.UDF_DART_PROJECT_ID_KEY, Constants.UDF_DART_PROJECT_ID_DEFAULT);
+        String bucketID = getConfiguration().getString(Constants.UDF_DART_BUCKET_ID_KEY, Constants.UDF_DART_BUCKET_ID_DEFAULT);
+
+        String udfStoreProvider = getConfiguration().getString(Constants.UDF_STORE_PROVIDER_KEY);
+        if (udfStoreProvider == null) {
+            udfStoreProvider = Constants.UDF_STORE_PROVIDER_GCS;
+            projectID = getConfiguration().getString(Constants.UDF_DART_GCS_PROJECT_ID_KEY, Constants.UDF_DART_GCS_PROJECT_ID_DEFAULT);
+            bucketID = getConfiguration().getString(Constants.UDF_DART_GCS_BUCKET_ID_KEY, Constants.UDF_DART_GCS_BUCKET_ID_DEFAULT);
+        }
+
+        DartDataStoreClient dartDataStoreClient;
+        switch (udfStoreProvider) {
+            case Constants.UDF_STORE_PROVIDER_GCS:
+                dartDataStoreClient = new GcsDartClient(projectID);
+                break;
+            case Constants.UDF_STORE_PROVIDER_OSS:
+                dartDataStoreClient = new OssDartClient();
+                break;
+            default:
+                throw new IllegalArgumentException("Unknown UDF Store Provider: " + udfStoreProvider);
+        }
+        return new DefaultDartDataStore(dartDataStoreClient, bucketID);
     }
 
     private LinkedHashMap<String, String> getProtosInInputStreams() {

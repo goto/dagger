@@ -10,13 +10,14 @@ import com.gotocompany.dagger.common.metrics.managers.GaugeStatsManager;
 import com.gotocompany.dagger.functions.exceptions.BucketDoesNotExistException;
 import com.gotocompany.dagger.functions.exceptions.TagDoesNotExistException;
 import com.gotocompany.dagger.functions.udfs.scalar.dart.DartAspects;
+import com.gotocompany.dagger.functions.udfs.scalar.dart.store.DartDataStoreClient;
 
 import static com.gotocompany.dagger.common.core.Constants.UDF_TELEMETRY_GROUP_KEY;
 
 /**
  * The type Gcs client.
  */
-public class GcsClient {
+public class GcsDartClient implements DartDataStoreClient {
 
     private Storage storage;
 
@@ -28,7 +29,7 @@ public class GcsClient {
      *
      * @param projectId the project id
      */
-    public GcsClient(String projectId) {
+    public GcsDartClient(String projectId) {
 
         if (storage == null) {
             storage = StorageOptions.newBuilder()

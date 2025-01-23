@@ -1,9 +1,10 @@
-package com.gotocompany.dagger.functions.udfs.scalar.dart.store.gcs;
+package com.gotocompany.dagger.functions.udfs.scalar.dart.store;
 
 import com.gotocompany.dagger.common.metrics.managers.GaugeStatsManager;
 import com.gotocompany.dagger.common.metrics.managers.MeterStatsManager;
 import com.gotocompany.dagger.functions.exceptions.BucketDoesNotExistException;
 import com.gotocompany.dagger.functions.exceptions.TagDoesNotExistException;
+import com.gotocompany.dagger.functions.udfs.scalar.dart.store.gcs.GcsDartClient;
 import com.gotocompany.dagger.functions.udfs.scalar.dart.types.MapCache;
 import com.gotocompany.dagger.functions.udfs.scalar.dart.types.SetCache;
 import org.junit.Assert;
@@ -19,28 +20,28 @@ import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-public class GcsDartDataStoreTest {
+public class DefaultDartDataStoreTest {
     private final String defaultListName = "listName";
 
     private final String defaultMapName = "mapName";
     @Rule
     public ExpectedException thrown = ExpectedException.none();
-    private GcsDartDataStore gcsDataStore;
+    private DefaultDartDataStore defaultDartDataStore;
     private List<String> listContent;
     private Map<String, String> mapContent;
-    private GcsClient gcsClient;
+    private GcsDartClient gcsDartClient;
     private MeterStatsManager meterStatsManager;
     private GaugeStatsManager gaugeStatsManager;
 
     @Before
     public void setUp() {
-        gcsDataStore = mock(GcsDartDataStore.class);
-        gcsClient = mock(GcsClient.class);
+        defaultDartDataStore = mock(DefaultDartDataStore.class);
+        gcsDartClient = mock(GcsDartClient.class);
         meterStatsManager = mock(MeterStatsManager.class);
         gaugeStatsManager = mock(GaugeStatsManager.class);
-        when(gcsDataStore.getSet(anyString(), any(), any())).thenCallRealMethod();
-        when(gcsDataStore.getMap(anyString(), any(), any())).thenCallRealMethod();
-        when(gcsDataStore.getGcsClient()).thenReturn(gcsClient);
+        when(defaultDartDataStore.getSet(anyString(), any(), any())).thenCallRealMethod();
+        when(defaultDartDataStore.getMap(anyString(), any(), any())).thenCallRealMethod();
+        when(defaultDartDataStore.getStoreClient()).thenReturn(gcsDartClient);
         listContent = Arrays.asList("listContent");
         mapContent = Collections.singletonMap("key", "value");
     }
@@ -49,9 +50,9 @@ public class GcsDartDataStoreTest {
     public void shouldGetExistingListGivenName() {
         String jsonData = " { \"data\" : [ \"listContent\" ] } ";
 
-        when(gcsClient.fetchJsonData(any(), any(), any(), anyString())).thenReturn(jsonData);
+        when(gcsDartClient.fetchJsonData(any(), any(), any(), anyString())).thenReturn(jsonData);
         SetCache setCache = new SetCache(new HashSet<>(listContent));
-        Assert.assertEquals(setCache, gcsDataStore.getSet(defaultListName, meterStatsManager, gaugeStatsManager));
+        Assert.assertEquals(setCache, defaultDartDataStore.getSet(defaultListName, meterStatsManager, gaugeStatsManager));
     }
 
     @Test
@@ -59,9 +60,9 @@ public class GcsDartDataStoreTest {
         thrown.expect(TagDoesNotExistException.class);
         thrown.expectMessage("Could not find the content in gcs for invalidListName");
 
-        when(gcsClient.fetchJsonData(any(), any(), any(), anyString())).thenThrow(new TagDoesNotExistException("Could not find the content in gcs for invalidListName"));
+        when(gcsDartClient.fetchJsonData(any(), any(), any(), anyString())).thenThrow(new TagDoesNotExistException("Could not find the content in gcs for invalidListName"));
 
-        gcsDataStore.getSet("invalidListName", meterStatsManager, gaugeStatsManager);
+        defaultDartDataStore.getSet("invalidListName", meterStatsManager, gaugeStatsManager);
     }
 
     @Test
@@ -69,18 +70,18 @@ public class GcsDartDataStoreTest {
         thrown.expect(BucketDoesNotExistException.class);
         thrown.expectMessage("Could not find the bucket in gcs for invalidListName");
 
-        when(gcsClient.fetchJsonData(any(), any(), any(), anyString())).thenThrow(new BucketDoesNotExistException("Could not find the bucket in gcs for invalidListName"));
+        when(gcsDartClient.fetchJsonData(any(), any(), any(), anyString())).thenThrow(new BucketDoesNotExistException("Could not find the bucket in gcs for invalidListName"));
 
-        gcsDataStore.getSet("invalidListName", meterStatsManager, gaugeStatsManager);
+        defaultDartDataStore.getSet("invalidListName", meterStatsManager, gaugeStatsManager);
     }
 
     @Test
     public void shouldGetExistingMapGivenName() {
         String jsonData = " { \"key\" :  \"value\"  } ";
-        when(gcsClient.fetchJsonData(any(), any(), any(), anyString())).thenReturn(jsonData);
+        when(gcsDartClient.fetchJsonData(any(), any(), any(), anyString())).thenReturn(jsonData);
         MapCache mapCache = new MapCache(new HashMap<>(mapContent));
 
-        Assert.assertEquals(mapCache, gcsDataStore.getMap(defaultMapName, meterStatsManager, gaugeStatsManager));
+        Assert.assertEquals(mapCache, defaultDartDataStore.getMap(defaultMapName, meterStatsManager, gaugeStatsManager));
     }
 
     @Test
@@ -88,8 +89,8 @@ public class GcsDartDataStoreTest {
         thrown.expect(TagDoesNotExistException.class);
         thrown.expectMessage("Could not find the content in gcs for invalidMapName");
 
-        when(gcsClient.fetchJsonData(any(), any(), any(), anyString())).thenThrow(new TagDoesNotExistException("Could not find the content in gcs for invalidMapName"));
+        when(gcsDartClient.fetchJsonData(any(), any(), any(), anyString())).thenThrow(new TagDoesNotExistException("Could not find the content in gcs for invalidMapName"));
 
-        gcsDataStore.getSet("invalidMapName", meterStatsManager, gaugeStatsManager);
+        defaultDartDataStore.getSet("invalidMapName", meterStatsManager, gaugeStatsManager);
     }
 }
