@@ -273,9 +273,19 @@ task minimalPublish(dependsOn: 'minimalJar') {
     description('Publishes minimal jar')
 }
 
+task minimalPublishToMavenLocal(dependsOn: 'minimalJar') {
+    dependsOn('publishMinimalArtifactPublicationToMavenLocal')
+    description('Publishes minimal jar to Maven Local')
+}
+
 task dependenciesPublish(dependsOn: 'dependenciesJar') {
     dependsOn('publishDependenciesArtifactPublicationToGitHubPackagesRepository')
     description('Publishes dependencies jar')
+}
+
+task dependenciesPublishToMavenLocal(dependsOn: 'dependenciesJar') {
+    dependsOn('publishDependenciesArtifactPublicationToMavenLocal')
+    description('Publishes dependencies jar to Maven Local')
 }
 
 project.afterEvaluate {
@@ -283,7 +293,6 @@ project.afterEvaluate {
         dependsOn minimalJar, dependenciesJar
     }
 }
-
 
 task runFlink(type: JavaExec, dependsOn: classes) {
     Properties properties = loadEnv()
@@ -297,4 +306,3 @@ task runFlink(type: JavaExec, dependsOn: classes) {
     classpath = sourceSets.main.runtimeClasspath
     environment properties
 }
-
