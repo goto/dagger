@@ -69,7 +69,6 @@ dependencies {
 
     dependenciesCommonJar group: 'org.apache.hadoop', name: 'hadoop-aliyun', version: '3.4.1'
     dependenciesCommonJar group: 'org.apache.hadoop', name: 'hadoop-cos', version: '3.3.5'
-    dependenciesCommonJar group: 'org.apache.hadoop', name: 'hadoop-aliyun', version: '3.4.1'
 
     dependenciesCommonJar 'org.apache.flink:flink-metrics-dropwizard:' + flinkVersion
     dependenciesCommonJar 'org.apache.flink:flink-json:' + flinkVersion
