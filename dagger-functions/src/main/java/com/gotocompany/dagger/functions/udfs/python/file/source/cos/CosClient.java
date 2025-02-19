@@ -8,6 +8,9 @@ import com.qcloud.cos.model.COSObject;
 import com.qcloud.cos.model.COSObjectInputStream;
 import com.qcloud.cos.region.Region;
 import com.qcloud.cos.utils.IOUtils;
+import com.tencentcloudapi.common.Credential;
+import com.tencentcloudapi.common.exception.TencentCloudSDKException;
+import com.tencentcloudapi.common.provider.OIDCRoleArnProvider;
 
 import java.io.IOException;
 import java.util.Arrays;
@@ -16,8 +19,6 @@ import java.util.stream.Collectors;
 
 public class CosClient {
 
-    private static final String ENV_COS_SECRET_ID = "COS_SECRET_ID";
-    private static final String ENV_COS_SECRET_KEY = "COS_SECRET_KEY";
     private static final String ENV_COS_REGION = "COS_REGION";
 
     private final COSClient libCosClient;
@@ -26,13 +27,19 @@ public class CosClient {
      * Instantiates a new Cos client.
      */
     public CosClient() {
-        String secretID = System.getenv(ENV_COS_SECRET_ID);
-        String secretKey = System.getenv(ENV_COS_SECRET_KEY);
-        String region = System.getenv(ENV_COS_REGION); // ap-singapore
+        String region = System.getenv(ENV_COS_REGION); // ap-jakarta
 
-        COSCredentials credentials = new BasicCOSCredentials(secretID, secretKey);
+        Credential credentials;
+        try {
+            credentials = new OIDCRoleArnProvider().getCredentials();
+        } catch (TencentCloudSDKException e) {
+            throw new RuntimeException("failed to initiate oidc credential provider", e);
+        }
+
+        COSCredentials cosCredentials = new BasicCOSCredentials(credentials.getSecretId(), credentials.getSecretKey());
+
         ClientConfig clientConfig = new ClientConfig(new Region(region));
-        libCosClient = new COSClient(credentials, clientConfig);
+        libCosClient = new COSClient(cosCredentials, clientConfig);
     }
 
     /**
