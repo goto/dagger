@@ -6,7 +6,7 @@ import java.io.IOException;
 
 public class CosFileSource implements FileSource {
 
-    private CosClient cosClient;
+    private CosFileClient cosFileClient;
     private final String pythonFile;
 
     /**
@@ -23,9 +23,9 @@ public class CosFileSource implements FileSource {
      *
      * @param pythonFile the python file
      */
-    public CosFileSource(String pythonFile, CosClient cosClient) {
+    public CosFileSource(String pythonFile, CosFileClient cosFileClient) {
         this.pythonFile = pythonFile;
-        this.cosClient = cosClient;
+        this.cosFileClient = cosFileClient;
     }
 
     @Override
@@ -38,10 +38,10 @@ public class CosFileSource implements FileSource {
      *
      * @return the cos client
      */
-    private CosClient getCosClient() {
-        if (this.cosClient == null) {
-            this.cosClient = new CosClient();
+    private CosFileClient getCosClient() {
+        if (this.cosFileClient == null) {
+            this.cosFileClient = new CosFileClient();
         }
-        return this.cosClient;
+        return this.cosFileClient;
     }
 }

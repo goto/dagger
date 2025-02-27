@@ -15,7 +15,7 @@ import static org.mockito.MockitoAnnotations.initMocks;
 public class CosFileSourceTest {
 
     @Mock
-    private CosClient cosClient;
+    private CosFileClient cosFileClient;
 
     @Before
     public void setup() {
@@ -28,8 +28,8 @@ public class CosFileSourceTest {
         String pythonFile = classLoader.getResource("python_udf.zip").getFile();
         byte[] expectedObject = Files.readAllBytes(Paths.get(pythonFile));
 
-        when(cosClient.getFile(pythonFile)).thenReturn(expectedObject);
-        CosFileSource cosFileSource = new CosFileSource(pythonFile, cosClient);
+        when(cosFileClient.getFile(pythonFile)).thenReturn(expectedObject);
+        CosFileSource cosFileSource = new CosFileSource(pythonFile, cosFileClient);
 
         byte[] actualObject = cosFileSource.getObjectFile();
 
