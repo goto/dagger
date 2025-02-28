@@ -1,5 +1,6 @@
 package com.gotocompany.dagger.functions.udfs.python.file.source.cos;
 
+import com.gotocompany.dagger.functions.common.CosLibClient;
 import com.qcloud.cos.COSClient;
 import com.qcloud.cos.model.COSObject;
 import com.qcloud.cos.model.COSObjectInputStream;
@@ -17,10 +18,12 @@ import java.util.Arrays;
 import static org.mockito.Mockito.*;
 import static org.mockito.MockitoAnnotations.initMocks;
 
-public class CosClientTest {
+public class CosFileClientTest {
+    @Mock
+    private CosLibClient cosLibClient;
 
     @Mock
-    private COSClient libCosClient;
+    private COSClient cosClient;
 
     @Mock
     private COSObject cosObject;
@@ -39,13 +42,16 @@ public class CosClientTest {
         String objectName = "path/to/file/python_udf.zip";
         String expectedValue = Arrays.toString("objectFile".getBytes());
 
-        when(libCosClient.getObject(bucketName, objectName)).thenReturn(cosObject);
+        CosLibClient.testOnlySetInstance(cosLibClient);
+        doReturn(cosClient).when(cosLibClient).get();
+
+        when(cosClient.getObject(bucketName, objectName)).thenReturn(cosObject);
         when(cosObject.getObjectContent()).thenReturn(new COSObjectInputStream(new ByteArrayInputStream("objectFile".getBytes()), mockRequest));
 
-        CosClient cosClient = new CosClient(libCosClient);
-        byte[] actualValue = cosClient.getFile(pythonFile);
+        CosFileClient cosFileClient = new CosFileClient();
+        byte[] actualValue = cosFileClient.getFile(pythonFile);
 
-        verify(libCosClient, times(1)).getObject(bucketName, objectName);
+        verify(this.cosClient, times(1)).getObject(bucketName, objectName);
         verify(cosObject, times(1)).getObjectContent();
         Assert.assertEquals(expectedValue, Arrays.toString(actualValue));
     }
