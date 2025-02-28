@@ -30,8 +30,8 @@ public class CosFileClient {
         String bucketName = file.get(0);
         String objectName = file.stream().skip(1).collect(Collectors.joining("/"));
 
-        COSClient libCosClient = CosLibClient.getInstance().get();
-        COSObject cosObject = libCosClient.getObject(bucketName, objectName);
+        COSClient cosClient = CosLibClient.getInstance().get();
+        COSObject cosObject = cosClient.getObject(bucketName, objectName);
         try (COSObjectInputStream inputStream = cosObject.getObjectContent()) {
             return IOUtils.toByteArray(inputStream);
         }
