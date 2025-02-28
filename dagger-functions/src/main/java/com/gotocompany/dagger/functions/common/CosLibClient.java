@@ -8,12 +8,14 @@ import com.qcloud.cos.region.Region;
 import com.tencentcloudapi.common.Credential;
 import com.tencentcloudapi.common.exception.TencentCloudSDKException;
 import com.tencentcloudapi.common.provider.OIDCRoleArnProvider;
+import lombok.Getter;
 
 /**
- * Stateless class
+ * Stateless class.
  */
 public class CosLibClient {
-    public static CosLibClient INSTANCE = new CosLibClient();
+    @Getter
+    private static CosLibClient instance = new CosLibClient();
 
     private static final String ENV_COS_REGION = "COS_REGION";
 
@@ -31,9 +33,9 @@ public class CosLibClient {
         return new COSClient(cosCredentials, clientConfig);
     }
 
-    // unit test helper method; has no side effects.
-    // even instance is used, as the current mockito version doesn't support mockStatic.
-    public static void testOnlySetInstance(CosLibClient instance) {
-        INSTANCE = instance;
+    // unit test helper method; Additionally, method has no side effects.
+    // the current mockito version doesn't support mockStatic.
+    public static void testOnlySetInstance(CosLibClient cosLibClient) {
+        CosLibClient.instance = cosLibClient;
     }
 }

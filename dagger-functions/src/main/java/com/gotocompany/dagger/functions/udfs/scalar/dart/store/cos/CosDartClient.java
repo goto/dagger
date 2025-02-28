@@ -26,8 +26,8 @@ public class CosDartClient implements DartDataStoreClient {
     }
 
     public String fetchJsonData(String udfName, GaugeStatsManager gaugeStatsManager, String bucketName, String dartName) {
-        COSClient libCosClient = CosLibClient.INSTANCE.get();
-        COSObject cosObject = libCosClient.getObject(bucketName, dartName);
+        COSClient cosClient = CosLibClient.getInstance().get();
+        COSObject cosObject = cosClient.getObject(bucketName, dartName);
         String dartJson;
         byte[] contentByteArray;
         try (COSObjectInputStream inputStream = cosObject.getObjectContent()) {
