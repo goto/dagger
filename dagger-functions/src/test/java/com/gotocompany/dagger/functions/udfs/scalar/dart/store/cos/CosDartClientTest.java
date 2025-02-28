@@ -1,6 +1,7 @@
 package com.gotocompany.dagger.functions.udfs.scalar.dart.store.cos;
 
 import com.gotocompany.dagger.common.metrics.managers.GaugeStatsManager;
+import com.gotocompany.dagger.functions.common.CosLibClient;
 import com.qcloud.cos.COSClient;
 import com.qcloud.cos.model.COSObject;
 import com.qcloud.cos.model.COSObjectInputStream;
@@ -16,9 +17,11 @@ import static org.mockito.Mockito.*;
 import static org.mockito.MockitoAnnotations.initMocks;
 
 public class CosDartClientTest {
+    @Mock
+    private CosLibClient cosLibClient;
 
     @Mock
-    private COSClient libCosClient;
+    private COSClient cosClient;
 
     @Mock
     private COSObject cosObject;
@@ -41,13 +44,16 @@ public class CosDartClientTest {
         String dartName = "dart-get/path/to/data.json";
         String jsonFileContent = "{\"name\":\"house-stark-dev\"}";
 
-        when(libCosClient.getObject(bucketName, dartName)).thenReturn(cosObject);
+        CosLibClient.testOnlySetInstance(cosLibClient);
+        doReturn(cosClient).when(cosLibClient).get();
+
+        when(cosClient.getObject(bucketName, dartName)).thenReturn(cosObject);
         when(cosObject.getObjectContent()).thenReturn(new COSObjectInputStream(new ByteArrayInputStream(jsonFileContent.getBytes()), mockRequest));
 
-        CosDartClient cosDartClient = new CosDartClient(libCosClient);
+        CosDartClient cosDartClient = new CosDartClient();
         String jsonData = cosDartClient.fetchJsonData(udfName, gaugeStatsManager, bucketName, dartName);
 
-        verify(libCosClient, times(1)).getObject(bucketName, dartName);
+        verify(cosClient, times(1)).getObject(bucketName, dartName);
         verify(cosObject, times(1)).getObjectContent();
         Assert.assertEquals(jsonFileContent, jsonData);
     }
