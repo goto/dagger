@@ -29,7 +29,7 @@ public class OssFileSourceTest  {
         byte[] expectedObject = Files.readAllBytes(Paths.get(pythonFile));
 
         when(ossClient.getFile(pythonFile)).thenReturn(expectedObject);
-        OssFileSource ossFileSource = new OssFileSource(pythonFile, ossClient);
+        OssFileSource ossFileSource = new OssFileSource(pythonFile, ossClient, "some-oss-endpoint");
 
         byte[] actualObject = ossFileSource.getObjectFile();
 

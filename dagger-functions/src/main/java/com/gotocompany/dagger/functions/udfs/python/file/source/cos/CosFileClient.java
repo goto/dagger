@@ -12,10 +12,13 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 public class CosFileClient {
-    public CosFileClient() {
-        // the credential provider provides short living token. If we have a libCosClient long living object with these
-        // token or say if we refresh it before client usage will not have much benefits.
-        // Create client when using its operation.
+
+    private final boolean enableTkeOidcProvider;
+    private final String cosRegion;
+
+    public CosFileClient(boolean enableTkeOidcProvider, String cosRegion) {
+        this.enableTkeOidcProvider = enableTkeOidcProvider;
+        this.cosRegion = cosRegion;
     }
 
     /**
@@ -30,7 +33,7 @@ public class CosFileClient {
         String bucketName = file.get(0);
         String objectName = file.stream().skip(1).collect(Collectors.joining("/"));
 
-        COSClient cosClient = CosLibClient.getInstance().get();
+        COSClient cosClient = CosLibClient.getInstance().get(enableTkeOidcProvider, cosRegion);
         COSObject cosObject = cosClient.getObject(bucketName, objectName);
         try (COSObjectInputStream inputStream = cosObject.getObjectContent()) {
             return IOUtils.toByteArray(inputStream);

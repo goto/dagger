@@ -147,7 +147,7 @@ public class StreamManager {
     public StreamManager registerFunctions() throws IOException {
         if (configuration.getBoolean(PYTHON_UDF_ENABLE_KEY, PYTHON_UDF_ENABLE_DEFAULT)) {
             PythonUdfConfig pythonUdfConfig = PythonUdfConfig.parse(configuration);
-            PythonUdfManager pythonUdfManager = new PythonUdfManager(tableEnvironment, pythonUdfConfig);
+            PythonUdfManager pythonUdfManager = new PythonUdfManager(tableEnvironment, pythonUdfConfig, configuration);
             pythonUdfManager.registerPythonFunctions();
         }
 

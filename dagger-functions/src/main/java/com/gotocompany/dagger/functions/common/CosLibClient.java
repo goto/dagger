@@ -19,14 +19,14 @@ public class CosLibClient {
 
     private static final String ENV_COS_SECRET_ID = "COS_SECRET_ID";
     private static final String ENV_COS_SECRET_KEY = "COS_SECRET_KEY";
-    private static final String ENV_COS_REGION = "COS_REGION";
-    private static final String ENV_ENABLE_TKE_OIDC_PROVIDER = "ENABLE_TKE_OIDC_PROVIDER";
 
-    public COSClient get() {
+    // the credential provider provides short living token. If we have a libCosClient long living object with these
+    // token or say if we refresh it before client usage will not have much benefits.
+    // Create client when using its operation.
+    public COSClient get(boolean enableTkeOidcProvider, String cosRegion) {
         String secretId, secretKey;
-        String region = System.getenv(ENV_COS_REGION);
 
-        if (System.getenv(ENV_ENABLE_TKE_OIDC_PROVIDER).trim().equalsIgnoreCase("true")) {
+        if (enableTkeOidcProvider) {
             try {
                 Credential credentials = new OIDCRoleArnProvider().getCredentials();
                 secretId = credentials.getSecretId();
@@ -40,7 +40,7 @@ public class CosLibClient {
         }
 
         COSCredentials cosCredentials = new BasicCOSCredentials(secretId, secretKey);
-        ClientConfig clientConfig = new ClientConfig(new Region(region));
+        ClientConfig clientConfig = new ClientConfig(new Region(cosRegion));
         return new COSClient(cosCredentials, clientConfig);
     }
 

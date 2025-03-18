@@ -1,7 +1,9 @@
 package com.gotocompany.dagger.functions.udfs.scalar.dart.store;
 
+import com.gotocompany.dagger.common.configuration.Configuration;
 import com.gotocompany.dagger.common.metrics.managers.GaugeStatsManager;
 import com.gotocompany.dagger.common.metrics.managers.MeterStatsManager;
+import com.gotocompany.dagger.functions.common.Constants;
 import com.gotocompany.dagger.functions.exceptions.BucketDoesNotExistException;
 import com.gotocompany.dagger.functions.exceptions.TagDoesNotExistException;
 import com.gotocompany.dagger.functions.udfs.scalar.dart.store.gcs.GcsDartClient;
@@ -12,6 +14,8 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
+import org.mockito.Mock;
+import org.mockito.MockitoAnnotations;
 
 import java.util.*;
 
@@ -33,11 +37,16 @@ public class DefaultDartDataStoreTest {
     private MeterStatsManager meterStatsManager;
     private GaugeStatsManager gaugeStatsManager;
 
+    @Mock
+    private Configuration configuration;
+
     @Before
     public void setUp() {
+        MockitoAnnotations.initMocks(this);
+        when(configuration.getString(Constants.OSS_ENDPOINT, Constants.DEFAULT_OSS_ENDPOINT)).thenReturn("oss-ap-southeast-5.aliyuncs.com");
         // Subject
         DartDataStoreClientProvider dartDataStoreClientProvider = mock(DartDataStoreClientProvider.class);
-        defaultDartDataStore = new DefaultDartDataStore(dartDataStoreClientProvider, "test-bucket");
+        defaultDartDataStore = new DefaultDartDataStore(dartDataStoreClientProvider, "test-bucket", configuration);
 
         gcsDartClient = mock(GcsDartClient.class);
         meterStatsManager = mock(MeterStatsManager.class);

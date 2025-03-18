@@ -145,7 +145,7 @@ public class FunctionFactory extends UdfFactory {
             bucketID = getConfiguration().getString(Constants.UDF_DART_GCS_BUCKET_ID_KEY, Constants.UDF_DART_GCS_BUCKET_ID_DEFAULT);
         }
 
-        return new DefaultDartDataStore(new DartDataStoreClientProvider(udfStoreProvider, projectID), bucketID);
+        return new DefaultDartDataStore(new DartDataStoreClientProvider(udfStoreProvider, projectID, getConfiguration()), bucketID, getConfiguration());
     }
 
     private LinkedHashMap<String, String> getProtosInInputStreams() {

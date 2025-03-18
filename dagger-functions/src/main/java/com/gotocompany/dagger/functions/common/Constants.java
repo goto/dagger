@@ -35,4 +35,11 @@ public class Constants {
     public static final Integer PYTHON_FN_EXECUTION_BUNDLE_SIZE_DEFAULT = 100000;
     public static final String PYTHON_FN_EXECUTION_BUNDLE_TIME_KEY = "PYTHON_FN_EXECUTION_BUNDLE_TIME";
     public static final long PYTHON_FN_EXECUTION_BUNDLE_TIME_DEFAULT = 1000;
+
+    public static final String OSS_ENDPOINT = "OSS_ENDPOINT";
+    public static final String DEFAULT_OSS_ENDPOINT = "oss-ap-southeast-5.aliyuncs.com";
+
+    public static final String COS_REGION = "COS_REGION";
+    public static final String DEFAULT_COS_REGION = "ap-jakarta";
+    public static final String ENABLE_TKE_OIDC_PROVIDER = "ENABLE_TKE_OIDC_PROVIDER";
 }

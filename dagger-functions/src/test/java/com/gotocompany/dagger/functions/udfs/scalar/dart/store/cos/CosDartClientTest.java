@@ -45,12 +45,12 @@ public class CosDartClientTest {
         String jsonFileContent = "{\"name\":\"house-stark-dev\"}";
 
         CosLibClient.testOnlySetInstance(cosLibClient);
-        doReturn(cosClient).when(cosLibClient).get();
+        doReturn(cosClient).when(cosLibClient).get(false, "ap-jakarta");
 
         when(cosClient.getObject(bucketName, dartName)).thenReturn(cosObject);
         when(cosObject.getObjectContent()).thenReturn(new COSObjectInputStream(new ByteArrayInputStream(jsonFileContent.getBytes()), mockRequest));
 
-        CosDartClient cosDartClient = new CosDartClient();
+        CosDartClient cosDartClient = new CosDartClient(false, "ap-jakarta");
         String jsonData = cosDartClient.fetchJsonData(udfName, gaugeStatsManager, bucketName, dartName);
 
         verify(cosClient, times(1)).getObject(bucketName, dartName);

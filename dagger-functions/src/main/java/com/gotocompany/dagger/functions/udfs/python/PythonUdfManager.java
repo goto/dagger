@@ -1,5 +1,6 @@
 package com.gotocompany.dagger.functions.udfs.python;
 
+import com.gotocompany.dagger.common.configuration.Configuration;
 import com.gotocompany.dagger.functions.exceptions.PythonFilesEmptyException;
 import com.gotocompany.dagger.functions.udfs.python.file.type.FileType;
 import com.gotocompany.dagger.functions.udfs.python.file.type.FileTypeFactory;
@@ -16,6 +17,7 @@ public class PythonUdfManager {
 
     private StreamTableEnvironment tableEnvironment;
     private PythonUdfConfig pythonUdfConfig;
+    private final Configuration configuration;
 
     /**
      * Instantiates a new Python udf manager.
@@ -23,9 +25,10 @@ public class PythonUdfManager {
      * @param tableEnvironment the table environment
      * @param pythonUdfConfig  the python udf config
      */
-    public PythonUdfManager(StreamTableEnvironment tableEnvironment, PythonUdfConfig pythonUdfConfig) {
+    public PythonUdfManager(StreamTableEnvironment tableEnvironment, PythonUdfConfig pythonUdfConfig, Configuration configuration) {
         this.tableEnvironment = tableEnvironment;
         this.pythonUdfConfig = pythonUdfConfig;
+        this.configuration = configuration;
     }
 
     /**
@@ -42,7 +45,7 @@ public class PythonUdfManager {
         }
 
         for (String pythonFile : pythonFiles) {
-            FileType fileType = FileTypeFactory.getFileType(pythonFile);
+            FileType fileType = FileTypeFactory.getFileType(pythonFile, configuration);
             List<String> fileNames = fileType.getFileNames();
             List<String> sqlQueries = createQuery(fileNames);
             executeSql(sqlQueries);

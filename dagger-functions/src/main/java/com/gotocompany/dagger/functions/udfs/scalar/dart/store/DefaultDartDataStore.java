@@ -1,5 +1,6 @@
 package com.gotocompany.dagger.functions.udfs.scalar.dart.store;
 
+import com.gotocompany.dagger.common.configuration.Configuration;
 import com.gotocompany.dagger.common.metrics.managers.GaugeStatsManager;
 import com.gotocompany.dagger.common.metrics.managers.MeterStatsManager;
 import com.gotocompany.dagger.functions.udfs.scalar.dart.DartAspects;
@@ -31,6 +32,7 @@ public class DefaultDartDataStore implements DartDataStore, Serializable {
 
     private final DartDataStoreClientProvider clientProvider;
     private final String bucketId;
+    private final Configuration configuration;
 
     /**
      * Instantiates a new data store.
@@ -38,9 +40,10 @@ public class DefaultDartDataStore implements DartDataStore, Serializable {
      * @param clientProvider a {@link DartDataStoreClient} implementation for the respective object storage provider
      * @param bucketId       the bucket id
      */
-    public DefaultDartDataStore(DartDataStoreClientProvider clientProvider, String bucketId) {
+    public DefaultDartDataStore(DartDataStoreClientProvider clientProvider, String bucketId, Configuration configuration) {
         this.clientProvider = clientProvider;
         this.bucketId = bucketId;
+        this.configuration = configuration;
     }
 
     @Override
