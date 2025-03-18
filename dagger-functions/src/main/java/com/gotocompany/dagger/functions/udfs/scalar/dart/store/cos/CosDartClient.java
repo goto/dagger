@@ -18,7 +18,12 @@ public class CosDartClient implements DartDataStoreClient {
     private static final Double BYTES_TO_KB = 1024.0;
     private static final String DART_PATH = "dartpath";
 
-    public CosDartClient() {
+    private final boolean enableTkeOidcProvider;
+    private final String cosRegion;
+
+    public CosDartClient(boolean enableTkeOidcProvider, String cosRegion) {
+        this.enableTkeOidcProvider = enableTkeOidcProvider;
+        this.cosRegion = cosRegion;
         // the credential provider provides short living token. If we have a libCosClient long living object with these
         // token or say if we refresh the client object before every time its usage, we're not gaining any benefit in doing that, i.e. having refresh method.
         // Additionally, the current usage of the client is to download any resource/artifacts one time when the job starts.
@@ -26,7 +31,7 @@ public class CosDartClient implements DartDataStoreClient {
     }
 
     public String fetchJsonData(String udfName, GaugeStatsManager gaugeStatsManager, String bucketName, String dartName) {
-        COSClient cosClient = CosLibClient.getInstance().get();
+        COSClient cosClient = CosLibClient.getInstance().get(enableTkeOidcProvider, cosRegion);
         COSObject cosObject = cosClient.getObject(bucketName, dartName);
         String dartJson;
         byte[] contentByteArray;

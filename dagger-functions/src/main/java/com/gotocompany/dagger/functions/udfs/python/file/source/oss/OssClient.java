@@ -14,22 +14,14 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 public class OssClient {
-
-    private static final String ENV_OSS_ENDPOINT = "OSS_ENDPOINT";
-    private static final String DEFAULT_OSS_ENDPOINT = "oss-ap-southeast-1.aliyuncs.com";
-
     private final OSS libOssClient;
 
     /**
      * Instantiates a new Oss client.
      */
-    public OssClient() {
-        String endpoint = System.getenv(ENV_OSS_ENDPOINT);
-        if (endpoint == null || endpoint.isEmpty()) {
-            endpoint = DEFAULT_OSS_ENDPOINT;
-        }
+    public OssClient(String ossEndpoint) {
         try {
-            libOssClient = new OSSClientBuilder().build(endpoint, CredentialsProviderFactory.newEnvironmentVariableCredentialsProvider());
+            libOssClient = new OSSClientBuilder().build(ossEndpoint, CredentialsProviderFactory.newEnvironmentVariableCredentialsProvider());
         } catch (ClientException e) {
             throw new RuntimeException("failed to initialise oss client", e);
         }

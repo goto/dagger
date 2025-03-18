@@ -17,10 +17,6 @@ import java.io.InputStream;
 import static com.gotocompany.dagger.common.core.Constants.UDF_TELEMETRY_GROUP_KEY;
 
 public class OssDartClient implements DartDataStoreClient {
-
-    private static final String ENV_OSS_ENDPOINT = "OSS_ENDPOINT";
-    private static final String DEFAULT_OSS_ENDPOINT = "oss-ap-southeast-1.aliyuncs.com";
-
     private static final Double BYTES_TO_KB = 1024.0;
     private static final String DART_PATH = "dartpath";
 
@@ -29,13 +25,9 @@ public class OssDartClient implements DartDataStoreClient {
     /**
      * Instantiates a new Oss client.
      */
-    public OssDartClient() {
-        String endpoint = System.getenv(ENV_OSS_ENDPOINT);
-        if (endpoint == null || endpoint.isEmpty()) {
-            endpoint = DEFAULT_OSS_ENDPOINT;
-        }
+    public OssDartClient(String ossEndpoint) {
         try {
-            libOssClient = new OSSClientBuilder().build(endpoint, CredentialsProviderFactory.newEnvironmentVariableCredentialsProvider());
+            libOssClient = new OSSClientBuilder().build(ossEndpoint, CredentialsProviderFactory.newEnvironmentVariableCredentialsProvider());
         } catch (ClientException e) {
             throw new RuntimeException("failed to initialise oss client", e);
         }

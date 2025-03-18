@@ -29,7 +29,7 @@ public class CosFileSourceTest {
         byte[] expectedObject = Files.readAllBytes(Paths.get(pythonFile));
 
         when(cosFileClient.getFile(pythonFile)).thenReturn(expectedObject);
-        CosFileSource cosFileSource = new CosFileSource(pythonFile, cosFileClient);
+        CosFileSource cosFileSource = new CosFileSource(pythonFile, cosFileClient, false, "ap-jakarta");
 
         byte[] actualObject = cosFileSource.getObjectFile();
 

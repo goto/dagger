@@ -37,6 +37,9 @@ public class PythonUdfManagerTest {
     @Mock
     private Configuration configuration;
 
+    @Mock
+    private com.gotocompany.dagger.common.configuration.Configuration daggerConfiguration;
+
     @Before
     public void setup() {
         initMocks(this);
@@ -55,7 +58,7 @@ public class PythonUdfManagerTest {
         when(pythonUdfConfig.getPythonBundleSize()).thenReturn(100000);
         when(pythonUdfConfig.getPythonBundleTime()).thenReturn(1000L);
 
-        PythonUdfManager pythonUdfManager = new PythonUdfManager(tableEnvironment, pythonUdfConfig);
+        PythonUdfManager pythonUdfManager = new PythonUdfManager(tableEnvironment, pythonUdfConfig, daggerConfiguration);
         pythonUdfManager.registerPythonFunctions();
 
         verify(configuration, times(1)).setString("python.files", pathFile);
@@ -74,7 +77,7 @@ public class PythonUdfManagerTest {
         when(tableConfig.getConfiguration()).thenReturn(configuration);
         when(pythonUdfConfig.getPythonFiles()).thenReturn(pathFile);
 
-        PythonUdfManager pythonUdfManager = new PythonUdfManager(tableEnvironment, pythonUdfConfig);
+        PythonUdfManager pythonUdfManager = new PythonUdfManager(tableEnvironment, pythonUdfConfig, daggerConfiguration);
         pythonUdfManager.registerPythonFunctions();
 
         verify(configuration, times(1)).setString("python.files", pathFile);
@@ -91,7 +94,7 @@ public class PythonUdfManagerTest {
         when(tableConfig.getConfiguration()).thenReturn(configuration);
         when(pythonUdfConfig.getPythonFiles()).thenReturn(pathFile);
 
-        PythonUdfManager pythonUdfManager = new PythonUdfManager(tableEnvironment, pythonUdfConfig);
+        PythonUdfManager pythonUdfManager = new PythonUdfManager(tableEnvironment, pythonUdfConfig, daggerConfiguration);
         pythonUdfManager.registerPythonFunctions();
 
         verify(configuration, times(1)).setString("python.files", pathFile);
@@ -110,7 +113,7 @@ public class PythonUdfManagerTest {
         when(tableConfig.getConfiguration()).thenReturn(configuration);
         when(pythonUdfConfig.getPythonFiles()).thenReturn(pathFile);
 
-        PythonUdfManager pythonUdfManager = new PythonUdfManager(tableEnvironment, pythonUdfConfig);
+        PythonUdfManager pythonUdfManager = new PythonUdfManager(tableEnvironment, pythonUdfConfig, daggerConfiguration);
         pythonUdfManager.registerPythonFunctions();
 
         verify(configuration, times(1)).setString("python.files", pathFile);
@@ -132,7 +135,7 @@ public class PythonUdfManagerTest {
         when(tableConfig.getConfiguration()).thenReturn(configuration);
         when(pythonUdfConfig.getPythonFiles()).thenReturn(zipPathFile + "," + pyPathFile);
 
-        PythonUdfManager pythonUdfManager = new PythonUdfManager(tableEnvironment, pythonUdfConfig);
+        PythonUdfManager pythonUdfManager = new PythonUdfManager(tableEnvironment, pythonUdfConfig, daggerConfiguration);
         pythonUdfManager.registerPythonFunctions();
 
         verify(configuration, times(1)).setString("python.files", zipPathFile + "," + pyPathFile);
@@ -153,7 +156,7 @@ public class PythonUdfManagerTest {
         when(tableConfig.getConfiguration()).thenReturn(configuration);
         when(pythonUdfConfig.getPythonFiles()).thenReturn("test_file.txt");
 
-        PythonUdfManager pythonUdfManager = new PythonUdfManager(tableEnvironment, pythonUdfConfig);
+        PythonUdfManager pythonUdfManager = new PythonUdfManager(tableEnvironment, pythonUdfConfig, daggerConfiguration);
         pythonUdfManager.registerPythonFunctions();
     }
 
@@ -166,7 +169,7 @@ public class PythonUdfManagerTest {
         when(tableConfig.getConfiguration()).thenReturn(configuration);
         when(pythonUdfConfig.getPythonFiles()).thenReturn("");
 
-        PythonUdfManager pythonUdfManager = new PythonUdfManager(tableEnvironment, pythonUdfConfig);
+        PythonUdfManager pythonUdfManager = new PythonUdfManager(tableEnvironment, pythonUdfConfig, daggerConfiguration);
         pythonUdfManager.registerPythonFunctions();
     }
 
@@ -178,7 +181,7 @@ public class PythonUdfManagerTest {
         when(tableEnvironment.getConfig()).thenReturn(tableConfig);
         when(tableConfig.getConfiguration()).thenReturn(configuration);
 
-        PythonUdfManager pythonUdfManager = new PythonUdfManager(tableEnvironment, pythonUdfConfig);
+        PythonUdfManager pythonUdfManager = new PythonUdfManager(tableEnvironment, pythonUdfConfig, daggerConfiguration);
         pythonUdfManager.registerPythonFunctions();
     }
 

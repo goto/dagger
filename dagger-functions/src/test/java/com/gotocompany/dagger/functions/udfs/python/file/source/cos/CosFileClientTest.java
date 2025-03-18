@@ -43,12 +43,12 @@ public class CosFileClientTest {
         String expectedValue = Arrays.toString("objectFile".getBytes());
 
         CosLibClient.testOnlySetInstance(cosLibClient);
-        doReturn(cosClient).when(cosLibClient).get();
+        doReturn(cosClient).when(cosLibClient).get(false, "ap-jakarta");
 
         when(cosClient.getObject(bucketName, objectName)).thenReturn(cosObject);
         when(cosObject.getObjectContent()).thenReturn(new COSObjectInputStream(new ByteArrayInputStream("objectFile".getBytes()), mockRequest));
 
-        CosFileClient cosFileClient = new CosFileClient();
+        CosFileClient cosFileClient = new CosFileClient(false, "ap-jakarta");
         byte[] actualValue = cosFileClient.getFile(pythonFile);
 
         verify(this.cosClient, times(1)).getObject(bucketName, objectName);

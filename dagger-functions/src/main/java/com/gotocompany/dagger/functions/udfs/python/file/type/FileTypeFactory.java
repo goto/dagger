@@ -1,5 +1,6 @@
 package com.gotocompany.dagger.functions.udfs.python.file.type;
 
+import com.gotocompany.dagger.common.configuration.Configuration;
 import com.gotocompany.dagger.functions.exceptions.PythonFilesFormatException;
 import com.gotocompany.dagger.functions.udfs.python.file.source.FileSource;
 import com.gotocompany.dagger.functions.udfs.python.file.source.FileSourceFactory;
@@ -15,8 +16,8 @@ public class FileTypeFactory {
      * @param pythonFile the python file
      * @return the file type
      */
-    public static FileType getFileType(String pythonFile) {
-        FileSource fileSource = FileSourceFactory.getFileSource(pythonFile);
+    public static FileType getFileType(String pythonFile, Configuration configuration) {
+        FileSource fileSource = FileSourceFactory.getFileSource(pythonFile, configuration);
         switch (getFileTypeFormat(pythonFile)) {
             case "PY":
                 return new PythonFileType(pythonFile);
