@@ -68,8 +68,14 @@ dependencies {
     dependenciesCommonJar group: 'com.qcloud.cos', name: 'flink-cos-fs-hadoop', version: '1.10.0-0.2.3'
 
     dependenciesCommonJar group: 'org.apache.hadoop', name: 'hadoop-aliyun', version: '3.4.1'
-    dependenciesCommonJar group: 'com.qcloud.cos', name: 'hadoop-cos', version: '3.4.0-8.3.17'
-    dependenciesCommonJar group: 'com.tencentcloudapi', name: 'tencentcloud-sdk-java-common', version: '3.1.1201'
+    dependenciesCommonJar(group: 'com.qcloud.cos', name: 'hadoop-cos', version: '3.4.0-8.3.17') {
+        exclude group: 'com.squareup.okhttp3', module: 'okhttp'
+        exclude group: 'com.squareup.okhttp3', module: 'logging-interceptor'
+    }
+    dependenciesCommonJar(group: 'com.tencentcloudapi', name: 'tencentcloud-sdk-java-common', version: '3.1.1201') {
+        exclude group: 'com.squareup.okhttp3', module: 'okhttp'
+        exclude group: 'com.squareup.okhttp3', module: 'logging-interceptor'
+    }
 
     dependenciesCommonJar 'org.apache.flink:flink-metrics-dropwizard:' + flinkVersion
     dependenciesCommonJar 'org.apache.flink:flink-json:' + flinkVersion
