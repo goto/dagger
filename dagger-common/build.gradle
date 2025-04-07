@@ -59,23 +59,17 @@ dependencies {
     compileOnly group: 'org.apache.flink', name: 'flink-table-api-java-bridge_2.11', version: flinkVersion
     compileOnly group: 'org.apache.flink', name: 'flink-connector-kafka_2.11', version: flinkVersion
     compileOnly 'com.gotocompany:stencil:0.6.0'
-
     dependenciesCommonJar('org.apache.hadoop:hadoop-client:3.3.6') {
         exclude module: "commons-cli"
         exclude module: "commons-compress"
+        exclude group: 'com.squareup.okhttp3', module: 'okhttp'
     }
     dependenciesCommonJar group: 'com.google.cloud.bigdataoss', name: 'gcs-connector', version: 'hadoop2-2.2.16'
     dependenciesCommonJar group: 'com.qcloud.cos', name: 'flink-cos-fs-hadoop', version: '1.10.0-0.2.3'
 
     dependenciesCommonJar group: 'org.apache.hadoop', name: 'hadoop-aliyun', version: '3.4.1'
-    dependenciesCommonJar(group: 'com.qcloud.cos', name: 'hadoop-cos', version: '3.4.0-8.3.17') {
-        exclude group: 'com.squareup.okhttp3', module: 'okhttp'
-        exclude group: 'com.squareup.okhttp3', module: 'logging-interceptor'
-    }
-    dependenciesCommonJar(group: 'com.tencentcloudapi', name: 'tencentcloud-sdk-java-common', version: '3.1.1201') {
-        exclude group: 'com.squareup.okhttp3', module: 'okhttp'
-        exclude group: 'com.squareup.okhttp3', module: 'logging-interceptor'
-    }
+    dependenciesCommonJar(group: 'com.qcloud.cos', name: 'hadoop-cos', version: '3.4.0-8.3.17')
+    dependenciesCommonJar(group: 'com.tencentcloudapi', name: 'tencentcloud-sdk-java-common', version: '3.1.1201')
 
     dependenciesCommonJar 'org.apache.flink:flink-metrics-dropwizard:' + flinkVersion
     dependenciesCommonJar 'org.apache.flink:flink-json:' + flinkVersion

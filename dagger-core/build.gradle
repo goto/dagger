@@ -74,6 +74,7 @@ dependencies {
         exclude group: 'com.google.protobuf', module: 'protobuf-java'
         exclude group: 'com.google.protobuf', module: 'protobuf-java-util'
         exclude group: "io.grpc"
+        exclude group: 'com.squareup.okhttp3', module: 'okhttp'
     }
     minimalJar('com.gotocompany:stencil:0.6.0') {
         exclude group: 'com.google.protobuf', module: 'protobuf-java'
@@ -273,19 +274,9 @@ task minimalPublish(dependsOn: 'minimalJar') {
     description('Publishes minimal jar')
 }
 
-task minimalPublishToMavenLocal(dependsOn: 'minimalJar') {
-    dependsOn('publishMinimalArtifactPublicationToMavenLocal')
-    description('Publishes minimal jar to Maven Local')
-}
-
 task dependenciesPublish(dependsOn: 'dependenciesJar') {
     dependsOn('publishDependenciesArtifactPublicationToGitHubPackagesRepository')
     description('Publishes dependencies jar')
-}
-
-task dependenciesPublishToMavenLocal(dependsOn: 'dependenciesJar') {
-    dependsOn('publishDependenciesArtifactPublicationToMavenLocal')
-    description('Publishes dependencies jar to Maven Local')
 }
 
 project.afterEvaluate {
@@ -293,6 +284,7 @@ project.afterEvaluate {
         dependsOn minimalJar, dependenciesJar
     }
 }
+
 
 task runFlink(type: JavaExec, dependsOn: classes) {
     Properties properties = loadEnv()
