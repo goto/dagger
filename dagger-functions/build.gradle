@@ -66,7 +66,7 @@ dependencies {
     dependenciesFunctionsJar group: 'com.google.cloud', name: 'google-cloud-storage', version: '2.23.0'
     dependenciesFunctionsJar group: 'com.aliyun.oss', name: 'aliyun-sdk-oss', version: '3.18.1'
     dependenciesFunctionsJar group: 'com.qcloud', name: 'cos_api', version: '5.6.227'
-    
+
     testImplementation project(':dagger-common').sourceSets.test.output
     testImplementation group: 'junit', name: 'junit', version: '4.12'
     testImplementation 'org.mockito:mockito-core:2.0.99-beta'
