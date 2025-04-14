@@ -12,8 +12,12 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
+import org.junit.rules.TemporaryFolder;
 import org.mockito.Mock;
 
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Properties;
@@ -30,6 +34,9 @@ public class StreamConfigTest {
 
     @Rule
     public ExpectedException thrown = ExpectedException.none();
+
+    @Rule
+    public TemporaryFolder temporaryFolder = new TemporaryFolder();
 
     @Mock
     private Configuration configuration;
@@ -121,16 +128,15 @@ public class StreamConfigTest {
         kafkaPropMap.put("bootstrap.servers", "localhost:9092");
         kafkaPropMap.put("auto.offset.reset", "latest");
         kafkaPropMap.put("auto.commit.enable", "");
-        kafkaPropMap.put("ssl.keystore.password", "test-keystore-pass");
+        kafkaPropMap.put(Constants.KAFKA_PROPS_SSL_KEYSTORE_PASSWORD_KEY, "test-keystore-pass");
         kafkaPropMap.put("ssl.keystore.type", "JKS");
         kafkaPropMap.put("ssl.keystore.location", "test-keystore-location");
         kafkaPropMap.put("ssl.protocol", "SSL");
         kafkaPropMap.put("ssl.key.password", "test-key-pass");
         kafkaPropMap.put("ssl.truststore.type", "JKS");
         kafkaPropMap.put("ssl.truststore.location", "test-truststore-location");
-        kafkaPropMap.put("ssl.truststore.password", "test-truststore-pass");
+        kafkaPropMap.put(Constants.KAFKA_PROPS_SSL_TRUSTSTORE_PASSWORD_KEY, "test-truststore-pass");
         kafkaPropMap.put("security.protocol", "SSL");
-
 
 
         Properties properties = new Properties();
@@ -245,6 +251,52 @@ public class StreamConfigTest {
         assertEquals("ssl_keystore_key_2", secondStreamProperties.getProperty("ssl.keystore.key"));
         assertEquals("ssl_keystore_location_2", secondStreamProperties.getProperty("ssl.keystore.location"));
         assertEquals("1000", secondStreamProperties.getProperty("offset.flush.interval.ms"));
+    }
+
+    @Test
+    public void shouldParseSslPasswordsConfig() throws IOException {
+        File keystorePassword = writeDummyPasswordFile("ssl-keystore-password.txt", "keystore-password");
+        File truststorePassword = writeDummyPasswordFile("ssl-truststore-password.txt", "truststore-password");
+        when(configuration.getString(INPUT_STREAMS, ""))
+                .thenReturn(String.format("[{\"SOURCE_KAFKA_CONSUMER_CONFIG_SSL_KEYSTORE_PASSWORD_FILE_LOCATION\":  \"%s\", \"SOURCE_KAFKA_CONSUMER_CONFIG_SSL_TRUSTSTORE_PASSWORD_FILE_LOCATION\": \"%s\"}]", keystorePassword.getAbsolutePath(), truststorePassword.getAbsolutePath()));
+        StreamConfig[] streamConfigs = StreamConfig.parse(configuration);
+
+        Properties streamProperties = streamConfigs[0].getKafkaProps(configuration);
+
+        assertEquals("keystore-password", streamProperties.getProperty("ssl.keystore.password"));
+        assertEquals("truststore-password", streamProperties.getProperty("ssl.truststore.password"));
+    }
+
+    @Test
+    public void shouldOverrideExplicitSslPasswordConfig() throws IOException {
+        File keystorePassword = writeDummyPasswordFile("ssl-keystore-password.txt", "keystore-password");
+        File truststorePassword = writeDummyPasswordFile("ssl-truststore-password.txt", "truststore-password");
+        when(configuration.getString(INPUT_STREAMS, ""))
+                .thenReturn(String.format("[{\"SOURCE_KAFKA_CONSUMER_CONFIG_SSL_KEY_PASSWORD\": \"password\", \"SOURCE_KAFKA_CONSUMER_CONFIG_SSL_KEYSTORE_PASSWORD_FILE_LOCATION\":  \"%s\", \"SOURCE_KAFKA_CONSUMER_CONFIG_SSL_TRUSTSTORE_PASSWORD_FILE_LOCATION\": \"%s\"}]", keystorePassword.getAbsolutePath(), truststorePassword.getAbsolutePath()));
+        StreamConfig[] streamConfigs = StreamConfig.parse(configuration);
+
+        Properties streamProperties = streamConfigs[0].getKafkaProps(configuration);
+
+        assertEquals("keystore-password", streamProperties.getProperty("ssl.keystore.password"));
+        assertEquals("truststore-password", streamProperties.getProperty("ssl.truststore.password"));
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void shouldThrowIllegalArgumentExceptionWhenKeystorePasswordFileNotExists() {
+        when(configuration.getString(INPUT_STREAMS, ""))
+                .thenReturn(String.format("[{\"SOURCE_KAFKA_CONSUMER_CONFIG_SSL_KEYSTORE_PASSWORD_FILE_LOCATION\":  \"%s\"}]", "non-exist.txt"));
+        StreamConfig[] streamConfigs = StreamConfig.parse(configuration);
+
+        streamConfigs[0].getKafkaProps(configuration);
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void shouldThrowIllegalArgumentExceptionWhenTruststorePasswordFileNotExists() {
+        when(configuration.getString(INPUT_STREAMS, ""))
+                .thenReturn(String.format("[{\"SOURCE_KAFKA_CONSUMER_CONFIG_SSL_TRUSTSTORE_PASSWORD_FILE_LOCATION\":  \"%s\"}]", "non-exist.txt"));
+        StreamConfig[] streamConfigs = StreamConfig.parse(configuration);
+
+        streamConfigs[0].getKafkaProps(configuration);
     }
 
     @Test(expected = IllegalArgumentException.class)
@@ -546,4 +598,13 @@ public class StreamConfigTest {
 
         Assert.assertArrayEquals(new String[]{"gs://some-parquet-path", "gs://another-parquet-path"}, streamConfigs[0].getParquetFilePaths());
     }
+
+    private File writeDummyPasswordFile(String fileName, String password) throws IOException {
+        File passwordFile = temporaryFolder.newFile(fileName);
+        FileWriter writer = new FileWriter(passwordFile);
+        writer.write(password);
+        writer.close();
+        return passwordFile;
+    }
+
 }
