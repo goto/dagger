@@ -66,11 +66,16 @@ public class EsAsyncConnector extends AsyncConnector {
     protected void createClient() {
         if (esClient == null) {
             esClient = RestClient.builder(
-                    getHttpHosts()
-            ).setHttpClientConfigCallback(httpClientBuilder ->
-                    httpClientBuilder
-                            .setDefaultCredentialsProvider(getCredentialsProvider())
-                            .setDefaultRequestConfig(getRequestConfig())).setMaxRetryTimeoutMillis(esSourceConfig.getRetryTimeout()).build();
+                            getHttpHosts()
+                    ).setHttpClientConfigCallback(httpClientBuilder ->
+                            httpClientBuilder
+                                    .setDefaultCredentialsProvider(getCredentialsProvider())
+                                    .setDefaultRequestConfig(getRequestConfig()))
+                    .setRequestConfigCallback(requestConfigBuilder ->
+                            requestConfigBuilder
+                                    .setConnectTimeout(esSourceConfig.getRetryTimeout())
+                                    .setSocketTimeout(esSourceConfig.getRetryTimeout()))
+                    .build();
         }
     }
 
