@@ -73,8 +73,8 @@ public class EsAsyncConnector extends AsyncConnector {
                                     .setDefaultRequestConfig(getRequestConfig()))
                     .setRequestConfigCallback(requestConfigBuilder ->
                             requestConfigBuilder
-                                    .setConnectTimeout(esSourceConfig.getRetryTimeout())
-                                    .setSocketTimeout(esSourceConfig.getRetryTimeout()))
+                                    .setConnectTimeout(esSourceConfig.getConnectTimeout())
+                                    .setSocketTimeout(esSourceConfig.getSocketTimeout()))
                     .build();
         }
     }
