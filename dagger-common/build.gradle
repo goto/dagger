@@ -63,6 +63,7 @@ dependencies {
     dependenciesCommonJar('org.apache.hadoop:hadoop-client:3.3.6') {
         exclude module: "commons-cli"
         exclude module: "commons-compress"
+        exclude group: 'com.squareup.okhttp3', module: 'okhttp'
     }
     dependenciesCommonJar group: 'com.google.cloud.bigdataoss', name: 'gcs-connector', version: 'hadoop2-2.2.16'
     dependenciesCommonJar group: 'com.qcloud.cos', name: 'flink-cos-fs-hadoop', version: '1.10.0-0.2.3'
