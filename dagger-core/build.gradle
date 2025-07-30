@@ -128,7 +128,6 @@ dependencies {
     testImplementation 'com.google.guava:guava:30.0-jre'
     testImplementation 'org.grpcmock:grpcmock-junit5:0.5.0'
     testImplementation 'com.github.stefanbirkner:system-rules:1.19.0'
-    implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8"
 }
 
 test {
@@ -309,17 +308,4 @@ task runFlink(type: JavaExec, dependsOn: classes) {
     main = mainClassName
     classpath = sourceSets.main.runtimeClasspath
     environment properties
-}
-repositories {
-    mavenCentral()
-}
-compileKotlin {
-    kotlinOptions {
-        jvmTarget = "1.8"
-    }
-}
-compileTestKotlin {
-    kotlinOptions {
-        jvmTarget = "1.8"
-    }
 }
