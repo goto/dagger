@@ -1,5 +1,6 @@
 package com.gotocompany.dagger.core.processors.longbow.data;
 
+import com.gotocompany.dagger.core.processors.longbow.model.ScanResult;
 import org.apache.hadoop.hbase.client.Result;
 
 import java.io.Serializable;
@@ -16,5 +17,5 @@ public interface LongbowData extends Serializable {
      * @param scanResult the scan result
      * @return the map
      */
-    Map parse(List<Result> scanResult);
+    Map parse(List<ScanResult> scanResult);
 }

@@ -6,6 +6,7 @@ import com.gotocompany.dagger.core.metrics.reporters.ErrorReporterFactory;
 import com.gotocompany.dagger.core.metrics.telemetry.TelemetryPublisher;
 import com.gotocompany.dagger.core.metrics.telemetry.TelemetryTypes;
 import com.gotocompany.dagger.core.processors.longbow.exceptions.LongbowReaderException;
+import com.gotocompany.dagger.core.processors.longbow.model.ScanResult;
 import com.gotocompany.dagger.core.utils.Constants;
 import org.apache.flink.streaming.api.functions.async.ResultFuture;
 import org.apache.flink.streaming.api.functions.async.RichAsyncFunction;
@@ -144,16 +145,16 @@ public class LongbowReader extends RichAsyncFunction<Row, Row> implements Teleme
         return longbowRange;
     }
 
-    private void instrumentation(List<Result> scanResult, Instant startTime, Row input) {
+    private void instrumentation(List<ScanResult> scanResult, Instant startTime, Row input) {
         meterStatsManager.markEvent(LongbowReaderAspects.SUCCESS_ON_READ_DOCUMENT);
         meterStatsManager.updateHistogram(LongbowReaderAspects.SUCCESS_ON_READ_DOCUMENT_RESPONSE_TIME, between(startTime, Instant.now()).toMillis());
         meterStatsManager.updateHistogram(LongbowReaderAspects.DOCUMENTS_READ_PER_SCAN, scanResult.size());
-        if (scanResult.isEmpty() || !Arrays.equals(scanResult.get(0).getRow(), longBowSchema.getKey(input, 0))) {
+        if (scanResult.isEmpty() || !Arrays.equals(scanResult.get(0).getPrimaryKey(), longBowSchema.getKey(input, 0))) {
             meterStatsManager.markEvent(LongbowReaderAspects.FAILED_TO_READ_LAST_RECORD);
         }
     }
 
-    private List<Result> logException(Throwable ex, Instant startTime) {
+    private List<ScanResult> logException(Throwable ex, Instant startTime) {
         LOGGER.error("LongbowReader : failed to scan document from BigTable: {}", ex.getMessage());
         ex.printStackTrace();
         meterStatsManager.markEvent(LongbowReaderAspects.FAILED_ON_READ_DOCUMENT);

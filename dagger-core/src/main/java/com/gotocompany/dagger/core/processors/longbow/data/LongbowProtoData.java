@@ -1,7 +1,7 @@
 package com.gotocompany.dagger.core.processors.longbow.data;
 
+import com.gotocompany.dagger.core.processors.longbow.model.ScanResult;
 import com.gotocompany.dagger.core.utils.Constants;
-import org.apache.hadoop.hbase.client.Result;
 import org.apache.hadoop.hbase.util.Bytes;
 
 import java.util.ArrayList;
@@ -22,11 +22,14 @@ public class LongbowProtoData implements LongbowData {
     }
 
     @Override
-    public Map<String, List<byte[]>> parse(List<Result> scanResult) {
+    public Map<String, List<byte[]>> parse(List<ScanResult> scanResult) {
         ArrayList<byte[]> data = new ArrayList<>();
 
         for (int i = 0; i < scanResult.size(); i++) {
-            data.add(i, scanResult.get(i).getValue(COLUMN_FAMILY_NAME, Bytes.toBytes(Constants.LONGBOW_QUALIFIER_DEFAULT)));
+            data.add(i, scanResult.get(i)
+                    .getData()
+                    .get(COLUMN_FAMILY_NAME)
+                    .get(Bytes.toBytes(Constants.LONGBOW_QUALIFIER_DEFAULT)));
         }
 
         HashMap<String, List<byte[]>> longbowData = new HashMap<>();

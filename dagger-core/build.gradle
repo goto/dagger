@@ -21,6 +21,7 @@ plugins {
     id 'maven-publish'
     id 'com.jfrog.artifactory' version '4.33.1'
     id 'com.github.johnrengelman.shadow' version '6.1.0'
+    id 'org.jetbrains.kotlin.jvm'
 }
 
 
@@ -112,6 +113,7 @@ dependencies {
     dependenciesJar 'io.vertx:vertx-pg-client:3.9.0'
     dependenciesJar 'org.apache.commons:commons-pool2:2.4.3'
     dependenciesJar 'org.apache.parquet:parquet-protobuf:1.12.2'
+    dependenciesJar 'com.aliyun.openservices:tablestore-hbase-client:2.0.12'
 
     testImplementation project(':dagger-common').sourceSets.test.output
     testImplementation 'junit:junit:4.13.1'
@@ -126,6 +128,7 @@ dependencies {
     testImplementation 'com.google.guava:guava:30.0-jre'
     testImplementation 'org.grpcmock:grpcmock-junit5:0.5.0'
     testImplementation 'com.github.stefanbirkner:system-rules:1.19.0'
+    implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8"
 }
 
 test {
@@ -306,4 +309,17 @@ task runFlink(type: JavaExec, dependsOn: classes) {
     main = mainClassName
     classpath = sourceSets.main.runtimeClasspath
     environment properties
+}
+repositories {
+    mavenCentral()
+}
+compileKotlin {
+    kotlinOptions {
+        jvmTarget = "1.8"
+    }
+}
+compileTestKotlin {
+    kotlinOptions {
+        jvmTarget = "1.8"
+    }
 }
