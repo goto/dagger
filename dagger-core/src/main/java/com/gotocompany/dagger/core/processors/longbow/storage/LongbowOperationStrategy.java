@@ -12,7 +12,7 @@ import java.util.concurrent.ExecutionException;
 public interface LongbowOperationStrategy {
 
     boolean tableExists(String tableId) throws ExecutionException, InterruptedException;
-    void createTable(Duration maxAgeDuration, String columnFamilyName, String tableId);
+    void createTable(Duration maxAgeDuration, String columnFamilyName, String tableId) throws ExecutionException, InterruptedException;
     CompletableFuture<Void> put(PutRequest putRequest);
     CompletableFuture<List<ScanResult>> scanAll(ScanRequest scanRequest);
     void close() throws IOException;
