@@ -1,7 +1,6 @@
 package com.gotocompany.dagger.core.processors.longbow.data;
 
 import com.gotocompany.dagger.core.processors.longbow.model.ScanResult;
-import org.apache.hadoop.hbase.client.Result;
 
 import java.io.Serializable;
 import java.util.List;

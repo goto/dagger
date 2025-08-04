@@ -21,7 +21,6 @@ import com.gotocompany.dagger.core.processors.longbow.range.LongbowRange;
 import com.gotocompany.dagger.core.processors.longbow.request.ScanRequestFactory;
 import com.gotocompany.dagger.core.processors.longbow.storage.LongbowStore;
 import com.gotocompany.dagger.core.processors.longbow.storage.ScanRequest;
-import org.apache.hadoop.hbase.client.Result;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

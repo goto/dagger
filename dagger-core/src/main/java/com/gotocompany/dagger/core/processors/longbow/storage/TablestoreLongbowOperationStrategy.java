@@ -36,7 +36,7 @@ import java.util.stream.Collectors;
 
 public class TablestoreLongbowOperationStrategy implements LongbowOperationStrategy {
 
-    private static final Logger log = LoggerFactory.getLogger(TablestoreLongbowOperationStrategy.class);
+    private static final Logger LOG = LoggerFactory.getLogger(TablestoreLongbowOperationStrategy.class);
     private final AsyncClient asyncClient;
     private final String primaryKeyName;
     private final HBasePutToTablestoreRequestAdapter putRequestAdapter;
@@ -140,7 +140,7 @@ public class TablestoreLongbowOperationStrategy implements LongbowOperationStrat
 
         @Override
         public void onFailed(T t, Exception e) {
-            log.error("Tablestore operation failed", e);
+            LOG.error("Tablestore operation failed", e);
         }
     }
 }
