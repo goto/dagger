@@ -6,6 +6,7 @@ import org.apache.hadoop.hbase.util.Bytes;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
+import org.mockito.Mockito;
 
 import java.util.*;
 
@@ -33,6 +34,7 @@ public class LongbowProtoDataTest {
         Map<byte[], byte[]> innerData = new HashMap<>();
         innerData.put(Bytes.toBytes(Constants.LONGBOW_QUALIFIER_DEFAULT), mockResult);
         data.put(COLUMN_FAMILY_NAME, innerData);
+        Mockito.when(scanResult.getData()).thenReturn(data);
 
         LongbowProtoData longbowProtoData = new LongbowProtoData();
         Map<String, List<byte[]>> actualMap = longbowProtoData.parse(results);

@@ -31,10 +31,12 @@ public class LongbowTableDataTest {
         Map<byte[], byte[]> innerData1 = new HashMap<>();
         innerData1.put(Bytes.toBytes("longbow_data1"), Bytes.toBytes("RB-234"));
         innerData1.put(Bytes.toBytes("longbow_data2"), Bytes.toBytes("RB-235"));
+        data1.put(COLUMN_FAMILY_NAME, innerData1);
         Map<byte[], Map<byte[], byte[]>> data2 = new HashMap<>();
         Map<byte[], byte[]> innerData2 = new HashMap<>();
         innerData2.put(Bytes.toBytes("longbow_data1"), Bytes.toBytes("RB-224"));
         innerData2.put(Bytes.toBytes("longbow_data2"), Bytes.toBytes("RB-225"));
+        data2.put(COLUMN_FAMILY_NAME, innerData2);
         when(result1.getData()).thenReturn(data1);
         when(result2.getData()).thenReturn(data2);
     }
