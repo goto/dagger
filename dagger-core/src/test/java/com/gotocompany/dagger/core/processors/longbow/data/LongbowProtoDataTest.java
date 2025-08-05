@@ -2,7 +2,6 @@ package com.gotocompany.dagger.core.processors.longbow.data;
 
 import com.gotocompany.dagger.core.processors.longbow.model.ScanResult;
 import com.gotocompany.dagger.core.utils.Constants;
-import org.apache.hadoop.hbase.client.Result;
 import org.apache.hadoop.hbase.util.Bytes;
 import org.junit.Before;
 import org.junit.Test;
@@ -11,7 +10,6 @@ import org.mockito.Mock;
 import java.util.*;
 
 import static org.junit.Assert.*;
-import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
 
 public class LongbowProtoDataTest {
