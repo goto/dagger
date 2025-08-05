@@ -1,5 +1,6 @@
 package com.gotocompany.dagger.core.processors.longbow.data;
 
+import com.gotocompany.dagger.core.processors.longbow.model.ScanResult;
 import com.gotocompany.dagger.core.utils.Constants;
 import org.apache.hadoop.hbase.client.Result;
 import org.apache.hadoop.hbase.util.Bytes;
@@ -18,7 +19,7 @@ public class LongbowProtoDataTest {
     private static final byte[] COLUMN_FAMILY_NAME = Bytes.toBytes(Constants.LONGBOW_COLUMN_FAMILY_DEFAULT);
 
     @Mock
-    private Result scanResult;
+    private ScanResult scanResult;
 
     @Before
     public void setup() {
@@ -27,10 +28,14 @@ public class LongbowProtoDataTest {
 
     @Test
     public void shouldParseProtoByteDataFromBigTable() {
-        ArrayList<Result> results = new ArrayList<>();
+        ArrayList<ScanResult> results = new ArrayList<>();
         results.add(scanResult);
         byte[] mockResult = Bytes.toBytes("test");
-        when(scanResult.getValue(COLUMN_FAMILY_NAME, Bytes.toBytes(Constants.LONGBOW_QUALIFIER_DEFAULT))).thenReturn(mockResult);
+        Map<byte[], Map<byte[], byte[]>> data = new HashMap<>();
+        Map<byte[], byte[]> innerData = new HashMap<>();
+        innerData.put(Bytes.toBytes(Constants.LONGBOW_QUALIFIER_DEFAULT), mockResult);
+        data.put(COLUMN_FAMILY_NAME, innerData);
+
         LongbowProtoData longbowProtoData = new LongbowProtoData();
         Map<String, List<byte[]>> actualMap = longbowProtoData.parse(results);
         Map<String, List<byte[]>> expectedMap = new HashMap<String, List<byte[]>>() {{

@@ -1,8 +1,8 @@
 package com.gotocompany.dagger.core.processors.longbow.data;
 
+import com.gotocompany.dagger.core.processors.longbow.model.ScanResult;
 import com.gotocompany.dagger.core.utils.Constants;
 import com.gotocompany.dagger.core.processors.longbow.LongbowSchema;
-import org.apache.hadoop.hbase.client.Result;
 import org.apache.hadoop.hbase.util.Bytes;
 import org.junit.Before;
 import org.junit.Test;
@@ -19,23 +19,29 @@ public class LongbowTableDataTest {
     private static final byte[] COLUMN_FAMILY_NAME = Bytes.toBytes(Constants.LONGBOW_COLUMN_FAMILY_DEFAULT);
 
     @Mock
-    private Result result1;
+    private ScanResult result1;
 
     @Mock
-    private Result result2;
+    private ScanResult result2;
 
     @Before
     public void setUp() {
         initMocks(this);
-        when(result1.getValue(COLUMN_FAMILY_NAME, Bytes.toBytes("longbow_data1"))).thenReturn(Bytes.toBytes("RB-234"));
-        when(result1.getValue(COLUMN_FAMILY_NAME, Bytes.toBytes("longbow_data2"))).thenReturn(Bytes.toBytes("RB-235"));
-        when(result2.getValue(COLUMN_FAMILY_NAME, Bytes.toBytes("longbow_data1"))).thenReturn(Bytes.toBytes("RB-224"));
-        when(result2.getValue(COLUMN_FAMILY_NAME, Bytes.toBytes("longbow_data2"))).thenReturn(Bytes.toBytes("RB-225"));
+        Map<byte[], Map<byte[], byte[]>> data1 = new HashMap<>();
+        Map<byte[], byte[]> innerData1 = new HashMap<>();
+        innerData1.put(Bytes.toBytes("longbow_data1"), Bytes.toBytes("RB-234"));
+        innerData1.put(Bytes.toBytes("longbow_data2"), Bytes.toBytes("RB-235"));
+        Map<byte[], Map<byte[], byte[]>> data2 = new HashMap<>();
+        Map<byte[], byte[]> innerData2 = new HashMap<>();
+        innerData2.put(Bytes.toBytes("longbow_data1"), Bytes.toBytes("RB-224"));
+        innerData2.put(Bytes.toBytes("longbow_data2"), Bytes.toBytes("RB-225"));
+        when(result1.getData()).thenReturn(data1);
+        when(result2.getData()).thenReturn(data2);
     }
 
     @Test
     public void shouldReturnEmptyDataWhenScanResultIsEmpty() {
-        List<Result> scanResult = new ArrayList<>();
+        List<ScanResult> scanResult = new ArrayList<>();
         String[] columnNames = {"longbow_key", "longbow_data1", "rowtime", "longbow_duration"};
 
         LongbowSchema longbowSchema = new LongbowSchema(columnNames);
@@ -46,7 +52,7 @@ public class LongbowTableDataTest {
 
     @Test
     public void shouldReturnListOfString() {
-        List<Result> scanResult = new ArrayList<>();
+        List<ScanResult> scanResult = new ArrayList<>();
         scanResult.add(result1);
         String[] columnNames = {"longbow_key", "longbow_data1", "rowtime", "longbow_duration"};
 
@@ -58,7 +64,7 @@ public class LongbowTableDataTest {
 
     @Test
     public void shouldReturnMultipleListOfStringWhenLongbowDataMoreThanOne() {
-        List<Result> scanResult = new ArrayList<>();
+        List<ScanResult> scanResult = new ArrayList<>();
         scanResult.add(result1);
         scanResult.add(result2);
         String[] columnNames = {"longbow_key", "longbow_data1", "rowtime", "longbow_duration", "longbow_data2"};
