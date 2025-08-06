@@ -28,8 +28,8 @@ public class LongbowProtoData implements LongbowData {
         for (int i = 0; i < scanResult.size(); i++) {
             data.add(i, scanResult.get(i)
                     .getData()
-                    .get(COLUMN_FAMILY_NAME)
-                    .get(Bytes.toBytes(Constants.LONGBOW_QUALIFIER_DEFAULT)));
+                    .get(Constants.LONGBOW_COLUMN_FAMILY_DEFAULT)
+                    .get(Constants.LONGBOW_QUALIFIER_DEFAULT));
         }
 
         HashMap<String, List<byte[]>> longbowData = new HashMap<>();

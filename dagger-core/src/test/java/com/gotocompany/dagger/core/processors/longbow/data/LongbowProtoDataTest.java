@@ -15,8 +15,6 @@ import static org.mockito.MockitoAnnotations.initMocks;
 
 public class LongbowProtoDataTest {
 
-    private static final byte[] COLUMN_FAMILY_NAME = Bytes.toBytes(Constants.LONGBOW_COLUMN_FAMILY_DEFAULT);
-
     @Mock
     private ScanResult scanResult;
 
@@ -30,10 +28,10 @@ public class LongbowProtoDataTest {
         ArrayList<ScanResult> results = new ArrayList<>();
         results.add(scanResult);
         byte[] mockResult = Bytes.toBytes("test");
-        Map<byte[], Map<byte[], byte[]>> data = new HashMap<>();
-        Map<byte[], byte[]> innerData = new HashMap<>();
-        innerData.put(Bytes.toBytes(Constants.LONGBOW_QUALIFIER_DEFAULT), mockResult);
-        data.put(COLUMN_FAMILY_NAME, innerData);
+        Map<String, Map<String, byte[]>> data = new HashMap<>();
+        Map<String, byte[]> innerData = new HashMap<>();
+        innerData.put(Constants.LONGBOW_QUALIFIER_DEFAULT, mockResult);
+        data.put(Constants.LONGBOW_COLUMN_FAMILY_DEFAULT, innerData);
         Mockito.when(scanResult.getData()).thenReturn(data);
 
         LongbowProtoData longbowProtoData = new LongbowProtoData();

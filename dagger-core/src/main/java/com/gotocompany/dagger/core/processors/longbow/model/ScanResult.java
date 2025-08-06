@@ -12,7 +12,7 @@ import java.util.Map;
 @Builder
 public class ScanResult {
     private byte[] primaryKey;
-    private Map<byte[], Map<byte[], byte[]>> data;
+    private Map<String, Map<String, byte[]>> data;
 
     public ScanResult(byte[] primaryKey) {
         this.primaryKey = primaryKey;
@@ -20,10 +20,11 @@ public class ScanResult {
     }
 
     public void addData(byte[] columnFamily, byte[] qualifier, byte[] value) {
-        if (!data.containsKey(columnFamily)) {
-            data.put(columnFamily, new HashMap<>());
+        String columnFamilyString = new String(columnFamily);
+        if (!data.containsKey(columnFamilyString)) {
+            data.put(columnFamilyString, new HashMap<>());
         }
-        data.get(columnFamily).put(qualifier, value);
+        data.get(columnFamilyString).put(new String(qualifier), value);
     }
 
 }
