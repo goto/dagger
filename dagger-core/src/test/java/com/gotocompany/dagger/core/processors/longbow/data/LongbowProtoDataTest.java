@@ -35,8 +35,7 @@ public class LongbowProtoDataTest {
         data.put(COLUMN_FAMILY_NAME, innerData);
         Mockito.when(scanResult.getData()).thenReturn(data);
         results.add(scanResult);
-
-        scanResult.getData().forEach((k,v) -> System.out.println("Column Family: " + Bytes.toString(k) + ", Qualifier: " + Bytes.toString(v.keySet().iterator().next()) + ", Value: " + Bytes.toString(v.values().iterator().next())));
+        scanResult.getData().forEach((k,v) -> System.out.println(Arrays.toString(k)));
         LongbowProtoData longbowProtoData = new LongbowProtoData();
         Map<String, List<byte[]>> actualMap = longbowProtoData.parse(results);
         Map<String, List<byte[]>> expectedMap = new HashMap<String, List<byte[]>>() {{
