@@ -16,8 +16,7 @@ import java.util.stream.Collectors;
  */
 public class LongbowTableData implements LongbowData {
 
-    private static final byte[] COLUMN_FAMILY_NAME = Bytes.toBytes(Constants.LONGBOW_COLUMN_FAMILY_DEFAULT);
-    private LongbowSchema longbowSchema;
+    private final LongbowSchema longbowSchema;
 
     /**
      * Instantiates a new Longbow table data.
@@ -43,7 +42,7 @@ public class LongbowTableData implements LongbowData {
     private List<String> getData(List<ScanResult> resultScan, String name) {
         return resultScan
                 .stream()
-                .map(result -> Bytes.toString(result.getData().get(COLUMN_FAMILY_NAME).get(Bytes.toBytes(name))))
+                .map(result -> Bytes.toString(result.getData().get(Constants.LONGBOW_COLUMN_FAMILY_DEFAULT).get(name)))
                 .collect(Collectors.toList());
     }
 }
