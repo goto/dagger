@@ -5,6 +5,7 @@ import com.gotocompany.dagger.core.utils.Constants;
 import org.apache.hadoop.hbase.util.Bytes;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -26,6 +27,7 @@ public class LongbowProtoData implements LongbowData {
         ArrayList<byte[]> data = new ArrayList<>();
 
         for (int i = 0; i < scanResult.size(); i++) {
+            System.out.println("Processing scan key: " + Arrays.toString(COLUMN_FAMILY_NAME));
             data.add(i, scanResult.get(i)
                     .getData()
                     .get(COLUMN_FAMILY_NAME)
