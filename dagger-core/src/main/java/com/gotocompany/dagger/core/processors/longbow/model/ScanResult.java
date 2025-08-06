@@ -3,11 +3,9 @@ package com.gotocompany.dagger.core.processors.longbow.model;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
-import org.apache.hadoop.hbase.util.Bytes;
 
 import java.util.HashMap;
 import java.util.Map;
-import java.util.TreeMap;
 
 @Data
 @AllArgsConstructor
@@ -18,7 +16,7 @@ public class ScanResult {
 
     public ScanResult(byte[] primaryKey) {
         this.primaryKey = primaryKey;
-        this.data = new TreeMap<>(Bytes.BYTES_COMPARATOR);
+        this.data = new HashMap<>();
     }
 
     public void addData(byte[] columnFamily, byte[] qualifier, byte[] value) {

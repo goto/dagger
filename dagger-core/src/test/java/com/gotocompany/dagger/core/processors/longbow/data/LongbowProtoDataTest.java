@@ -28,17 +28,14 @@ public class LongbowProtoDataTest {
     @Test
     public void shouldParseProtoByteDataFromBigTable() {
         ArrayList<ScanResult> results = new ArrayList<>();
+        results.add(scanResult);
         byte[] mockResult = Bytes.toBytes("test");
         Map<byte[], Map<byte[], byte[]>> data = new HashMap<>();
         Map<byte[], byte[]> innerData = new HashMap<>();
         innerData.put(Bytes.toBytes(Constants.LONGBOW_QUALIFIER_DEFAULT), mockResult);
         data.put(COLUMN_FAMILY_NAME, innerData);
         Mockito.when(scanResult.getData()).thenReturn(data);
-        results.add(scanResult);
-        scanResult.getData().forEach((k, v) -> {
-            System.out.println("Key: " + Arrays.toString(k));
-            System.out.println("Value: " + v);
-        });
+
         LongbowProtoData longbowProtoData = new LongbowProtoData();
         Map<String, List<byte[]>> actualMap = longbowProtoData.parse(results);
         Map<String, List<byte[]>> expectedMap = new HashMap<String, List<byte[]>>() {{
