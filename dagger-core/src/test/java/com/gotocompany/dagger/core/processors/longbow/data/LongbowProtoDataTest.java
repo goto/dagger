@@ -24,7 +24,7 @@ public class LongbowProtoDataTest {
     }
 
     @Test
-    public void shouldParseProtoByteDataFromBigTable() {
+    public void shouldParseProtoByteData() {
         ArrayList<ScanResult> results = new ArrayList<>();
         results.add(scanResult);
         byte[] mockResult = Bytes.toBytes("test");
