@@ -40,10 +40,7 @@ import static com.gotocompany.dagger.functions.common.Constants.PYTHON_UDF_ENABL
 import static com.gotocompany.dagger.functions.common.Constants.PYTHON_UDF_ENABLE_KEY;
 import static org.apache.flink.table.api.Expressions.$;
 
-/**
- * The Stream manager.
- */
-public class StreamManager {
+public class DaggerSqlJobBuilder implements JobBuilder {
 
     private final Configuration configuration;
     private final StreamExecutionEnvironment executionEnvironment;
@@ -55,11 +52,11 @@ public class StreamManager {
     private final DaggerContext daggerContext;
 
     /**
-     * Instantiates a new Stream manager.
+     * Instantiates dagger sql job-builder.
      *
-     * @param daggerContext        the daggerContext in form of param
+     * @param daggerContext the daggerContext in form of param
      */
-    public StreamManager(DaggerContext daggerContext) {
+    public DaggerSqlJobBuilder(DaggerContext daggerContext) {
         this.daggerContext = daggerContext;
         this.configuration = daggerContext.getConfiguration();
         this.executionEnvironment = daggerContext.getExecutionEnvironment();
@@ -71,7 +68,8 @@ public class StreamManager {
      *
      * @return the stream manager
      */
-    public StreamManager registerConfigs() {
+    @Override
+    public JobBuilder registerConfigs() {
         stencilClientOrchestrator = new StencilClientOrchestrator(configuration);
         org.apache.flink.configuration.Configuration flinkConfiguration = (org.apache.flink.configuration.Configuration) this.executionEnvironment.getConfiguration();
         daggerStatsDReporter = DaggerStatsDReporter.Provider.provide(flinkConfiguration, configuration);
@@ -96,7 +94,8 @@ public class StreamManager {
      *
      * @return the stream manager
      */
-    public StreamManager registerSourceWithPreProcessors() {
+    @Override
+    public JobBuilder registerSourceWithPreProcessors() {
         long watermarkDelay = configuration.getLong(Constants.FLINK_WATERMARK_DELAY_MS_KEY, Constants.FLINK_WATERMARK_DELAY_MS_DEFAULT);
         Boolean enablePerPartitionWatermark = configuration.getBoolean(Constants.FLINK_WATERMARK_PER_PARTITION_ENABLE_KEY, Constants.FLINK_WATERMARK_PER_PARTITION_ENABLE_DEFAULT);
         StreamsFactory.getStreams(configuration, stencilClientOrchestrator, daggerStatsDReporter)
@@ -144,7 +143,8 @@ public class StreamManager {
      *
      * @return the stream manager
      */
-    public StreamManager registerFunctions() throws IOException {
+    @Override
+    public JobBuilder registerFunctions() throws IOException {
         if (configuration.getBoolean(PYTHON_UDF_ENABLE_KEY, PYTHON_UDF_ENABLE_DEFAULT)) {
             PythonUdfConfig pythonUdfConfig = PythonUdfConfig.parse(configuration);
             PythonUdfManager pythonUdfManager = new PythonUdfManager(tableEnvironment, pythonUdfConfig, configuration);
@@ -178,7 +178,8 @@ public class StreamManager {
      *
      * @return the stream manager
      */
-    public StreamManager registerOutputStream() {
+    @Override
+    public JobBuilder registerOutputStream() {
         Table table = tableEnvironment.sqlQuery(configuration.getString(Constants.FLINK_SQL_QUERY_KEY, Constants.FLINK_SQL_QUERY_DEFAULT));
         StreamInfo streamInfo = createStreamInfo(table);
         streamInfo = addPostProcessor(streamInfo);
@@ -191,6 +192,7 @@ public class StreamManager {
      *
      * @throws Exception the exception
      */
+    @Override
     public void execute() throws Exception {
         executionEnvironment.execute(configuration.getString(Constants.FLINK_JOB_ID_KEY, Constants.FLINK_JOB_ID_DEFAULT));
     }
