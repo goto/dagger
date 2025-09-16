@@ -20,7 +20,7 @@ files as provided are consumed in a single stream.
 
 _**Dagger Core**_
 
-- The core part of the dagger(StreamManager) has the following responsibilities. It works sort of as a controller for other components in the dagger.
+- The core part of the dagger(DaggerSqlJobBuilder) has the following responsibilities. It works sort of as a controller for other components in the dagger.
   - Configuration management.
   - Table registration.
   - Configuring Deserialization and Serialization of data.

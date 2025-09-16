@@ -42,4 +42,7 @@ public class Constants {
     public static final String COS_REGION = "COS_REGION";
     public static final String DEFAULT_COS_REGION = "ap-jakarta";
     public static final String ENABLE_TKE_OIDC_PROVIDER = "ENABLE_TKE_OIDC_PROVIDER";
+
+    public static final String JOB_BUILDER_FQCN_KEY = "JOB_BUILDER_FQCN";
+    public static final String DEFAULT_JOB_BUILDER_FQCN = "com.gotocompany.dagger.core.DaggerSqlJobBuilder";
 }

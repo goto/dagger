@@ -38,9 +38,9 @@ import static org.mockito.MockitoAnnotations.initMocks;
 
 @PrepareForTest(TableSchema.class)
 @RunWith(PowerMockRunner.class)
-public class StreamManagerTest extends DaggerContextTestBase {
+public class DaggerSqlJobBuilderTest extends DaggerContextTestBase {
 
-    private StreamManager streamManager;
+    private DaggerSqlJobBuilder daggerSqlJobBuilder;
 
     private String jsonArray = "[\n"
             + "        {\n"
@@ -117,12 +117,12 @@ public class StreamManagerTest extends DaggerContextTestBase {
         when(schema.getFieldNames()).thenReturn(new String[0]);
         PowerMockito.mockStatic(TableSchema.class);
         when(TableSchema.fromTypeInfo(typeInformation)).thenReturn(schema);
-        streamManager = new StreamManager(daggerContext);
+        daggerSqlJobBuilder = new DaggerSqlJobBuilder(daggerContext);
     }
 
     @Test
     public void shouldRegisterRequiredConfigsOnExecutionEnvironment() {
-        streamManager.registerConfigs();
+        daggerSqlJobBuilder.registerConfigs();
 
         verify(streamExecutionEnvironment, Mockito.times(1)).setParallelism(1);
         verify(streamExecutionEnvironment, Mockito.times(1)).enableCheckpointing(30000);
@@ -140,32 +140,32 @@ public class StreamManagerTest extends DaggerContextTestBase {
         when(source.assignTimestampsAndWatermarks(any(WatermarkStrategy.class))).thenReturn(singleOutputStream);
         when(singleOutputStream.getType()).thenReturn(typeInformation);
 
-        StreamManagerStub streamManagerStub = new StreamManagerStub(daggerContext, new StreamInfo(dataStream, new String[]{}));
-        streamManagerStub.registerConfigs();
-        streamManagerStub.registerSourceWithPreProcessors();
+        DaggerSqlJobBuilderStub daggerSqlJobBuilderStub = new DaggerSqlJobBuilderStub(daggerContext, new StreamInfo(dataStream, new String[]{}));
+        daggerSqlJobBuilderStub.registerConfigs();
+        daggerSqlJobBuilderStub.registerSourceWithPreProcessors();
 
         verify(streamTableEnvironment, Mockito.times(1)).fromDataStream(any(), new ApiExpression[]{});
     }
 
     @Test
     public void shouldCreateOutputStream() {
-        StreamManagerStub streamManagerStub = new StreamManagerStub(daggerContext, new StreamInfo(dataStream, new String[]{}));
-        streamManagerStub.registerOutputStream();
+        DaggerSqlJobBuilderStub daggerSqlJobBuilderStub = new DaggerSqlJobBuilderStub(daggerContext, new StreamInfo(dataStream, new String[]{}));
+        daggerSqlJobBuilderStub.registerOutputStream();
         verify(streamTableEnvironment, Mockito.times(1)).sqlQuery("");
     }
 
     @Test
     public void shouldExecuteJob() throws Exception {
-        streamManager.execute();
+        daggerSqlJobBuilder.execute();
 
         verify(streamExecutionEnvironment, Mockito.times(1)).execute("SQL Flink job");
     }
 
-    final class StreamManagerStub extends StreamManager {
+    final class DaggerSqlJobBuilderStub extends DaggerSqlJobBuilder {
 
         private final StreamInfo streamInfo;
 
-        private StreamManagerStub(DaggerContext daggerContext, StreamInfo streamInfo) {
+        private DaggerSqlJobBuilderStub(DaggerContext daggerContext, StreamInfo streamInfo) {
             super(daggerContext);
             this.streamInfo = streamInfo;
         }
