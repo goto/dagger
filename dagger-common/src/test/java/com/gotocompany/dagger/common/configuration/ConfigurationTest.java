@@ -6,8 +6,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNull;
+import static org.junit.Assert.*;
 import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
 
@@ -29,6 +28,12 @@ public class ConfigurationTest {
         when(parameterTool.get("test_config", "test_default")).thenReturn("test_value");
 
         assertEquals("test_value", configuration.getString("test_config", "test_default"));
+    }
+
+    @Test
+    public void shouldGetStringArrayFromParamTool() {
+        when(parameterTool.get("test_config", "test_default")).thenReturn("[\"apple\", \"banana\"]");
+        assertArrayEquals(new String[]{"apple", "banana"}, configuration.getStringArray("test_config", "test_default"));
     }
 
     @Test

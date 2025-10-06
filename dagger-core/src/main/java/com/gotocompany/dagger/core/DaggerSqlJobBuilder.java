@@ -180,6 +180,15 @@ public class DaggerSqlJobBuilder implements JobBuilder {
      */
     @Override
     public JobBuilder registerOutputStream() {
+        String[] sqlQueries = configuration.getStringArray(Constants.FLINK_SQL_QUERIES_KEY, "");
+        for (String sqlQuery : sqlQueries) {
+            Table table = tableEnvironment.sqlQuery(sqlQuery);
+            StreamInfo streamInfo = createStreamInfo(table);
+            streamInfo = addPostProcessor(streamInfo);
+            addSink(streamInfo);
+        }
+
+
         Table table = tableEnvironment.sqlQuery(configuration.getString(Constants.FLINK_SQL_QUERY_KEY, Constants.FLINK_SQL_QUERY_DEFAULT));
         StreamInfo streamInfo = createStreamInfo(table);
         streamInfo = addPostProcessor(streamInfo);

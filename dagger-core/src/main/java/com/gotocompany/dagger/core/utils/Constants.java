@@ -35,6 +35,7 @@ public class Constants {
     public static final String HOUR_UNIT = "h";
     public static final String DAY_UNIT = "d";
     public static final String FLINK_SQL_QUERY_KEY = "FLINK_SQL_QUERY";
+    public static final String FLINK_SQL_QUERIES_KEY = "FLINK_SQL_QUERIES";
     public static final String FLINK_SQL_QUERY_DEFAULT = "";
 
     public static final int FLINK_PARALLELISM_DEFAULT = 1;
