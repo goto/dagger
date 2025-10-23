@@ -167,6 +167,8 @@ public class Constants {
     public static final int SINK_INFLUX_BATCH_SIZE_DEFAULT = 0;
     public static final String SINK_INFLUX_FLUSH_DURATION_MS_KEY = "SINK_INFLUX_FLUSH_DURATION_MS";
     public static final int SINK_INFLUX_FLUSH_DURATION_MS_DEFAULT = 0;
+    public static final String SINK_INFLUX_USING_ROW_FIELD_NAMES_KEY = "SINK_INFLUX_WITH_ROW_NAMES_WRITER";
+    public static final boolean SINK_INFLUX_USING_ROW_FIELD_NAMES_DEFAULT = false;
 
     public static final String SOURCE_KAFKA_CONSUME_LARGE_MESSAGE_ENABLE_KEY = "SOURCE_KAFKA_CONSUME_LARGE_MESSAGE_ENABLE";
     public static final boolean SOURCE_KAFKA_CONSUME_LARGE_MESSAGE_ENABLE_DEFAULT = false;
