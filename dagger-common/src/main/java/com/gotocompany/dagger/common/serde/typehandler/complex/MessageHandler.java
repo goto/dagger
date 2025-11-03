@@ -45,7 +45,9 @@ public class MessageHandler implements TypeHandler {
 
     @Override
     public boolean canHandle() {
-        return fieldDescriptor.getJavaType() == MESSAGE && !fieldDescriptor.getMessageType().getFullName().equals("google.protobuf.Timestamp");
+        return fieldDescriptor.getJavaType() == MESSAGE
+                && !fieldDescriptor.getMessageType().getFullName().equals("google.protobuf.Timestamp")
+                && !fieldDescriptor.getMessageType().getFullName().equals("google.protobuf.Value");
     }
 
     @Override

@@ -6,6 +6,7 @@ import com.gotocompany.dagger.common.serde.typehandler.repeated.RepeatedMessageH
 import com.gotocompany.dagger.common.serde.typehandler.repeated.RepeatedPrimitiveHandler;
 import com.gotocompany.dagger.common.serde.typehandler.repeated.RepeatedStructMessageHandler;
 import com.gotocompany.dagger.common.serde.typehandler.complex.EnumHandler;
+import com.gotocompany.dagger.common.serde.typehandler.complex.GoogleProtobufValueHandler;
 import com.gotocompany.dagger.common.serde.typehandler.complex.MapHandler;
 import com.gotocompany.dagger.common.serde.typehandler.complex.MessageHandler;
 import com.gotocompany.dagger.common.serde.typehandler.complex.StructMessageHandler;
@@ -69,6 +70,7 @@ public class TypeHandlerFactory {
                 new RepeatedPrimitiveHandler(fieldDescriptor),
                 new RepeatedMessageHandler(fieldDescriptor),
                 new RepeatedEnumHandler(fieldDescriptor),
+                new GoogleProtobufValueHandler(fieldDescriptor),
                 new MessageHandler(fieldDescriptor)
         );
     }
