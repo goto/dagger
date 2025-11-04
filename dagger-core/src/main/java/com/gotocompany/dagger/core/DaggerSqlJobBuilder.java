@@ -105,11 +105,11 @@ public class DaggerSqlJobBuilder implements JobBuilder {
                     DataStream<Row> dataStream = stream.registerSource(executionEnvironment, watermarkStrategyDefinition.getWatermarkStrategy(watermarkDelay));
                     StreamWatermarkAssigner streamWatermarkAssigner = new StreamWatermarkAssigner(new LastColumnWatermark());
 
-                    DataStream<Row> rowSingleOutputStreamOperator = streamWatermarkAssigner
+                    DataStream<Row> dataStreamWithWaterMark = streamWatermarkAssigner
                             .assignTimeStampAndWatermark(dataStream, watermarkDelay, enablePerPartitionWatermark);
 
                     TableSchema tableSchema = TableSchema.fromTypeInfo(dataStream.getType());
-                    StreamInfo streamInfo = new StreamInfo(rowSingleOutputStreamOperator, tableSchema.getFieldNames());
+                    StreamInfo streamInfo = new StreamInfo(dataStreamWithWaterMark, tableSchema.getFieldNames());
                     streamInfo = addPreProcessor(streamInfo, tableName);
 
                     Table table = tableEnvironment.fromDataStream(streamInfo.getDataStream(), getApiExpressions(streamInfo));
