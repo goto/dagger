@@ -1,0 +1,1 @@
+"use strict";(globalThis.webpackChunkdagger=globalThis.webpackChunkdagger||[]).push([[1970],{6602:g=>{g.exports=JSON.parse('{"allTagsPath":"/dagger/blog/tags","slug":"/dagger/blog/tags/dagger","name":"dagger","count":1,"permalink":"/dagger/blog/tags/dagger"}')}}]);
