@@ -58,8 +58,13 @@ public class ProtoDeserializer implements KafkaDeserializationSchema<Row>, Dagge
     @Override
     public Row deserialize(ConsumerRecord<byte[], byte[]> consumerRecord) {
         Descriptors.Descriptor descriptor = getProtoParser();
+        byte[] value = consumerRecord.value();
+        if (value == null) {
+            LOGGER.warn("Record value / byteArray is NULL! " + protoClassName);
+            return createDefaultInvalidRow(DynamicMessage.getDefaultInstance(descriptor));
+        }
         try {
-            DynamicMessage proto = DynamicMessage.parseFrom(descriptor, consumerRecord.value());
+            DynamicMessage proto = DynamicMessage.parseFrom(descriptor, value);
             return addTimestampFieldToRow(proto);
         } catch (DescriptorNotFoundException e) {
             throw new DescriptorNotFoundException(e);
