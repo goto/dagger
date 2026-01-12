@@ -51,7 +51,7 @@ public class SinkOrchestratorTest {
     @Test
     public void shouldGiveInfluxSinkWhenConfiguredToUseInflux() throws Exception {
         when(configuration.getString(eq("SINK_TYPE"), anyString())).thenReturn("influx");
-        Sink sinkFunction = sinkOrchestrator.getSink(configuration, new String[]{}, stencilClientOrchestrator, daggerStatsDReporter);
+        Sink sinkFunction = sinkOrchestrator.getSink("", configuration, new String[]{}, stencilClientOrchestrator, daggerStatsDReporter);
 
         assertThat(sinkFunction, instanceOf(InfluxDBSink.class));
     }
@@ -59,7 +59,7 @@ public class SinkOrchestratorTest {
     @Test
     public void shouldGiveLogSinkWhenConfiguredToUseLog() throws Exception {
         when(configuration.getString(eq("SINK_TYPE"), anyString())).thenReturn("log");
-        Sink sinkFunction = sinkOrchestrator.getSink(configuration, new String[]{}, stencilClientOrchestrator, daggerStatsDReporter);
+        Sink sinkFunction = sinkOrchestrator.getSink("", configuration, new String[]{}, stencilClientOrchestrator, daggerStatsDReporter);
 
         assertThat(sinkFunction, instanceOf(LogSink.class));
     }
@@ -67,7 +67,7 @@ public class SinkOrchestratorTest {
     @Test
     public void shouldGiveInfluxWhenConfiguredToUseNothing() throws Exception {
         when(configuration.getString(eq("SINK_TYPE"), anyString())).thenReturn("");
-        Sink sinkFunction = sinkOrchestrator.getSink(configuration, new String[]{}, stencilClientOrchestrator, daggerStatsDReporter);
+        Sink sinkFunction = sinkOrchestrator.getSink("", configuration, new String[]{}, stencilClientOrchestrator, daggerStatsDReporter);
 
         assertThat(sinkFunction, instanceOf(InfluxDBSink.class));
     }
@@ -107,7 +107,7 @@ public class SinkOrchestratorTest {
 
         when(configuration.getString(eq("SINK_TYPE"), anyString())).thenReturn("influx");
 
-        sinkOrchestrator.getSink(configuration, new String[]{}, stencilClientOrchestrator, daggerStatsDReporter);
+        sinkOrchestrator.getSink("", configuration, new String[]{}, stencilClientOrchestrator, daggerStatsDReporter);
         assertEquals(expectedMetrics, sinkOrchestrator.getTelemetry());
     }
 
@@ -116,7 +116,7 @@ public class SinkOrchestratorTest {
         when(configuration.getString(eq("SINK_TYPE"), anyString())).thenReturn("bigquery");
         when(configuration.getString("SINK_CONNECTOR_SCHEMA_PROTO_MESSAGE_CLASS", "")).thenReturn("some.class");
         when(configuration.getParam()).thenReturn(ParameterTool.fromMap(Collections.emptyMap()));
-        Sink sinkFunction = sinkOrchestrator.getSink(configuration, new String[]{}, stencilClientOrchestrator, daggerStatsDReporter);
+        Sink sinkFunction = sinkOrchestrator.getSink("", configuration, new String[]{}, stencilClientOrchestrator, daggerStatsDReporter);
         assertThat(sinkFunction, instanceOf(BigQuerySink.class));
     }
 }

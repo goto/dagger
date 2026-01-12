@@ -181,18 +181,13 @@ public class DaggerSqlJobBuilder implements JobBuilder {
     @Override
     public JobBuilder registerOutputStream() {
         String[] sqlQueries = configuration.getStringArray(Constants.FLINK_SQL_QUERIES_KEY, "");
-        for (String sqlQuery : sqlQueries) {
+        for (int i = 0; i < sqlQueries.length; i++) {
+            String sqlQuery = sqlQueries[i];
             Table table = tableEnvironment.sqlQuery(sqlQuery);
             StreamInfo streamInfo = createStreamInfo(table);
             streamInfo = addPostProcessor(streamInfo);
-            addSink(streamInfo);
+            addSink(String.valueOf(i), streamInfo);
         }
-
-
-        Table table = tableEnvironment.sqlQuery(configuration.getString(Constants.FLINK_SQL_QUERY_KEY, Constants.FLINK_SQL_QUERY_DEFAULT));
-        StreamInfo streamInfo = createStreamInfo(table);
-        streamInfo = addPostProcessor(streamInfo);
-        addSink(streamInfo);
         return this;
     }
 
@@ -236,10 +231,9 @@ public class DaggerSqlJobBuilder implements JobBuilder {
         return streamInfo;
     }
 
-    private void addSink(StreamInfo streamInfo) {
+    private void addSink(String kafkaTopicSuffix, StreamInfo streamInfo) {
         SinkOrchestrator sinkOrchestrator = new SinkOrchestrator(telemetryExporter);
         sinkOrchestrator.addSubscriber(telemetryExporter);
-        streamInfo.getDataStream().sinkTo(sinkOrchestrator.getSink(configuration, streamInfo.getColumnNames(), stencilClientOrchestrator, daggerStatsDReporter));
+        streamInfo.getDataStream().sinkTo(sinkOrchestrator.getSink(kafkaTopicSuffix, configuration, streamInfo.getColumnNames(), stencilClientOrchestrator, daggerStatsDReporter));
     }
-
 }

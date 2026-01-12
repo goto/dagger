@@ -52,7 +52,7 @@ public class SinkOrchestrator implements TelemetryPublisher {
      * @columnNames columnNames               the column names
      * @StencilClientOrchestrator stencilClientOrchestrator the stencil client orchestrator
      */
-    public Sink getSink(Configuration configuration, String[] columnNames, StencilClientOrchestrator stencilClientOrchestrator, DaggerStatsDReporter daggerStatsDReporter) {
+    public Sink getSink(String suffix, Configuration configuration, String[] columnNames, StencilClientOrchestrator stencilClientOrchestrator, DaggerStatsDReporter daggerStatsDReporter) {
         String sinkType = configuration.getString("SINK_TYPE", "influx");
         addMetric(TelemetryTypes.SINK_TYPE.getValue(), sinkType);
         Sink sink;
@@ -68,7 +68,7 @@ public class SinkOrchestrator implements TelemetryPublisher {
                 sink = KafkaSink.<Row>builder()
                         .setBootstrapServers(outputBootStrapServers)
                         .setKafkaProducerConfig(getProducerProperties(configuration))
-                        .setRecordSerializer(serializationSchema.build())
+                        .setRecordSerializer(serializationSchema.build(suffix))
                         .setDeliverGuarantee(DeliveryGuarantee.AT_LEAST_ONCE)
                         .build();
 

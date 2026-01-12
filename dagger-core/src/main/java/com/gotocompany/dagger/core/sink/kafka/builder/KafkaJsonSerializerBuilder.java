@@ -33,7 +33,7 @@ public class KafkaJsonSerializerBuilder implements KafkaSerializerBuilder, Telem
     }
 
     @Override
-    public KafkaRecordSerializationSchema build() {
+    public KafkaRecordSerializationSchema build(String suffix) {
         String outputTopic = configuration.getString(Constants.SINK_KAFKA_TOPIC_KEY, "");
         String outputStream = configuration.getString(Constants.SINK_KAFKA_STREAM_KEY, "");
         String outputJsonSchema = configuration.getString(Constants.SINK_KAFKA_JSON_SCHEMA_KEY, "");

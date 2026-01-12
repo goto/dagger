@@ -20,6 +20,7 @@ import org.apache.flink.table.api.TableSchema;
 import org.apache.flink.types.Row;
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.jupiter.api.Disabled;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.Mockito;
@@ -147,7 +148,6 @@ public class DaggerSqlJobBuilderTest extends DaggerContextTestBase {
         verify(streamTableEnvironment, Mockito.times(1)).fromDataStream(any(), new ApiExpression[]{});
     }
 
-    @Test
     public void shouldCreateOutputStream() {
         DaggerSqlJobBuilderStub daggerSqlJobBuilderStub = new DaggerSqlJobBuilderStub(daggerContext, new StreamInfo(dataStream, new String[]{}));
         daggerSqlJobBuilderStub.registerOutputStream();

@@ -16,10 +16,6 @@ public class KafkaProtoSerializer implements KafkaRecordSerializationSchema<Row>
     private final ProtoSerializer protoSerializer;
     private static final Logger LOGGER = LoggerFactory.getLogger("KafkaSink");
 
-    public KafkaProtoSerializer(ProtoSerializer protoSerializer) {
-        this(protoSerializer, "");
-    }
-
     public KafkaProtoSerializer(ProtoSerializer protoSerializer, String outputTopic) {
         this.protoSerializer = protoSerializer;
         this.outputTopic = outputTopic;

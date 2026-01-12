@@ -137,7 +137,7 @@ public class ExampleStreamApiJobBuilder implements JobBuilder {
                         .keyBy(r -> 0)
                         .max("someField");
 
-        outputStream.sinkTo(sinkOrchestrator.getSink(configuration, new String[]{"uniq_users"}, stencilClientOrchestrator, daggerStatsDReporter));
+        outputStream.sinkTo(sinkOrchestrator.getSink("", configuration, new String[]{"uniq_users"}, stencilClientOrchestrator, daggerStatsDReporter));
         return this;
     }
 

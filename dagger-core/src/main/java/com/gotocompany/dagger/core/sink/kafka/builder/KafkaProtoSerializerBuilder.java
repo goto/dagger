@@ -30,8 +30,8 @@ public class KafkaProtoSerializerBuilder implements KafkaSerializerBuilder, Tele
     }
 
     @Override
-    public KafkaRecordSerializationSchema build() {
-        String outputTopic = configuration.getString(Constants.SINK_KAFKA_TOPIC_KEY, "");
+    public KafkaRecordSerializationSchema build(String suffix) {
+        String outputTopic = configuration.getString(Constants.SINK_KAFKA_TOPIC_KEY, "") + "-s" + suffix;
         String outputProtoKey = configuration.getString(Constants.SINK_KAFKA_PROTO_KEY, null);
         String outputProtoMessage = configuration.getString(Constants.SINK_KAFKA_PROTO_MESSAGE_KEY, "");
         String outputStream = configuration.getString(Constants.SINK_KAFKA_STREAM_KEY, "");

@@ -36,13 +36,13 @@ public class KafkaJsonSerializerBuilderTest {
     @Test
     public void shouldCreateJSONSerializer() {
         KafkaJsonSerializerBuilder kafkaJsonSerializerBuilder = new KafkaJsonSerializerBuilder(configuration);
-        Assert.assertTrue(kafkaJsonSerializerBuilder.build() instanceof KafkaRecordSerializationSchema);
+        Assert.assertTrue(kafkaJsonSerializerBuilder.build("") instanceof KafkaRecordSerializationSchema);
     }
 
     @Test
     public void shouldAddMetrics() {
         KafkaJsonSerializerBuilder kafkaJsonSerializerBuilder = new KafkaJsonSerializerBuilder(configuration);
-        kafkaJsonSerializerBuilder.build();
+        kafkaJsonSerializerBuilder.build("");
 
         Map<String, List<String>> telemetry = kafkaJsonSerializerBuilder.getTelemetry();
 
@@ -55,7 +55,7 @@ public class KafkaJsonSerializerBuilderTest {
         thrown.expect(InvalidJSONSchemaException.class);
         when(configuration.getString(Constants.SINK_KAFKA_JSON_SCHEMA_KEY, "")).thenReturn("{}");
         KafkaJsonSerializerBuilder kafkaJsonSerializerBuilder = new KafkaJsonSerializerBuilder(configuration);
-        kafkaJsonSerializerBuilder.build();
+        kafkaJsonSerializerBuilder.build("");
     }
 
     @Test
@@ -63,7 +63,7 @@ public class KafkaJsonSerializerBuilderTest {
         thrown.expect(InvalidJSONSchemaException.class);
         when(configuration.getString(Constants.SINK_KAFKA_JSON_SCHEMA_KEY, "")).thenReturn("");
         KafkaJsonSerializerBuilder kafkaJsonSerializerBuilder = new KafkaJsonSerializerBuilder(configuration);
-        kafkaJsonSerializerBuilder.build();
+        kafkaJsonSerializerBuilder.build("");
     }
 
     @Test
@@ -71,6 +71,6 @@ public class KafkaJsonSerializerBuilderTest {
         thrown.expect(NullPointerException.class);
         when(configuration.getString(Constants.SINK_KAFKA_JSON_SCHEMA_KEY, "")).thenReturn(null);
         KafkaJsonSerializerBuilder kafkaJsonSerializerBuilder = new KafkaJsonSerializerBuilder(configuration);
-        kafkaJsonSerializerBuilder.build();
+        kafkaJsonSerializerBuilder.build("");
     }
 }
