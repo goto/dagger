@@ -1,1 +1,0 @@
-"use strict";(globalThis.webpackChunkdagger=globalThis.webpackChunkdagger||[]).push([[7083],{1088:e=>{e.exports=JSON.parse('{"permalink":"/dagger/blog","page":1,"postsPerPage":10,"totalPages":1,"totalCount":1,"previousPage":null,"nextPage":null,"blogDescription":"Blog","blogTitle":"Blog"}')}}]);
