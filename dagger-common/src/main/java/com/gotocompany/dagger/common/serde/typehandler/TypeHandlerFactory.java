@@ -1,7 +1,12 @@
 package com.gotocompany.dagger.common.serde.typehandler;
 
 import com.google.protobuf.Descriptors;
-import com.gotocompany.dagger.common.serde.typehandler.complex.*;
+import com.gotocompany.dagger.common.serde.typehandler.complex.EnumHandler;
+import com.gotocompany.dagger.common.serde.typehandler.complex.GoogleProtobufComplexMessageHandler;
+import com.gotocompany.dagger.common.serde.typehandler.complex.MapHandler;
+import com.gotocompany.dagger.common.serde.typehandler.complex.MessageHandler;
+import com.gotocompany.dagger.common.serde.typehandler.complex.StructMessageHandler;
+import com.gotocompany.dagger.common.serde.typehandler.complex.TimestampHandler;
 import com.gotocompany.dagger.common.serde.typehandler.repeated.RepeatedEnumHandler;
 import com.gotocompany.dagger.common.serde.typehandler.repeated.RepeatedMessageHandler;
 import com.gotocompany.dagger.common.serde.typehandler.repeated.RepeatedPrimitiveHandler;

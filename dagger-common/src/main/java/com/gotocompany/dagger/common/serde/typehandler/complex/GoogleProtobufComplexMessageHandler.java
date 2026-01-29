@@ -14,7 +14,6 @@ import java.util.HashSet;
 import java.util.Set;
 
 /**
- *
  * A TypeHandler to handle some of the complex Google Protobuf message types
  * that are dynamic and recursive in nature.
  * <p>
@@ -28,7 +27,6 @@ import java.util.Set;
  * This implementation converts these message types to Protobuf's byte-array
  * representation. While outputting the data, the byte array is converted back
  * to the original structure using the associated field descriptor.
- *
  */
 public class GoogleProtobufComplexMessageHandler implements TypeHandler {
 
@@ -56,7 +54,20 @@ public class GoogleProtobufComplexMessageHandler implements TypeHandler {
         if (field == null) {
             return null;
         }
-        return ((DynamicMessage) field).toByteArray();
+
+        // Struct / Value default instance or empty
+        if (field instanceof DynamicMessage) {
+            DynamicMessage msg = (DynamicMessage) field;
+
+            // CRITICAL: field not actually set
+            if (msg.getAllFields().isEmpty()) {
+                return null;
+            }
+
+            return msg.toByteArray();
+        }
+
+        return null;
     }
 
     @Override

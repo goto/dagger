@@ -6,6 +6,7 @@ import com.gotocompany.dagger.common.exceptions.DescriptorNotFoundException;
 import com.gotocompany.dagger.consumer.TestBookingLogMessage;
 import com.gotocompany.dagger.consumer.TestNestedRepeatedMessage;
 import org.apache.flink.api.common.typeinfo.TypeInformation;
+import org.apache.flink.api.common.typeinfo.Types;
 import org.apache.flink.api.java.typeutils.ObjectArrayTypeInfo;
 import org.apache.flink.api.java.typeutils.RowTypeInfo;
 import org.apache.flink.types.Row;
@@ -137,9 +138,9 @@ public class ProtoTypeTest {
     @Test
     public void shouldReturnRowTypeForStructFields() {
         ProtoType protoType = new ProtoType(TestBookingLogMessage.class.getName(), "rowtime", stencilClientOrchestrator);
-        assertEquals(ROW(), ((RowTypeInfo) protoType.getRowType()).getFieldTypes()[35]);
-        assertEquals(ROW(), ((RowTypeInfo) protoType.getRowType()).getFieldTypes()[36]);
-        assertEquals(ROW(), ((RowTypeInfo) protoType.getRowType()).getFieldTypes()[37]);
+        assertEquals(Types.PRIMITIVE_ARRAY(Types.BYTE), ((RowTypeInfo) protoType.getRowType()).getFieldTypes()[35]);
+        assertEquals(Types.PRIMITIVE_ARRAY(Types.BYTE), ((RowTypeInfo) protoType.getRowType()).getFieldTypes()[36]);
+        assertEquals(Types.PRIMITIVE_ARRAY(Types.BYTE), ((RowTypeInfo) protoType.getRowType()).getFieldTypes()[37]);
         assertEquals("profile_data", ((RowTypeInfo) protoType.getRowType()).getFieldNames()[35]);
         assertEquals("event_properties", ((RowTypeInfo) protoType.getRowType()).getFieldNames()[36]);
         assertEquals("key_values", ((RowTypeInfo) protoType.getRowType()).getFieldNames()[37]);
@@ -155,7 +156,7 @@ public class ProtoTypeTest {
     public void shouldGiveNameAndTypeForRepeatingStructType() {
         ProtoType testNestedRepeatedMessage = new ProtoType(TestNestedRepeatedMessage.class.getName(), "rowtime", stencilClientOrchestrator);
         assertEquals("metadata", ((RowTypeInfo) testNestedRepeatedMessage.getRowType()).getFieldNames()[4]);
-        assertEquals(OBJECT_ARRAY(ROW()), ((RowTypeInfo) testNestedRepeatedMessage.getRowType()).getFieldTypes()[4]);
+        assertEquals(Types.PRIMITIVE_ARRAY(Types.BYTE), ((RowTypeInfo) testNestedRepeatedMessage.getRowType()).getFieldTypes()[4]);
     }
 
     private int bookingLogFieldIndex(String propertyName) {
