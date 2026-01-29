@@ -5,7 +5,6 @@ import com.google.protobuf.Timestamp;
 import com.gotocompany.dagger.common.configuration.Configuration;
 import com.gotocompany.dagger.common.core.StencilClientOrchestrator;
 import com.gotocompany.dagger.common.exceptions.DescriptorNotFoundException;
-import com.gotocompany.dagger.common.exceptions.serde.DaggerDeserializationException;
 import com.gotocompany.dagger.common.serde.typehandler.RowFactory;
 import com.gotocompany.dagger.consumer.*;
 import org.apache.flink.api.common.typeinfo.TypeInformation;
