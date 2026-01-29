@@ -246,10 +246,10 @@ public class ProtoDeserializerTest {
     }
 
     @Test
-    public void shouldThrowExceptionIfNotAbleToDeserialise() {
+    public void shouldMarkRecordInvalidIfThePayloadIsNull() {
         ProtoDeserializer protoDeserializer = new ProtoDeserializer(TestNestedRepeatedMessage.class.getTypeName(), 6, "rowtime", stencilClientOrchestrator);
-        assertThrows(DaggerDeserializationException.class,
-                () -> protoDeserializer.deserialize(new ConsumerRecord<>("test-topic", 0, 0, null, null)));
+        Row row = protoDeserializer.deserialize(new ConsumerRecord<>("test-topic", 0, 0, null, null));
+        assertFalse((boolean) row.getField(row.getArity() - 2));
     }
 
     @Test
