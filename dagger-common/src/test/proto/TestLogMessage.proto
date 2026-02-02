@@ -119,6 +119,12 @@ message TestBookingLogMessage {
   repeated float float_array_field = 73;
 
   repeated int64 long_array_field = 74;
+
+  google.protobuf.Value tag = 75;
+
+  google.protobuf.ListValue tags = 76;
+
+  repeated google.protobuf.Value labels = 77;
 }
 
 message TestPaymentOptionMetadata {
