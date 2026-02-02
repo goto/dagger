@@ -1,15 +1,16 @@
 package com.gotocompany.dagger.common.serde.typehandler;
 
 import com.google.protobuf.Descriptors;
-import com.gotocompany.dagger.common.serde.typehandler.repeated.RepeatedEnumHandler;
-import com.gotocompany.dagger.common.serde.typehandler.repeated.RepeatedMessageHandler;
-import com.gotocompany.dagger.common.serde.typehandler.repeated.RepeatedPrimitiveHandler;
-import com.gotocompany.dagger.common.serde.typehandler.repeated.RepeatedStructMessageHandler;
 import com.gotocompany.dagger.common.serde.typehandler.complex.EnumHandler;
+import com.gotocompany.dagger.common.serde.typehandler.complex.GoogleProtobufComplexMessageHandler;
 import com.gotocompany.dagger.common.serde.typehandler.complex.MapHandler;
 import com.gotocompany.dagger.common.serde.typehandler.complex.MessageHandler;
 import com.gotocompany.dagger.common.serde.typehandler.complex.StructMessageHandler;
 import com.gotocompany.dagger.common.serde.typehandler.complex.TimestampHandler;
+import com.gotocompany.dagger.common.serde.typehandler.repeated.RepeatedEnumHandler;
+import com.gotocompany.dagger.common.serde.typehandler.repeated.RepeatedMessageHandler;
+import com.gotocompany.dagger.common.serde.typehandler.repeated.RepeatedPrimitiveHandler;
+import com.gotocompany.dagger.common.serde.typehandler.repeated.RepeatedStructMessageHandler;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
 
@@ -64,6 +65,7 @@ public class TypeHandlerFactory {
                 new MapHandler(fieldDescriptor),
                 new TimestampHandler(fieldDescriptor),
                 new EnumHandler(fieldDescriptor),
+                new GoogleProtobufComplexMessageHandler(fieldDescriptor),
                 new StructMessageHandler(fieldDescriptor),
                 new RepeatedStructMessageHandler(fieldDescriptor),
                 new RepeatedPrimitiveHandler(fieldDescriptor),

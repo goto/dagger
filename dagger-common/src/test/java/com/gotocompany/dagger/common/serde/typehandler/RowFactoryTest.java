@@ -40,11 +40,10 @@ public class RowFactoryTest {
         inputMap.put("created_at", "2016-01-18T08:55:26.16Z");
         Row row = RowFactory.createRow(inputMap, descriptor);
 
-        Row expectedRow = new Row(49);
+        Row expectedRow = new Row(52);
         expectedRow.setField(5, "144614");
         expectedRow.setField(6, "https://www.abcd.com/1234");
         assertEquals(expectedRow, row);
-
     }
 
     @Test
@@ -52,7 +51,7 @@ public class RowFactoryTest {
         Descriptors.Descriptor descriptor = TestBookingLogMessage.getDescriptor();
         Map<String, Object> inputMap = new HashMap<>();
         Row row = RowFactory.createRow(inputMap, descriptor);
-        assertEquals(new Row(49), row);
+        assertEquals(new Row(52), row);
     }
 
     @Test
@@ -74,7 +73,7 @@ public class RowFactoryTest {
     public void shouldReturnEmptyRowIfNullPassedAsMapForInputMap() {
         Descriptors.Descriptor descriptor = TestBookingLogMessage.getDescriptor();
         Row row = RowFactory.createRow(null, descriptor);
-        assertEquals(new Row(49), row);
+        assertEquals(new Row(52), row);
     }
 
     @Test
@@ -83,7 +82,7 @@ public class RowFactoryTest {
         DynamicMessage dynamicMessage = DynamicMessage.parseFrom(TestBookingLogMessage.getDescriptor(), customerLogMessage.toByteArray());
         Row row = RowFactory.createRow(dynamicMessage);
         assertNotNull(row);
-        assertEquals(49, row.getArity());
+        assertEquals(52, row.getArity());
     }
 
     @Test
@@ -135,7 +134,7 @@ public class RowFactoryTest {
 
         Row row = RowFactory.createRow(dynamicMessage, fieldDescriptorCache);
         assertNotNull(row);
-        assertEquals(49, row.getArity());
+        assertEquals(52, row.getArity());
     }
 
     @Test

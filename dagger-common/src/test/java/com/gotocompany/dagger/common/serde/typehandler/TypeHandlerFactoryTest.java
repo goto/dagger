@@ -4,14 +4,13 @@ import com.google.protobuf.DescriptorProtos;
 import com.google.protobuf.Descriptors;
 import com.google.protobuf.InvalidProtocolBufferException;
 import com.gotocompany.dagger.common.serde.typehandler.complex.EnumHandler;
+import com.gotocompany.dagger.common.serde.typehandler.complex.GoogleProtobufComplexMessageHandler;
 import com.gotocompany.dagger.common.serde.typehandler.complex.MapHandler;
 import com.gotocompany.dagger.common.serde.typehandler.complex.MessageHandler;
-import com.gotocompany.dagger.common.serde.typehandler.complex.StructMessageHandler;
 import com.gotocompany.dagger.common.serde.typehandler.complex.TimestampHandler;
 import com.gotocompany.dagger.common.serde.typehandler.repeated.RepeatedEnumHandler;
 import com.gotocompany.dagger.common.serde.typehandler.repeated.RepeatedMessageHandler;
 import com.gotocompany.dagger.common.serde.typehandler.repeated.RepeatedPrimitiveHandler;
-import com.gotocompany.dagger.common.serde.typehandler.repeated.RepeatedStructMessageHandler;
 import com.gotocompany.dagger.consumer.TestBookingLogMessage;
 import com.gotocompany.dagger.consumer.TestFeedbackLogMessage;
 import com.gotocompany.dagger.consumer.TestGrpcResponse;
@@ -107,14 +106,14 @@ public class TypeHandlerFactoryTest {
     public void shouldReturnRepeatedStructHandlerIfRepeatedStructFieldDescriptorPassed() {
         Descriptors.FieldDescriptor repeatedStructFieldDescriptor = TestNestedRepeatedMessage.getDescriptor().findFieldByName("metadata");
         TypeHandler typeHandler = TypeHandlerFactory.getTypeHandler(repeatedStructFieldDescriptor);
-        assertEquals(RepeatedStructMessageHandler.class, typeHandler.getClass());
+        assertEquals(GoogleProtobufComplexMessageHandler.class, typeHandler.getClass());
     }
 
     @Test
     public void shouldReturnStructHandlerIfStructFieldDescriptorPassed() {
         Descriptors.FieldDescriptor structFieldDescriptor = TestBookingLogMessage.getDescriptor().findFieldByName("profile_data");
         TypeHandler typeHandler = TypeHandlerFactory.getTypeHandler(structFieldDescriptor);
-        assertEquals(StructMessageHandler.class, typeHandler.getClass());
+        assertEquals(GoogleProtobufComplexMessageHandler.class, typeHandler.getClass());
     }
 
     @Test

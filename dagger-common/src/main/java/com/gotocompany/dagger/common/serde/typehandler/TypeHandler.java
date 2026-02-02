@@ -17,6 +17,7 @@ public interface TypeHandler {
      */
     boolean canHandle();
 
+    // ---------- Flink -> Proto ----------
     /**
      * Transform to protobuf message builder.
      *
@@ -34,6 +35,8 @@ public interface TypeHandler {
      */
     Object transformFromPostProcessor(Object field);
 
+
+    // ---------- Proto -> Flink ----------
     /**
      * Transform from protobuf message.
      *
