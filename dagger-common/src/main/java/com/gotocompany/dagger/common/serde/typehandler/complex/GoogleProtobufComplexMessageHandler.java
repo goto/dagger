@@ -55,18 +55,13 @@ public class GoogleProtobufComplexMessageHandler implements TypeHandler {
             return null;
         }
 
-        // Struct / Value default instance or empty
         if (field instanceof DynamicMessage) {
             DynamicMessage msg = (DynamicMessage) field;
-
-            // CRITICAL: field not actually set
             if (msg.getAllFields().isEmpty()) {
                 return null;
             }
-
             return msg.toByteArray();
         }
-
         return null;
     }
 
