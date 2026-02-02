@@ -37,7 +37,7 @@ public class FieldDescriptorCacheTest {
     @Test
     public void shouldReturnOriginalFieldCount() {
         FieldDescriptorCache fieldDescriptorCache = new FieldDescriptorCache(TestBookingLogMessage.getDescriptor());
-        assertEquals(49, fieldDescriptorCache.getOriginalFieldCount(TestBookingLogMessage.getDescriptor()));
+        assertEquals(52, fieldDescriptorCache.getOriginalFieldCount(TestBookingLogMessage.getDescriptor()));
     }
 
     @Test
