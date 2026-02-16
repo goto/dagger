@@ -1,8 +1,8 @@
 package com.gotocompany.dagger.core.processors.longbow.data;
 
+import com.gotocompany.dagger.core.processors.longbow.model.ScanResult;
 import com.gotocompany.dagger.core.utils.Constants;
 import com.gotocompany.dagger.core.processors.longbow.LongbowSchema;
-import org.apache.hadoop.hbase.client.Result;
 import org.apache.hadoop.hbase.util.Bytes;
 
 import java.util.ArrayList;
@@ -16,8 +16,7 @@ import java.util.stream.Collectors;
  */
 public class LongbowTableData implements LongbowData {
 
-    private static final byte[] COLUMN_FAMILY_NAME = Bytes.toBytes(Constants.LONGBOW_COLUMN_FAMILY_DEFAULT);
-    private LongbowSchema longbowSchema;
+    private final LongbowSchema longbowSchema;
 
     /**
      * Instantiates a new Longbow table data.
@@ -29,7 +28,7 @@ public class LongbowTableData implements LongbowData {
     }
 
     @Override
-    public Map<String, List<String>> parse(List<Result> scanResult) {
+    public Map<String, List<String>> parse(List<ScanResult> scanResult) {
         Map<String, List<String>> longbowData = new HashMap<>();
         List<String> longbowDataColumnNames = longbowSchema.getColumnNames(c -> c.getKey().contains(Constants.LONGBOW_DATA_KEY));
         if (scanResult.isEmpty()) {
@@ -40,10 +39,10 @@ public class LongbowTableData implements LongbowData {
         return longbowData;
     }
 
-    private List<String> getData(List<Result> resultScan, String name) {
+    private List<String> getData(List<ScanResult> resultScan, String name) {
         return resultScan
                 .stream()
-                .map(result -> Bytes.toString(result.getValue(COLUMN_FAMILY_NAME, Bytes.toBytes(name))))
+                .map(result -> Bytes.toString(result.getData().get(Constants.LONGBOW_COLUMN_FAMILY_DEFAULT).get(name)))
                 .collect(Collectors.toList());
     }
 }
