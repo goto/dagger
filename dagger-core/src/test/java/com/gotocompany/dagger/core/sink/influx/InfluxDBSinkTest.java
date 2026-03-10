@@ -29,7 +29,7 @@ import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
 
 public class InfluxDBSinkTest {
-
+    private final String influxMeasurementOverrideName = "";
     private static final int SINK_INFLUX_BATCH_SIZE = 100;
     private static final int INFLUX_FLUSH_DURATION = 1000;
 
@@ -74,7 +74,7 @@ public class InfluxDBSinkTest {
 
     @Test
     public void shouldCallInfluxDbFactoryWhileCreatingWriter() throws Exception {
-        InfluxDBSink influxDBSink = new InfluxDBSink(influxDBFactory, configuration, new String[]{}, errorHandler);
+        InfluxDBSink influxDBSink = new InfluxDBSink(influxDBFactory, configuration, new String[]{}, errorHandler, influxMeasurementOverrideName);
         List<Void> state = new ArrayList<>();
         influxDBSink.createWriter(context, state);
 
@@ -83,7 +83,7 @@ public class InfluxDBSinkTest {
 
     @Test
     public void shouldCreateInfluxWriter() throws IOException {
-        InfluxDBSink influxDBSink = new InfluxDBSink(influxDBFactory, configuration, new String[]{}, errorHandler);
+        InfluxDBSink influxDBSink = new InfluxDBSink(influxDBFactory, configuration, new String[]{}, errorHandler, influxMeasurementOverrideName);
         List<Void> state = new ArrayList<>();
         SinkWriter<Row, Void, Void> writer = influxDBSink.createWriter(context, state);
 
@@ -92,7 +92,7 @@ public class InfluxDBSinkTest {
 
     @Test
     public void shouldCallBatchModeOnInfluxWhenBatchSettingsExist() throws Exception {
-        InfluxDBSink influxDBSink = new InfluxDBSink(influxDBFactory, configuration, new String[]{}, errorHandler);
+        InfluxDBSink influxDBSink = new InfluxDBSink(influxDBFactory, configuration, new String[]{}, errorHandler, influxMeasurementOverrideName);
         List<Void> state = new ArrayList<>();
         influxDBSink.createWriter(context, state);
         verify(influxDb).enableBatch(eq(SINK_INFLUX_BATCH_SIZE), eq(INFLUX_FLUSH_DURATION), eq(TimeUnit.MILLISECONDS), any(ThreadFactory.class), any(BiConsumer.class));
