@@ -92,6 +92,12 @@ public class SinkOrchestrator implements TelemetryPublisher {
         return sink;
     }
 
+    public Sink getSink(Configuration configuration, String[] columnNames, StencilClientOrchestrator stencilClientOrchestrator,
+                        DaggerStatsDReporter daggerStatsDReporter) {
+        String influxMeasurementOverrideName = null;
+        return getSink(configuration, columnNames, stencilClientOrchestrator, daggerStatsDReporter, influxMeasurementOverrideName);
+    }
+
     private void reportTelemetry(KafkaSerializerBuilder kafkaSchemaBuilder) {
         TelemetryPublisher pub = (TelemetryPublisher) kafkaSchemaBuilder;
         pub.addSubscriber(telemetryExporter);
