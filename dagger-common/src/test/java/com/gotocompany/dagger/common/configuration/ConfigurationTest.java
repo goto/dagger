@@ -6,6 +6,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
 
+import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
 import static org.mockito.Mockito.when;
@@ -34,6 +35,28 @@ public class ConfigurationTest {
     @Test
     public void shouldGetNullIfParamIsNotSet() {
         assertNull(configuration.getString("config_not_exist"));
+    }
+
+    @Test
+    public void shouldGetStringArrayFromParamTool() {
+        when(parameterTool.get("config_array_key")).thenReturn("test_value, test_value_2");
+
+        assertArrayEquals(new String[]{"test_value", "test_value_2"}, configuration.getStringArray("config_array_key", new String[]{"default_not_used"}));
+    }
+
+    @Test
+    public void shouldGetNullStringArrayIfParamIsNotSet() {
+        String[] defaultValue = new String[]{"default"};
+
+        assertArrayEquals(defaultValue, configuration.getStringArray("config_not_exist", defaultValue));
+    }
+
+    @Test
+    public void shouldGetEmptyStringArrayForBlankValue() {
+        String[] defaultValue = new String[]{"default"};
+        when(parameterTool.get("config_array_key")).thenReturn("   ");
+
+        assertArrayEquals(defaultValue, configuration.getStringArray("config_array_key", defaultValue));
     }
 
     @Test

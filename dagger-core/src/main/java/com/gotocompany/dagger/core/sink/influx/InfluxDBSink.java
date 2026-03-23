@@ -25,12 +25,15 @@ public class InfluxDBSink implements Sink<Row, Void, Void, Void> {
     private String[] columnNames;
     private ErrorHandler errorHandler;
     private ErrorReporter errorReporter;
+    private final String influxMeasurementOverrideName;
 
-    public InfluxDBSink(InfluxDBFactoryWrapper influxDBFactory, Configuration configuration, String[] columnNames, ErrorHandler errorHandler) {
+    public InfluxDBSink(InfluxDBFactoryWrapper influxDBFactory, Configuration configuration, String[] columnNames,
+                        ErrorHandler errorHandler, String influxMeasurementOverrideName) {
         this.influxDBFactory = influxDBFactory;
         this.configuration = configuration;
         this.columnNames = columnNames;
         this.errorHandler = errorHandler;
+        this.influxMeasurementOverrideName = influxMeasurementOverrideName;
     }
 
     @Override
@@ -46,7 +49,7 @@ public class InfluxDBSink implements Sink<Row, Void, Void, Void> {
             errorReporter = ErrorReporterFactory.getErrorReporter(context.metricGroup(), configuration);
         }
 
-        InfluxDBWriter influxDBWriter = new InfluxDBWriter(configuration, influxDB, columnNames, errorHandler, errorReporter);
+        InfluxDBWriter influxDBWriter = new InfluxDBWriter(configuration, influxDB, columnNames, errorHandler, errorReporter, influxMeasurementOverrideName);
         return influxDBWriter;
     }
 

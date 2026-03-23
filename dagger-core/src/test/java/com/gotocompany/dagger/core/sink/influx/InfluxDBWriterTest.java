@@ -38,6 +38,8 @@ import static org.mockito.MockitoAnnotations.initMocks;
 
 public class InfluxDBWriterTest {
 
+    private final String influxMeasurementOverrideName = "";
+
     @Mock
     private Configuration configuration;
 
@@ -110,14 +112,14 @@ public class InfluxDBWriterTest {
     public void shouldWriteToConfiguredInfluxDatabase() throws Exception {
         Row row = new Row(1);
         row.setField(0, "some field");
-        InfluxDBWriter influxDBWriter = new InfluxDBWriter(configuration, influxDb, new String[]{"some_field_name"}, errorHandler, errorReporter);
+        InfluxDBWriter influxDBWriter = new InfluxDBWriter(configuration, influxDb, new String[]{"some_field_name"}, errorHandler, errorReporter, influxMeasurementOverrideName);
         influxDBWriter.write(row, context);
 
         verify(influxDb).write(eq("dagger_test"), eq("two_day_policy"), any());
     }
 
     @Test
-    public void shouldWriteRowToInfluxAsfields() throws Exception {
+    public void shouldWriteRowToInfluxAsFields() throws Exception {
         final int numberOfRows = 3;
         final String expectedFieldZeroValue = "abc";
         final int expectedFieldOneValue = 100;
@@ -132,7 +134,7 @@ public class InfluxDBWriterTest {
                 .addField(rowColumns[1], expectedFieldOneValue)
                 .time(now.toEpochMilli(), TimeUnit.MILLISECONDS).build();
 
-        InfluxDBWriter influxDBWriter = new InfluxDBWriter(configuration, influxDb, rowColumns, errorHandler, errorReporter);
+        InfluxDBWriter influxDBWriter = new InfluxDBWriter(configuration, influxDb, rowColumns, errorHandler, errorReporter, influxMeasurementOverrideName);
         influxDBWriter.write(simpleFieldsRow, context);
         ArgumentCaptor<Point> pointArg = ArgumentCaptor.forClass(Point.class);
         verify(influxDb).write(any(), any(), pointArg.capture());
@@ -140,6 +142,29 @@ public class InfluxDBWriterTest {
         assertEquals(expectedPoint.lineProtocol(), pointArg.getValue().lineProtocol());
     }
 
+    @Test
+    public void shouldWriteRowToInfluxAsFieldsWithOverrideName() throws Exception {
+        final int numberOfRows = 3;
+        final String expectedFieldZeroValue = "abc";
+        final int expectedFieldOneValue = 100;
+        Instant now = Instant.now();
+        Row simpleFieldsRow = new Row(numberOfRows);
+        simpleFieldsRow.setField(0, expectedFieldZeroValue);
+        simpleFieldsRow.setField(1, expectedFieldOneValue);
+        simpleFieldsRow.setField(2, LocalDateTime.ofInstant(now, ZoneOffset.UTC));
+        String[] rowColumns = {"field1", "field2", "window_timestamp"};
+        Point expectedPoint = Point.measurement("override_measurement")
+                .addField(rowColumns[0], expectedFieldZeroValue)
+                .addField(rowColumns[1], expectedFieldOneValue)
+                .time(now.toEpochMilli(), TimeUnit.MILLISECONDS).build();
+
+        InfluxDBWriter influxDBWriter = new InfluxDBWriter(configuration, influxDb, rowColumns, errorHandler, errorReporter, "override_measurement");
+        influxDBWriter.write(simpleFieldsRow, context);
+        ArgumentCaptor<Point> pointArg = ArgumentCaptor.forClass(Point.class);
+        verify(influxDb).write(any(), any(), pointArg.capture());
+
+        assertEquals(expectedPoint.lineProtocol(), pointArg.getValue().lineProtocol());
+    }
 
     @Test
     public void shouldNotWriteNullColumnsInRowToInfluxAsfields() throws Exception {
@@ -156,7 +181,7 @@ public class InfluxDBWriterTest {
                 .addField(rowColumns[0], integerValue)
                 .time(Timestamp.from(now).getTime(), TimeUnit.MILLISECONDS).build();
 
-        InfluxDBWriter influxDBWriter = new InfluxDBWriter(configuration, influxDb, rowColumns, errorHandler, errorReporter);
+        InfluxDBWriter influxDBWriter = new InfluxDBWriter(configuration, influxDb, rowColumns, errorHandler, errorReporter, influxMeasurementOverrideName);
         influxDBWriter.write(simpleFieldsRow, context);
         ArgumentCaptor<Point> pointArg = ArgumentCaptor.forClass(Point.class);
         verify(influxDb).write(any(), any(), pointArg.capture());
@@ -180,7 +205,7 @@ public class InfluxDBWriterTest {
                 .addField(rowColumns[1], expectedFieldOneValue)
                 .time(Timestamp.from(now).getTime(), TimeUnit.MILLISECONDS).build();
 
-        InfluxDBWriter influxDBWriter = new InfluxDBWriter(configuration, influxDb, rowColumns, errorHandler, errorReporter);
+        InfluxDBWriter influxDBWriter = new InfluxDBWriter(configuration, influxDb, rowColumns, errorHandler, errorReporter, influxMeasurementOverrideName);
         influxDBWriter.write(simpleFieldsRow, context);
         ArgumentCaptor<Point> pointArg = ArgumentCaptor.forClass(Point.class);
         verify(influxDb).write(any(), any(), pointArg.capture());
@@ -204,7 +229,7 @@ public class InfluxDBWriterTest {
                 .addField(rowColumns[1], expectedFieldOneValue)
                 .time(Timestamp.from(now).getTime(), TimeUnit.MILLISECONDS).build();
 
-        InfluxDBWriter influxDBWriter = new InfluxDBWriter(configuration, influxDb, rowColumns, errorHandler, errorReporter);
+        InfluxDBWriter influxDBWriter = new InfluxDBWriter(configuration, influxDb, rowColumns, errorHandler, errorReporter, influxMeasurementOverrideName);
         influxDBWriter.write(simpleFieldsRow, context);
         ArgumentCaptor<Point> pointArg = ArgumentCaptor.forClass(Point.class);
         verify(influxDb).write(any(), any(), pointArg.capture());
@@ -228,7 +253,7 @@ public class InfluxDBWriterTest {
                 .addField(rowColumns[1], expectedFieldOneValue)
                 .time(Timestamp.from(now).getTime(), TimeUnit.MILLISECONDS).build();
 
-        InfluxDBWriter influxDBWriter = new InfluxDBWriter(configuration, influxDb, rowColumns, errorHandler, errorReporter);
+        InfluxDBWriter influxDBWriter = new InfluxDBWriter(configuration, influxDb, rowColumns, errorHandler, errorReporter, influxMeasurementOverrideName);
         influxDBWriter.write(simpleFieldsRow, context);
         ArgumentCaptor<Point> pointArg = ArgumentCaptor.forClass(Point.class);
         verify(influxDb).write(any(), any(), pointArg.capture());
@@ -244,7 +269,7 @@ public class InfluxDBWriterTest {
 
         doThrow(new RuntimeException()).when(influxDb).write(any(), any(), any());
 
-        InfluxDBWriter influxDBWriter = new InfluxDBWriter(configuration, influxDb, columns, errorHandler, errorReporter);
+        InfluxDBWriter influxDBWriter = new InfluxDBWriter(configuration, influxDb, columns, errorHandler, errorReporter, influxMeasurementOverrideName);
         influxDBWriter.write(row, context);
     }
 
@@ -258,7 +283,7 @@ public class InfluxDBWriterTest {
         errorHandler.init(initContext);
 
         errorHandler.getExceptionHandler().accept(points, new RuntimeException("exception from handler"));
-        InfluxDBWriter influxDBWriter = new InfluxDBWriter(configuration, influxDb, rowColumns, errorHandler, errorReporter);
+        InfluxDBWriter influxDBWriter = new InfluxDBWriter(configuration, influxDb, rowColumns, errorHandler, errorReporter, influxMeasurementOverrideName);
         Exception exception = assertThrows(Exception.class,
                 () -> influxDBWriter.write(getRow(), context));
         assertEquals("java.lang.RuntimeException: exception from handler", exception.getMessage());
@@ -277,7 +302,7 @@ public class InfluxDBWriterTest {
 
         errorHandler.getExceptionHandler().accept(points, new InfluxDBException("{\"error\":\"partial write:"
                 + " max-values-per-tag limit exceeded (100453/100000)"));
-        InfluxDBWriter influxDBWriter = new InfluxDBWriter(configuration, influxDb, rowColumns, errorHandler, errorReporter);
+        InfluxDBWriter influxDBWriter = new InfluxDBWriter(configuration, influxDb, rowColumns, errorHandler, errorReporter, influxMeasurementOverrideName);
         Exception exception = assertThrows(Exception.class,
                 () -> influxDBWriter.write(getRow(), context));
         assertEquals("org.influxdb.InfluxDBException: {\"error\":\"partial write: max-values-per-tag limit exceeded (100453/100000)", exception.getMessage());
@@ -296,7 +321,7 @@ public class InfluxDBWriterTest {
 
         errorHandler.getExceptionHandler().accept(points,
                 new InfluxDBException("{\"error\":\"partial write: points beyond retention policy dropped=11\"}"));
-        InfluxDBWriter influxDBWriter = new InfluxDBWriter(configuration, influxDb, rowColumns, errorHandler, errorReporter);
+        InfluxDBWriter influxDBWriter = new InfluxDBWriter(configuration, influxDb, rowColumns, errorHandler, errorReporter, influxMeasurementOverrideName);
         influxDBWriter.write(getRow(), context);
         verify(errorReporter, times(0)).reportFatalException(any(InfluxWriteException.class));
     }
@@ -312,7 +337,7 @@ public class InfluxDBWriterTest {
         errorHandler.init(initContext);
 
         errorHandler.getExceptionHandler().accept(points, new RuntimeException("exception from handler"));
-        InfluxDBWriter influxDBWriter = new InfluxDBWriter(configuration, influxDb, rowColumns, errorHandler, errorReporter);
+        InfluxDBWriter influxDBWriter = new InfluxDBWriter(configuration, influxDb, rowColumns, errorHandler, errorReporter, influxMeasurementOverrideName);
 
         InfluxWriteException exception = assertThrows(InfluxWriteException.class,
                 () -> influxDBWriter.write(getRow(), context));
@@ -322,7 +347,7 @@ public class InfluxDBWriterTest {
     @Test
     public void failSnapshotStateOnInfluxError() throws Exception {
         String[] rowColumns = {"tag_field1", "field2", "window_timestamp"};
-        InfluxDBWriter influxDBWriter = new InfluxDBWriter(configuration, influxDb, rowColumns, errorHandler, errorReporter);
+        InfluxDBWriter influxDBWriter = new InfluxDBWriter(configuration, influxDb, rowColumns, errorHandler, errorReporter, influxMeasurementOverrideName);
 
         errorHandler.init(initContext);
         errorHandler.getExceptionHandler().accept(new ArrayList<Point>(), new RuntimeException("exception from handler"));
@@ -335,7 +360,7 @@ public class InfluxDBWriterTest {
     @Test
     public void failSnapshotStateOnFlushFailure() throws Exception {
         String[] rowColumns = {"tag_field1", "field2", "window_timestamp"};
-        InfluxDBWriter influxDBWriter = new InfluxDBWriter(configuration, influxDb, rowColumns, errorHandler, errorReporter);
+        InfluxDBWriter influxDBWriter = new InfluxDBWriter(configuration, influxDb, rowColumns, errorHandler, errorReporter, influxMeasurementOverrideName);
         Mockito.doThrow(new RuntimeException("exception from flush")).when(influxDb).flush();
 
         Exception exception = assertThrows(Exception.class,

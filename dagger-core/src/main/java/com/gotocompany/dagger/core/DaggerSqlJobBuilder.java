@@ -232,5 +232,4 @@ public class DaggerSqlJobBuilder implements JobBuilder {
         sinkOrchestrator.addSubscriber(telemetryExporter);
         streamInfo.getDataStream().sinkTo(sinkOrchestrator.getSink(configuration, streamInfo.getColumnNames(), stencilClientOrchestrator, daggerStatsDReporter));
     }
-
 }
