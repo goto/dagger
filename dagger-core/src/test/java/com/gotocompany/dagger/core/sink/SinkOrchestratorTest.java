@@ -120,4 +120,29 @@ public class SinkOrchestratorTest {
         Sink sinkFunction = sinkOrchestrator.getSink(configuration, new String[]{}, stencilClientOrchestrator, daggerStatsDReporter, influxMeasurementOverrideName);
         assertThat(sinkFunction, instanceOf(BigQuerySink.class));
     }
+
+    @Test
+    public void shouldReturnInfluxSinkForNamedDatabase() {
+        String json = "[{\"name\":\"ht-db\",\"url\":\"http://host1:8086\",\"dbName\":\"metrics_ht\"}]";
+        when(configuration.getString(Constants.SINK_INFLUX_DATABASES_CONFIG_KEY, Constants.SINK_INFLUX_DATABASES_CONFIG_DEFAULT)).thenReturn(json);
+
+        sinkOrchestrator.initInfluxConfig(configuration);
+        Sink sink = sinkOrchestrator.getInfluxSink(configuration, new String[]{}, "ht-db", "my-measurement");
+
+        assertThat(sink, instanceOf(InfluxDBSink.class));
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void shouldThrowWhenGettingInfluxSinkForUnknownDatabase() {
+        String json = "[{\"name\":\"ht-db\",\"url\":\"http://host1:8086\",\"dbName\":\"metrics_ht\"}]";
+        when(configuration.getString(Constants.SINK_INFLUX_DATABASES_CONFIG_KEY, Constants.SINK_INFLUX_DATABASES_CONFIG_DEFAULT)).thenReturn(json);
+
+        sinkOrchestrator.initInfluxConfig(configuration);
+        sinkOrchestrator.getInfluxSink(configuration, new String[]{}, "nonexistent", "my-measurement");
+    }
+
+    @Test(expected = IllegalStateException.class)
+    public void shouldThrowWhenInfluxConfigNotInitialized() {
+        sinkOrchestrator.getInfluxSink(configuration, new String[]{}, "ht-db", "my-measurement");
+    }
 }

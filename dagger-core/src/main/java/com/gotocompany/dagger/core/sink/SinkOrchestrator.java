@@ -6,6 +6,8 @@ import com.gotocompany.dagger.core.metrics.telemetry.TelemetryPublisher;
 import com.gotocompany.dagger.core.metrics.telemetry.TelemetryTypes;
 import com.gotocompany.dagger.core.sink.bigquery.BigQuerySinkBuilder;
 import com.gotocompany.dagger.core.sink.influx.ErrorHandler;
+import com.gotocompany.dagger.core.sink.influx.InfluxDBConfigurationParser;
+import com.gotocompany.dagger.core.sink.influx.InfluxDBDatabaseConfig;
 import com.gotocompany.dagger.core.sink.influx.InfluxDBFactoryWrapper;
 import com.gotocompany.dagger.core.sink.influx.InfluxDBSink;
 import com.gotocompany.dagger.core.utils.KafkaConfigUtil;
@@ -38,10 +40,19 @@ import java.util.Properties;
 public class SinkOrchestrator implements TelemetryPublisher {
     private final MetricsTelemetryExporter telemetryExporter;
     private final Map<String, List<String>> metrics;
+    private InfluxDBConfigurationParser configParser;
 
     public SinkOrchestrator(MetricsTelemetryExporter telemetryExporter) {
         this.telemetryExporter = telemetryExporter;
         this.metrics = new HashMap<>();
+    }
+
+    /**
+     * Initialize the multi-database InfluxDB configuration parser.
+     * Must be called before using {@link #getInfluxSink(Configuration, String[], String, String)}.
+     */
+    public void initInfluxConfig(Configuration configuration) {
+        this.configParser = InfluxDBConfigurationParser.parse(configuration);
     }
 
     /**
@@ -96,6 +107,27 @@ public class SinkOrchestrator implements TelemetryPublisher {
                         DaggerStatsDReporter daggerStatsDReporter) {
         String influxMeasurementOverrideName = null;
         return getSink(configuration, columnNames, stencilClientOrchestrator, daggerStatsDReporter, influxMeasurementOverrideName);
+    }
+
+    /**
+     * Gets an InfluxDB sink targeting a specific named database and measurement.
+     * Requires {@link #initInfluxConfig(Configuration)} to have been called first.
+     *
+     * @param configuration the configuration (for general settings like useRowFieldNames)
+     * @param columnNames the column names for the stream
+     * @param databaseName the logical name of the target database (as defined in SINK_INFLUX_DATABASES_CONFIG)
+     * @param measurementName the InfluxDB measurement name
+     * @return the InfluxDB sink
+     */
+    public Sink getInfluxSink(Configuration configuration, String[] columnNames, String databaseName, String measurementName) {
+        if (configParser == null) {
+            throw new IllegalStateException("InfluxDB config not initialized. Call initInfluxConfig() first.");
+        }
+        InfluxDBDatabaseConfig dbConfig = configParser.getDatabase(databaseName);
+        addMetric(TelemetryTypes.SINK_TYPE.getValue(), "influx");
+        Sink sink = new InfluxDBSink(new InfluxDBFactoryWrapper(), dbConfig, configuration, columnNames, new ErrorHandler(), measurementName);
+        notifySubscriber();
+        return sink;
     }
 
     private void reportTelemetry(KafkaSerializerBuilder kafkaSchemaBuilder) {
