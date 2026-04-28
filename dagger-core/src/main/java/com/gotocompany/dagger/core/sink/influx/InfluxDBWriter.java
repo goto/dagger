@@ -36,10 +36,15 @@ public class InfluxDBWriter implements SinkWriter<Row, Void, Void> {
     private ErrorReporter errorReporter;
     private boolean useRowFieldNames;
 
-    public InfluxDBWriter(Configuration configuration, InfluxDB influxDB, String[] columnNames, ErrorHandler errorHandler,
-                          ErrorReporter errorReporter, String influxMeasurementOverrideName) {
-        databaseName = configuration.getString(Constants.SINK_INFLUX_DB_NAME_KEY, Constants.SINK_INFLUX_DB_NAME_DEFAULT);
-        retentionPolicy = configuration.getString(Constants.SINK_INFLUX_RETENTION_POLICY_KEY, Constants.SINK_INFLUX_RETENTION_POLICY_DEFAULT);
+    public InfluxDBWriter(Configuration configuration, InfluxDBDatabaseConfig databaseConfig, InfluxDB influxDB, String[] columnNames,
+                          ErrorHandler errorHandler, ErrorReporter errorReporter, String influxMeasurementOverrideName) {
+        if (databaseConfig != null) {
+            databaseName = databaseConfig.getDbName();
+            retentionPolicy = databaseConfig.getRetentionPolicy();
+        } else {
+            databaseName = configuration.getString(Constants.SINK_INFLUX_DB_NAME_KEY, Constants.SINK_INFLUX_DB_NAME_DEFAULT);
+            retentionPolicy = configuration.getString(Constants.SINK_INFLUX_RETENTION_POLICY_KEY, Constants.SINK_INFLUX_RETENTION_POLICY_DEFAULT);
+        }
         if (Strings.isNullOrEmpty(influxMeasurementOverrideName)) {
             measurementName = configuration.getString(Constants.SINK_INFLUX_MEASUREMENT_NAME_KEY, Constants.SINK_INFLUX_MEASUREMENT_NAME_DEFAULT);
         } else {
@@ -50,6 +55,14 @@ public class InfluxDBWriter implements SinkWriter<Row, Void, Void> {
         this.columnNames = columnNames;
         this.errorHandler = errorHandler;
         this.errorReporter = errorReporter;
+    }
+
+    /**
+     * Legacy constructor — reads database/retention from flat config keys.
+     */
+    public InfluxDBWriter(Configuration configuration, InfluxDB influxDB, String[] columnNames, ErrorHandler errorHandler,
+                          ErrorReporter errorReporter, String influxMeasurementOverrideName) {
+        this(configuration, null, influxDB, columnNames, errorHandler, errorReporter, influxMeasurementOverrideName);
     }
 
     @Override

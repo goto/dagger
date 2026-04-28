@@ -26,7 +26,11 @@ public class InfluxDBSink implements Sink<Row, Void, Void, Void> {
     private ErrorHandler errorHandler;
     private ErrorReporter errorReporter;
     private final String influxMeasurementOverrideName;
+    private final InfluxDBDatabaseConfig databaseConfig;
 
+    /**
+     * Legacy constructor — reads connection settings from flat config keys.
+     */
     public InfluxDBSink(InfluxDBFactoryWrapper influxDBFactory, Configuration configuration, String[] columnNames,
                         ErrorHandler errorHandler, String influxMeasurementOverrideName) {
         this.influxDBFactory = influxDBFactory;
@@ -34,22 +38,45 @@ public class InfluxDBSink implements Sink<Row, Void, Void, Void> {
         this.columnNames = columnNames;
         this.errorHandler = errorHandler;
         this.influxMeasurementOverrideName = influxMeasurementOverrideName;
+        this.databaseConfig = null;
+    }
+
+    /**
+     * Multi-DB constructor — uses explicit database config for connection and write settings.
+     */
+    public InfluxDBSink(InfluxDBFactoryWrapper influxDBFactory, InfluxDBDatabaseConfig databaseConfig,
+                        Configuration configuration, String[] columnNames,
+                        ErrorHandler errorHandler, String influxMeasurementOverrideName) {
+        this.influxDBFactory = influxDBFactory;
+        this.configuration = configuration;
+        this.columnNames = columnNames;
+        this.errorHandler = errorHandler;
+        this.influxMeasurementOverrideName = influxMeasurementOverrideName;
+        this.databaseConfig = databaseConfig;
     }
 
     @Override
     public SinkWriter<Row, Void, Void> createWriter(InitContext context, List<Void> states) throws IOException {
-        InfluxDB influxDB = influxDBFactory.connect(configuration.getString(Constants.SINK_INFLUX_URL_KEY, Constants.SINK_INFLUX_URL_DEFAULT),
-                configuration.getString(Constants.SINK_INFLUX_USERNAME_KEY, Constants.SINK_INFLUX_USERNAME_DEFAULT),
-                configuration.getString(Constants.SINK_INFLUX_PASSWORD_KEY, Constants.SINK_INFLUX_PASSWORD_DEFAULT));
-        errorHandler.init(context);
-        influxDB.enableBatch(configuration.getInteger(Constants.SINK_INFLUX_BATCH_SIZE_KEY, Constants.SINK_INFLUX_BATCH_SIZE_DEFAULT),
-                configuration.getInteger(Constants.SINK_INFLUX_FLUSH_DURATION_MS_KEY, Constants.SINK_INFLUX_FLUSH_DURATION_MS_DEFAULT),
-                TimeUnit.MILLISECONDS, Executors.defaultThreadFactory(), errorHandler.getExceptionHandler());
+        InfluxDB influxDB;
+        if (databaseConfig != null) {
+            influxDB = influxDBFactory.connect(databaseConfig.getUrl(), databaseConfig.getUsername(), databaseConfig.getPassword());
+            errorHandler.init(context);
+            influxDB.enableBatch(databaseConfig.getBatchSize(), databaseConfig.getFlushDurationMs(),
+                    TimeUnit.MILLISECONDS, Executors.defaultThreadFactory(), errorHandler.getExceptionHandler());
+        } else {
+            influxDB = influxDBFactory.connect(configuration.getString(Constants.SINK_INFLUX_URL_KEY, Constants.SINK_INFLUX_URL_DEFAULT),
+                    configuration.getString(Constants.SINK_INFLUX_USERNAME_KEY, Constants.SINK_INFLUX_USERNAME_DEFAULT),
+                    configuration.getString(Constants.SINK_INFLUX_PASSWORD_KEY, Constants.SINK_INFLUX_PASSWORD_DEFAULT));
+            errorHandler.init(context);
+            influxDB.enableBatch(configuration.getInteger(Constants.SINK_INFLUX_BATCH_SIZE_KEY, Constants.SINK_INFLUX_BATCH_SIZE_DEFAULT),
+                    configuration.getInteger(Constants.SINK_INFLUX_FLUSH_DURATION_MS_KEY, Constants.SINK_INFLUX_FLUSH_DURATION_MS_DEFAULT),
+                    TimeUnit.MILLISECONDS, Executors.defaultThreadFactory(), errorHandler.getExceptionHandler());
+        }
         if (errorReporter == null) {
             errorReporter = ErrorReporterFactory.getErrorReporter(context.metricGroup(), configuration);
         }
 
-        InfluxDBWriter influxDBWriter = new InfluxDBWriter(configuration, influxDB, columnNames, errorHandler, errorReporter, influxMeasurementOverrideName);
+        InfluxDBWriter influxDBWriter = new InfluxDBWriter(configuration, databaseConfig, influxDB, columnNames, errorHandler, errorReporter, influxMeasurementOverrideName);
         return influxDBWriter;
     }
 
