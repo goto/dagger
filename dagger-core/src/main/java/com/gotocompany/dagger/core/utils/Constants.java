@@ -163,6 +163,10 @@ public class Constants {
     // If measurement names need to change, they can now be updated through configuration without changing the code.
     public static final String SINK_INFLUX_MEASUREMENTS_LIST_KEY = "SINK_INFLUX_MEASUREMENTS_LIST";
 
+    // Comma-separated list of database names (from SINK_INFLUX_DATABASES_CONFIG) corresponding
+    // to each entry in SINK_INFLUX_MEASUREMENTS_LIST. Defaults to "default" for all entries.
+    public static final String SINK_INFLUX_DB_NAMES_LIST_KEY = "SINK_INFLUX_DB_NAMES_LIST";
+
     // JSON array of InfluxDB database configurations for multi-database support.
     // When absent, falls back to the legacy flat SINK_INFLUX_* keys.
     public static final String SINK_INFLUX_DATABASES_CONFIG_KEY = "SINK_INFLUX_DATABASES_CONFIG";
