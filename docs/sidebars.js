@@ -10,6 +10,7 @@ module.exports = {
         "guides/quickstart",
         "guides/choose_source",
         "guides/create_dagger",
+        "guides/multi_influx_databases",
         "guides/query_examples",
         "guides/use_transformer",
         "guides/use_udf",

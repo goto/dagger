@@ -16,6 +16,10 @@ different available sources.
 Dagger currently supports InfluxDB, Kafka and BigQuery as supported sinks. This section explains
 how you can create a dagger and configure different settings.
 
+### [Multiple InfluxDB Databases](./multi_influx_databases.md)
+
+Route different measurements to different InfluxDB databases from a single Dagger job. Useful for separating high-throughput and low-throughput metrics.
+
 ### [Deploying Dagger](./deployment.md)
 
 Dagger runs inside a Flink cluster which can be set up in some distributed resource managers like YARN, VMs or containers in a fully managed runtime environment like Kubernetes. This section contains guides, best practices and advice related to deploying Dagger in production.
