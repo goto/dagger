@@ -36,24 +36,16 @@ public class InfluxDBWriter implements SinkWriter<Row, Void, Void> {
     private ErrorReporter errorReporter;
     private boolean useRowFieldNames;
 
-    public InfluxDBWriter(Configuration configuration, InfluxDB influxDB, String[] columnNames, ErrorHandler errorHandler,
-                          ErrorReporter errorReporter, String influxMeasurementOverrideName) {
-        this(configuration, influxDB, columnNames, errorHandler, errorReporter, influxMeasurementOverrideName, null);
-    }
 
     public InfluxDBWriter(Configuration configuration, InfluxDB influxDB, String[] columnNames, ErrorHandler errorHandler,
-                          ErrorReporter errorReporter, String influxMeasurementOverrideName, String influxRetentionPolicyOverride) {
+                          ErrorReporter errorReporter, InfluxSinkOverrides overrides) {
         databaseName = configuration.getString(Constants.SINK_INFLUX_DB_NAME_KEY, Constants.SINK_INFLUX_DB_NAME_DEFAULT);
-        if (Strings.isNullOrEmpty(influxRetentionPolicyOverride)) {
-            retentionPolicy = configuration.getString(Constants.SINK_INFLUX_RETENTION_POLICY_KEY, Constants.SINK_INFLUX_RETENTION_POLICY_DEFAULT);
-        } else {
-            retentionPolicy = influxRetentionPolicyOverride;
-        }
-        if (Strings.isNullOrEmpty(influxMeasurementOverrideName)) {
-            measurementName = configuration.getString(Constants.SINK_INFLUX_MEASUREMENT_NAME_KEY, Constants.SINK_INFLUX_MEASUREMENT_NAME_DEFAULT);
-        } else {
-            measurementName = influxMeasurementOverrideName;
-        }
+        retentionPolicy = overrides.hasRetentionPolicy()
+                ? overrides.getRetentionPolicy()
+                : configuration.getString(Constants.SINK_INFLUX_RETENTION_POLICY_KEY, Constants.SINK_INFLUX_RETENTION_POLICY_DEFAULT);
+        measurementName = overrides.hasMeasurementName()
+                ? overrides.getMeasurementName()
+                : configuration.getString(Constants.SINK_INFLUX_MEASUREMENT_NAME_KEY, Constants.SINK_INFLUX_MEASUREMENT_NAME_DEFAULT);
         useRowFieldNames = configuration.getBoolean(Constants.SINK_INFLUX_USING_ROW_FIELD_NAMES_KEY, Constants.SINK_INFLUX_USING_ROW_FIELD_NAMES_DEFAULT);
         this.influxDB = influxDB;
         this.columnNames = columnNames;

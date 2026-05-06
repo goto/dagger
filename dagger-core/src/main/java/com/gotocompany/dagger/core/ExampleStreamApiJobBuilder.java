@@ -12,6 +12,7 @@ import com.gotocompany.dagger.core.processors.PreProcessorFactory;
 import com.gotocompany.dagger.core.processors.telemetry.processor.MetricsTelemetryExporter;
 import com.gotocompany.dagger.core.processors.types.Preprocessor;
 import com.gotocompany.dagger.core.sink.SinkOrchestrator;
+import com.gotocompany.dagger.core.sink.influx.InfluxSinkOverrides;
 import com.gotocompany.dagger.core.source.StreamsFactory;
 import com.gotocompany.dagger.core.utils.Constants;
 import org.apache.flink.streaming.api.CheckpointingMode;
@@ -137,7 +138,7 @@ public class ExampleStreamApiJobBuilder implements JobBuilder {
                         .keyBy(r -> 0)
                         .max("someField");
 
-        outputStream.sinkTo(sinkOrchestrator.getSink(configuration, new String[]{"uniq_users"}, stencilClientOrchestrator, daggerStatsDReporter));
+        outputStream.sinkTo(sinkOrchestrator.getSink(configuration, new String[]{"uniq_users"}, stencilClientOrchestrator, daggerStatsDReporter, InfluxSinkOverrides.none()));
         return this;
     }
 

@@ -25,22 +25,15 @@ public class InfluxDBSink implements Sink<Row, Void, Void, Void> {
     private String[] columnNames;
     private ErrorHandler errorHandler;
     private ErrorReporter errorReporter;
-    private final String influxMeasurementOverrideName;
-    private final String influxRetentionPolicyOverride;
+    private final InfluxSinkOverrides overrides;
 
     public InfluxDBSink(InfluxDBFactoryWrapper influxDBFactory, Configuration configuration, String[] columnNames,
-                        ErrorHandler errorHandler, String influxMeasurementOverrideName) {
-        this(influxDBFactory, configuration, columnNames, errorHandler, influxMeasurementOverrideName, null);
-    }
-
-    public InfluxDBSink(InfluxDBFactoryWrapper influxDBFactory, Configuration configuration, String[] columnNames,
-                        ErrorHandler errorHandler, String influxMeasurementOverrideName, String influxRetentionPolicyOverride) {
+                        ErrorHandler errorHandler, InfluxSinkOverrides overrides) {
         this.influxDBFactory = influxDBFactory;
         this.configuration = configuration;
         this.columnNames = columnNames;
         this.errorHandler = errorHandler;
-        this.influxMeasurementOverrideName = influxMeasurementOverrideName;
-        this.influxRetentionPolicyOverride = influxRetentionPolicyOverride;
+        this.overrides = overrides == null ? InfluxSinkOverrides.none() : overrides;
     }
 
     @Override
@@ -56,8 +49,7 @@ public class InfluxDBSink implements Sink<Row, Void, Void, Void> {
             errorReporter = ErrorReporterFactory.getErrorReporter(context.metricGroup(), configuration);
         }
 
-        InfluxDBWriter influxDBWriter = new InfluxDBWriter(configuration, influxDB, columnNames, errorHandler, errorReporter,
-                influxMeasurementOverrideName, influxRetentionPolicyOverride);
+        InfluxDBWriter influxDBWriter = new InfluxDBWriter(configuration, influxDB, columnNames, errorHandler, errorReporter, overrides);
         return influxDBWriter;
     }
 
@@ -85,5 +77,4 @@ public class InfluxDBSink implements Sink<Row, Void, Void, Void> {
     public Optional<SimpleVersionedSerializer<Void>> getGlobalCommittableSerializer() {
         return Optional.empty();
     }
-
 }

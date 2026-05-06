@@ -8,6 +8,7 @@ import com.gotocompany.dagger.core.sink.bigquery.BigQuerySinkBuilder;
 import com.gotocompany.dagger.core.sink.influx.ErrorHandler;
 import com.gotocompany.dagger.core.sink.influx.InfluxDBFactoryWrapper;
 import com.gotocompany.dagger.core.sink.influx.InfluxDBSink;
+import com.gotocompany.dagger.core.sink.influx.InfluxSinkOverrides;
 import com.gotocompany.dagger.core.utils.KafkaConfigUtil;
 import com.gotocompany.dagger.core.utils.Constants;
 import org.apache.flink.api.connector.sink.Sink;
@@ -47,20 +48,15 @@ public class SinkOrchestrator implements TelemetryPublisher {
     /**
      * Gets sink.
      *
+     * @param configuration             the configuration
+     * @param columnNames               the column names
+     * @param stencilClientOrchestrator the stencil client orchestrator
+     * @param daggerStatsDReporter      the StatsD reporter
+     * @param influxSinkOverrides       Influx sink overrides; pass {@link InfluxSinkOverrides#none()} when no influxSinkOverrides are needed
      * @return the sink
-     * @configuration configuration             the configuration
-     * @columnNames columnNames               the column names
-     * @StencilClientOrchestrator stencilClientOrchestrator the stencil client orchestrator
      */
     public Sink getSink(Configuration configuration, String[] columnNames, StencilClientOrchestrator stencilClientOrchestrator,
-                        DaggerStatsDReporter daggerStatsDReporter, String influxMeasurementOverrideName) {
-        return getSink(configuration, columnNames, stencilClientOrchestrator, daggerStatsDReporter,
-                influxMeasurementOverrideName, null);
-    }
-
-    public Sink getSink(Configuration configuration, String[] columnNames, StencilClientOrchestrator stencilClientOrchestrator,
-                        DaggerStatsDReporter daggerStatsDReporter, String influxMeasurementOverrideName,
-                        String influxRetentionPolicyOverride) {
+                        DaggerStatsDReporter daggerStatsDReporter, InfluxSinkOverrides influxSinkOverrides) {
         String sinkType = configuration.getString("SINK_TYPE", "influx");
         addMetric(TelemetryTypes.SINK_TYPE.getValue(), sinkType);
         Sink sink;
@@ -93,17 +89,10 @@ public class SinkOrchestrator implements TelemetryPublisher {
                         .build();
                 break;
             default:
-                sink = new InfluxDBSink(new InfluxDBFactoryWrapper(), configuration, columnNames, new ErrorHandler(),
-                        influxMeasurementOverrideName, influxRetentionPolicyOverride);
+                sink = new InfluxDBSink(new InfluxDBFactoryWrapper(), configuration, columnNames, new ErrorHandler(), influxSinkOverrides);
         }
         notifySubscriber();
         return sink;
-    }
-
-    public Sink getSink(Configuration configuration, String[] columnNames, StencilClientOrchestrator stencilClientOrchestrator,
-                        DaggerStatsDReporter daggerStatsDReporter) {
-        String influxMeasurementOverrideName = null;
-        return getSink(configuration, columnNames, stencilClientOrchestrator, daggerStatsDReporter, influxMeasurementOverrideName);
     }
 
     private void reportTelemetry(KafkaSerializerBuilder kafkaSchemaBuilder) {

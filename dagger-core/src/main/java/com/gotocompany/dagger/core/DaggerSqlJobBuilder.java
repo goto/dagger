@@ -16,6 +16,7 @@ import com.gotocompany.dagger.core.processors.PreProcessorFactory;
 import com.gotocompany.dagger.core.processors.types.PostProcessor;
 import com.gotocompany.dagger.core.processors.types.Preprocessor;
 import com.gotocompany.dagger.core.sink.SinkOrchestrator;
+import com.gotocompany.dagger.core.sink.influx.InfluxSinkOverrides;
 import com.gotocompany.dagger.core.source.StreamsFactory;
 import com.gotocompany.dagger.core.utils.Constants;
 import com.gotocompany.dagger.core.processors.telemetry.processor.MetricsTelemetryExporter;
@@ -230,6 +231,6 @@ public class DaggerSqlJobBuilder implements JobBuilder {
     private void addSink(StreamInfo streamInfo) {
         SinkOrchestrator sinkOrchestrator = new SinkOrchestrator(telemetryExporter);
         sinkOrchestrator.addSubscriber(telemetryExporter);
-        streamInfo.getDataStream().sinkTo(sinkOrchestrator.getSink(configuration, streamInfo.getColumnNames(), stencilClientOrchestrator, daggerStatsDReporter));
+        streamInfo.getDataStream().sinkTo(sinkOrchestrator.getSink(configuration, streamInfo.getColumnNames(), stencilClientOrchestrator, daggerStatsDReporter, InfluxSinkOverrides.none()));
     }
 }
