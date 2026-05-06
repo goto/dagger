@@ -109,13 +109,13 @@ public final class InfluxSinkOverrides {
         private Builder() {
         }
 
-        public Builder measurementName(String measurementName) {
-            this.measurementName = measurementName;
+        public Builder measurementName(String name) {
+            this.measurementName = name;
             return this;
         }
 
-        public Builder retentionPolicy(String retentionPolicy) {
-            this.retentionPolicy = retentionPolicy;
+        public Builder retentionPolicy(String policy) {
+            this.retentionPolicy = policy;
             return this;
         }
 
