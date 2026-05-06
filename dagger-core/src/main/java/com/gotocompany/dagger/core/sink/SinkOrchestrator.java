@@ -54,6 +54,13 @@ public class SinkOrchestrator implements TelemetryPublisher {
      */
     public Sink getSink(Configuration configuration, String[] columnNames, StencilClientOrchestrator stencilClientOrchestrator,
                         DaggerStatsDReporter daggerStatsDReporter, String influxMeasurementOverrideName) {
+        return getSink(configuration, columnNames, stencilClientOrchestrator, daggerStatsDReporter,
+                influxMeasurementOverrideName, null);
+    }
+
+    public Sink getSink(Configuration configuration, String[] columnNames, StencilClientOrchestrator stencilClientOrchestrator,
+                        DaggerStatsDReporter daggerStatsDReporter, String influxMeasurementOverrideName,
+                        String influxRetentionPolicyOverride) {
         String sinkType = configuration.getString("SINK_TYPE", "influx");
         addMetric(TelemetryTypes.SINK_TYPE.getValue(), sinkType);
         Sink sink;
@@ -86,7 +93,8 @@ public class SinkOrchestrator implements TelemetryPublisher {
                         .build();
                 break;
             default:
-                sink = new InfluxDBSink(new InfluxDBFactoryWrapper(), configuration, columnNames, new ErrorHandler(), influxMeasurementOverrideName);
+                sink = new InfluxDBSink(new InfluxDBFactoryWrapper(), configuration, columnNames, new ErrorHandler(),
+                        influxMeasurementOverrideName, influxRetentionPolicyOverride);
         }
         notifySubscriber();
         return sink;

@@ -38,8 +38,17 @@ public class InfluxDBWriter implements SinkWriter<Row, Void, Void> {
 
     public InfluxDBWriter(Configuration configuration, InfluxDB influxDB, String[] columnNames, ErrorHandler errorHandler,
                           ErrorReporter errorReporter, String influxMeasurementOverrideName) {
+        this(configuration, influxDB, columnNames, errorHandler, errorReporter, influxMeasurementOverrideName, null);
+    }
+
+    public InfluxDBWriter(Configuration configuration, InfluxDB influxDB, String[] columnNames, ErrorHandler errorHandler,
+                          ErrorReporter errorReporter, String influxMeasurementOverrideName, String influxRetentionPolicyOverride) {
         databaseName = configuration.getString(Constants.SINK_INFLUX_DB_NAME_KEY, Constants.SINK_INFLUX_DB_NAME_DEFAULT);
-        retentionPolicy = configuration.getString(Constants.SINK_INFLUX_RETENTION_POLICY_KEY, Constants.SINK_INFLUX_RETENTION_POLICY_DEFAULT);
+        if (Strings.isNullOrEmpty(influxRetentionPolicyOverride)) {
+            retentionPolicy = configuration.getString(Constants.SINK_INFLUX_RETENTION_POLICY_KEY, Constants.SINK_INFLUX_RETENTION_POLICY_DEFAULT);
+        } else {
+            retentionPolicy = influxRetentionPolicyOverride;
+        }
         if (Strings.isNullOrEmpty(influxMeasurementOverrideName)) {
             measurementName = configuration.getString(Constants.SINK_INFLUX_MEASUREMENT_NAME_KEY, Constants.SINK_INFLUX_MEASUREMENT_NAME_DEFAULT);
         } else {

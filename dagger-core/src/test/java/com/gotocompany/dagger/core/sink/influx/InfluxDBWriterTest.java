@@ -26,8 +26,7 @@ import java.time.ZoneOffset;
 import java.util.ArrayList;
 import java.util.concurrent.TimeUnit;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertThrows;
+import static org.junit.Assert.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doThrow;
@@ -164,6 +163,42 @@ public class InfluxDBWriterTest {
         verify(influxDb).write(any(), any(), pointArg.capture());
 
         assertEquals(expectedPoint.lineProtocol(), pointArg.getValue().lineProtocol());
+    }
+
+    @Test
+    public void shouldWriteToInfluxWithOverrideRetentionPolicy() throws Exception {
+        Row row = new Row(1);
+        row.setField(0, "some field");
+        InfluxDBWriter influxDBWriter = new InfluxDBWriter(configuration, influxDb, new String[]{"some_field_name"},
+                errorHandler, errorReporter, influxMeasurementOverrideName, "override_policy");
+        influxDBWriter.write(row, context);
+
+        verify(influxDb).write(eq("dagger_test"), eq("override_policy"), any());
+    }
+
+    @Test
+    public void shouldWriteToInfluxWithOverrideMeasurementAndRetentionPolicy() throws Exception {
+        Row row = new Row(1);
+        row.setField(0, "some field");
+        InfluxDBWriter influxDBWriter = new InfluxDBWriter(configuration, influxDb, new String[]{"some_field_name"},
+                errorHandler, errorReporter, "override_measurement", "override_policy");
+        influxDBWriter.write(row, context);
+
+        ArgumentCaptor<Point> pointArg = ArgumentCaptor.forClass(Point.class);
+        verify(influxDb).write(eq("dagger_test"), eq("override_policy"), pointArg.capture());
+        // measurement is in line protocol prefix
+        assertTrue(pointArg.getValue().lineProtocol().startsWith("override_measurement"));
+    }
+
+    @Test
+    public void shouldFallBackToConfigRetentionPolicyWhenOverrideIsBlank() throws Exception {
+        Row row = new Row(1);
+        row.setField(0, "some field");
+        InfluxDBWriter influxDBWriter = new InfluxDBWriter(configuration, influxDb, new String[]{"some_field_name"},
+                errorHandler, errorReporter, influxMeasurementOverrideName, "");
+        influxDBWriter.write(row, context);
+
+        verify(influxDb).write(eq("dagger_test"), eq("two_day_policy"), any());
     }
 
     @Test
