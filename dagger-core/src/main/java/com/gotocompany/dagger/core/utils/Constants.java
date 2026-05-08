@@ -163,6 +163,12 @@ public class Constants {
     // If measurement names need to change, they can now be updated through configuration without changing the code.
     public static final String SINK_INFLUX_MEASUREMENTS_LIST_KEY = "SINK_INFLUX_MEASUREMENTS_LIST";
 
+    // A custom job can use this configuration to get all Influx retention policies as a list
+    // (positionally aligned with SINK_INFLUX_MEASUREMENTS_LIST_KEY) and configure them in the
+    // job builder pipeline accordingly. This allows retention policies to be updated through
+    // configuration without changing the code.
+    public static final String SINK_INFLUX_RETENTION_POLICY_LIST_KEY = "SINK_INFLUX_RETENTION_POLICY_LIST";
+
     public static final String SINK_INFLUX_URL_KEY = "SINK_INFLUX_URL";
     public static final String SINK_INFLUX_URL_DEFAULT = "";
     public static final String SINK_INFLUX_USERNAME_KEY = "SINK_INFLUX_USERNAME";

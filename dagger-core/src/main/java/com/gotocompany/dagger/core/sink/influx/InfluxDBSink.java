@@ -25,15 +25,15 @@ public class InfluxDBSink implements Sink<Row, Void, Void, Void> {
     private String[] columnNames;
     private ErrorHandler errorHandler;
     private ErrorReporter errorReporter;
-    private final String influxMeasurementOverrideName;
+    private final InfluxSinkOverrides overrides;
 
     public InfluxDBSink(InfluxDBFactoryWrapper influxDBFactory, Configuration configuration, String[] columnNames,
-                        ErrorHandler errorHandler, String influxMeasurementOverrideName) {
+                        ErrorHandler errorHandler, InfluxSinkOverrides overrides) {
         this.influxDBFactory = influxDBFactory;
         this.configuration = configuration;
         this.columnNames = columnNames;
         this.errorHandler = errorHandler;
-        this.influxMeasurementOverrideName = influxMeasurementOverrideName;
+        this.overrides = overrides == null ? InfluxSinkOverrides.none() : overrides;
     }
 
     @Override
@@ -49,7 +49,7 @@ public class InfluxDBSink implements Sink<Row, Void, Void, Void> {
             errorReporter = ErrorReporterFactory.getErrorReporter(context.metricGroup(), configuration);
         }
 
-        InfluxDBWriter influxDBWriter = new InfluxDBWriter(configuration, influxDB, columnNames, errorHandler, errorReporter, influxMeasurementOverrideName);
+        InfluxDBWriter influxDBWriter = new InfluxDBWriter(configuration, influxDB, columnNames, errorHandler, errorReporter, overrides);
         return influxDBWriter;
     }
 
@@ -77,5 +77,4 @@ public class InfluxDBSink implements Sink<Row, Void, Void, Void> {
     public Optional<SimpleVersionedSerializer<Void>> getGlobalCommittableSerializer() {
         return Optional.empty();
     }
-
 }
