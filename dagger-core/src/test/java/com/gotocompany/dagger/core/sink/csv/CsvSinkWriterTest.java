@@ -27,19 +27,27 @@ public class CsvSinkWriterTest {
     }
 
     private CsvSinkConfig config(boolean writeHeader) {
-        return new CsvSinkConfig(BASE_PATH, "my bookings job", "output", "dd-MMM-yyyy", ",", writeHeader);
+        return config(BASE_PATH, writeHeader);
+    }
+
+    private CsvSinkConfig config(String basePath, boolean writeHeader) {
+        return new CsvSinkConfig(basePath, "my bookings job", "output", "dd-MMM-yyyy", ",", writeHeader);
     }
 
     private CsvSinkWriter writer(String[] columnNames, boolean writeHeader, Clock clock) {
         return new CsvSinkWriter(columnNames, config(writeHeader), storageClient, new OverwriteWriteStrategy(), clock);
     }
 
+    private CsvSinkWriter writerWithBasePath(String basePath) {
+        return new CsvSinkWriter(new String[]{"a"}, config(basePath, false), storageClient, new OverwriteWriteStrategy(), DAY_ONE);
+    }
+
     @Test
-    public void shouldWriteHeaderAndRowOnSnapshot() throws Exception {
+    public void shouldWriteHeaderAndRowOnPrepareCommit() throws Exception {
         CsvSinkWriter writer = writer(new String[]{"service_type", "booking_count"}, true, DAY_ONE);
 
         writer.write(Row.of("GO_RIDE", 120L), null);
-        writer.snapshotState(1L);
+        writer.prepareCommit(false);
 
         String expectedPath = "file:///tmp/out/my_bookings_job/output-09-Jun-2026.csv";
         assertTrue(storageClient.exists(expectedPath));
@@ -47,11 +55,31 @@ public class CsvSinkWriterTest {
     }
 
     @Test
+    public void shouldNotFlushOnSnapshotState() throws Exception {
+        CsvSinkWriter writer = writer(new String[]{"a"}, true, DAY_ONE);
+
+        writer.write(Row.of("x"), null);
+        writer.snapshotState(1L);
+
+        assertEquals(0, storageClient.getWriteCount());
+    }
+
+    @Test
+    public void shouldFlushBufferedRowsOnClose() throws Exception {
+        CsvSinkWriter writer = writer(new String[]{"a"}, false, DAY_ONE);
+
+        writer.write(Row.of("x"), null);
+        writer.close();
+
+        assertTrue(storageClient.exists(pathDayOne()));
+    }
+
+    @Test
     public void shouldSanitizeJobIdAndBuildDailyPath() throws Exception {
         CsvSinkWriter writer = writer(new String[]{"a"}, false, DAY_ONE);
 
         writer.write(Row.of("x"), null);
-        writer.snapshotState(1L);
+        writer.prepareCommit(false);
 
         assertTrue(storageClient.exists("file:///tmp/out/my_bookings_job/output-09-Jun-2026.csv"));
     }
@@ -61,9 +89,29 @@ public class CsvSinkWriterTest {
         writer(new String[]{"a"}, false, DAY_TWO).write(Row.of("x"), null);
         CsvSinkWriter dayTwoWriter = writer(new String[]{"a"}, false, DAY_TWO);
         dayTwoWriter.write(Row.of("x"), null);
-        dayTwoWriter.snapshotState(1L);
+        dayTwoWriter.prepareCommit(false);
 
         assertTrue(storageClient.exists("file:///tmp/out/my_bookings_job/output-10-Jun-2026.csv"));
+    }
+
+    @Test
+    public void shouldStripSingleTrailingSlashFromBasePath() throws Exception {
+        CsvSinkWriter writer = writerWithBasePath("file:///tmp/out/");
+
+        writer.write(Row.of("x"), null);
+        writer.prepareCommit(false);
+
+        assertTrue(storageClient.exists("file:///tmp/out/my_bookings_job/output-09-Jun-2026.csv"));
+    }
+
+    @Test
+    public void shouldStripMultipleTrailingSlashesFromBasePath() throws Exception {
+        CsvSinkWriter writer = writerWithBasePath("file:///tmp/out///");
+
+        writer.write(Row.of("x"), null);
+        writer.prepareCommit(false);
+
+        assertTrue(storageClient.exists("file:///tmp/out/my_bookings_job/output-09-Jun-2026.csv"));
     }
 
     @Test
@@ -71,7 +119,7 @@ public class CsvSinkWriterTest {
         CsvSinkWriter writer = writer(new String[]{"a", "b"}, false, DAY_ONE);
 
         writer.write(Row.of("foo", null), null);
-        writer.snapshotState(1L);
+        writer.prepareCommit(false);
 
         assertEquals("foo,\n", storageClient.readAsString(pathDayOne()));
     }
@@ -81,7 +129,7 @@ public class CsvSinkWriterTest {
         CsvSinkWriter writer = writer(new String[]{"window_timestamp"}, false, DAY_ONE);
 
         writer.write(Row.of(LocalDateTime.of(2026, 6, 9, 12, 3, 0)), null);
-        writer.snapshotState(1L);
+        writer.prepareCommit(false);
 
         assertEquals("2026-06-09T12:03\n", storageClient.readAsString(pathDayOne()));
     }
@@ -91,7 +139,7 @@ public class CsvSinkWriterTest {
         CsvSinkWriter writer = writer(new String[]{"a", "b", "c"}, false, DAY_ONE);
 
         writer.write(Row.of("has,comma", "has\"quote", "has\nnewline"), null);
-        writer.snapshotState(1L);
+        writer.prepareCommit(false);
 
         assertEquals("\"has,comma\",\"has\"\"quote\",\"has\nnewline\"\n", storageClient.readAsString(pathDayOne()));
     }
@@ -101,7 +149,7 @@ public class CsvSinkWriterTest {
         CsvSinkWriter writer = writer(new String[]{"ids"}, false, DAY_ONE);
 
         writer.write(Row.of((Object) new int[]{1, 2, 3}), null);
-        writer.snapshotState(1L);
+        writer.prepareCommit(false);
 
         assertEquals("\"[1,2,3]\"\n", storageClient.readAsString(pathDayOne()));
     }
@@ -110,7 +158,7 @@ public class CsvSinkWriterTest {
     public void shouldNotWriteWhenNoRowsBuffered() throws Exception {
         CsvSinkWriter writer = writer(new String[]{"a"}, true, DAY_ONE);
 
-        writer.snapshotState(1L);
+        writer.prepareCommit(false);
 
         assertEquals(0, storageClient.getWriteCount());
     }

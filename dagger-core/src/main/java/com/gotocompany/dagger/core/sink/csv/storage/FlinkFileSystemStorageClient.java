@@ -4,6 +4,8 @@ import org.apache.flink.core.fs.FSDataInputStream;
 import org.apache.flink.core.fs.FSDataOutputStream;
 import org.apache.flink.core.fs.FileSystem;
 import org.apache.flink.core.fs.Path;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -16,6 +18,7 @@ import java.io.IOException;
  */
 public class FlinkFileSystemStorageClient implements FileStorageClient {
 
+    private static final Logger LOGGER = LoggerFactory.getLogger(FlinkFileSystemStorageClient.class);
     private static final long serialVersionUID = 1L;
     private static final int BUFFER_SIZE = 8192;
 
@@ -47,8 +50,10 @@ public class FlinkFileSystemStorageClient implements FileStorageClient {
     public void write(String path, byte[] content) throws IOException {
         Path filePath = new Path(path);
         FileSystem fileSystem = filePath.getFileSystem();
+        LOGGER.info("Writing {} bytes to {} using filesystem {}", content.length, filePath, fileSystem.getClass().getName());
         try (FSDataOutputStream outputStream = fileSystem.create(filePath, FileSystem.WriteMode.OVERWRITE)) {
             outputStream.write(content);
         }
+        LOGGER.info("Finished writing {} bytes to {}", content.length, filePath);
     }
 }

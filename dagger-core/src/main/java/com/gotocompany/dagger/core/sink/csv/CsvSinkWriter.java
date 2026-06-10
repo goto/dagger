@@ -5,6 +5,8 @@ import com.gotocompany.dagger.core.sink.csv.writemode.FileWriteStrategy;
 import com.google.gson.Gson;
 import org.apache.flink.api.connector.sink.SinkWriter;
 import org.apache.flink.types.Row;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.time.Clock;
@@ -18,12 +20,16 @@ import java.util.Locale;
 import java.util.Map;
 
 /**
- * Buffers formatted CSV rows and flushes them on every checkpoint (snapshotState) and on close.
+ * Buffers formatted CSV rows and flushes them on every checkpoint and on close. The flush is driven
+ * from {@code prepareCommit}, which Flink invokes on every checkpoint (via prepareSnapshotPreBarrier)
+ * and once with endOfInput=true at end of input; this is the reliable hook for a stateless sink,
+ * since {@code snapshotState} is only invoked for sinks that expose a writer-state serializer.
  * The destination path rolls over daily: {@code basePath/<jobId>/<prefix>-<date>.csv}. Whether the
  * flush appends or fully replaces the file is decided by the configured {@link FileWriteStrategy}.
  */
 public class CsvSinkWriter implements SinkWriter<Row, Void, Void> {
 
+    private static final Logger LOGGER = LoggerFactory.getLogger(CsvSinkWriter.class);
     private static final Gson GSON = new Gson();
     private static final String PATH_SEPARATOR = "/";
     private static final String FILE_EXTENSION = ".csv";
@@ -51,6 +57,8 @@ public class CsvSinkWriter implements SinkWriter<Row, Void, Void> {
         this.dateTimeFormatter = DateTimeFormatter.ofPattern(config.getDateFormat(), Locale.ENGLISH);
         this.sanitizedJobId = sanitize(config.getJobId());
         this.basePath = stripTrailingSeparator(config.getBasePath());
+        LOGGER.info("CSV sink writer initialized: basePath={}, jobId={}, writeStrategy={}, writeHeader={}, parallelism=1",
+                basePath, sanitizedJobId, writeStrategy.getClass().getSimpleName(), config.isWriteHeader());
     }
 
     @Override
@@ -59,24 +67,39 @@ public class CsvSinkWriter implements SinkWriter<Row, Void, Void> {
     }
 
     @Override
-    public List<Void> snapshotState(long checkpointId) throws IOException {
+    public List<Void> prepareCommit(boolean endOfInput) throws IOException {
+        LOGGER.info("CSV sink flushing ({} buffered row(s), endOfInput={})", bufferedLines.size(), endOfInput);
         flush();
         return Collections.emptyList();
     }
 
     @Override
-    public List<Void> prepareCommit(boolean flush) {
+    public List<Void> snapshotState(long checkpointId) {
         return Collections.emptyList();
     }
 
     @Override
     public void close() throws Exception {
+        LOGGER.info("CSV sink closing, flushing {} buffered row(s)", bufferedLines.size());
         flush();
     }
 
     private void flush() throws IOException {
-        writeStrategy.flush(storageClient, buildPath(), buildHeaderLine(), bufferedLines);
-        bufferedLines.clear();
+        String path = buildPath();
+        if (bufferedLines.isEmpty()) {
+            LOGGER.info("CSV sink: nothing to flush (empty buffer) for {}", path);
+            return;
+        }
+        int rowCount = bufferedLines.size();
+        try {
+            LOGGER.info("CSV sink: writing {} row(s) to {}", rowCount, path);
+            writeStrategy.flush(storageClient, path, buildHeaderLine(), bufferedLines);
+            bufferedLines.clear();
+            LOGGER.info("CSV sink: successfully wrote {} row(s) to {}", rowCount, path);
+        } catch (IOException | RuntimeException e) {
+            LOGGER.error("CSV sink: failed to write {} row(s) to {} : {}", rowCount, path, e.getMessage(), e);
+            throw e;
+        }
     }
 
     private String buildPath() {
@@ -135,9 +158,11 @@ public class CsvSinkWriter implements SinkWriter<Row, Void, Void> {
     }
 
     private static String stripTrailingSeparator(String path) {
-        if (path.endsWith(PATH_SEPARATOR)) {
-            return path.substring(0, path.length() - 1);
+        String trimmed = path.trim();
+        int end = trimmed.length();
+        while (end > 0 && trimmed.charAt(end - 1) == '/') {
+            end--;
         }
-        return path;
+        return trimmed.substring(0, end);
     }
 }
