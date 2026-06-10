@@ -5,6 +5,7 @@ import com.gotocompany.dagger.core.metrics.reporters.statsd.DaggerStatsDReporter
 import com.gotocompany.dagger.core.metrics.telemetry.TelemetryPublisher;
 import com.gotocompany.dagger.core.metrics.telemetry.TelemetryTypes;
 import com.gotocompany.dagger.core.sink.bigquery.BigQuerySinkBuilder;
+import com.gotocompany.dagger.core.sink.csv.CsvSinkBuilder;
 import com.gotocompany.dagger.core.sink.influx.ErrorHandler;
 import com.gotocompany.dagger.core.sink.influx.InfluxDBFactoryWrapper;
 import com.gotocompany.dagger.core.sink.influx.InfluxDBSink;
@@ -79,6 +80,9 @@ public class SinkOrchestrator implements TelemetryPublisher {
                 break;
             case "log":
                 sink = new LogSink(columnNames);
+                break;
+            case "csv":
+                sink = CsvSinkBuilder.build(configuration, columnNames);
                 break;
             case "bigquery":
                 sink = BigQuerySinkBuilder.create()

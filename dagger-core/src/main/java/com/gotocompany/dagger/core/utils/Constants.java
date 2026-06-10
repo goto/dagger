@@ -202,6 +202,10 @@ public class Constants {
     public static final String SINK_ERROR_TYPES_FOR_FAILURE = "SINK_ERROR_TYPES_FOR_FAILURE";
     public static final String SINK_ERROR_TYPES_FOR_FAILURE_DEFAULT = "";
 
+    public static final String SINK_TYPE_KEY = "SINK_TYPE";
+    public static final String SINK_TYPE_DEFAULT = "influx";
+    public static final String SINK_TYPE_CSV = "csv";
+
     // CSV sink. Output path = SINK_CSV_BASE_PATH/<FLINK_JOB_ID>/<SINK_CSV_FILENAME_PREFIX>-<date>.csv
     public static final String SINK_CSV_BASE_PATH_KEY = "SINK_CSV_BASE_PATH";
     public static final String SINK_CSV_WRITE_MODE_KEY = "SINK_CSV_WRITE_MODE";

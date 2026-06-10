@@ -24,6 +24,7 @@ import com.gotocompany.dagger.functions.udfs.python.PythonUdfConfig;
 import com.gotocompany.dagger.functions.udfs.python.PythonUdfManager;
 import org.apache.flink.streaming.api.CheckpointingMode;
 import org.apache.flink.streaming.api.datastream.DataStream;
+import org.apache.flink.streaming.api.datastream.DataStreamSink;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.table.api.ApiExpression;
 import org.apache.flink.table.api.Table;
@@ -231,6 +232,15 @@ public class DaggerSqlJobBuilder implements JobBuilder {
     private void addSink(StreamInfo streamInfo) {
         SinkOrchestrator sinkOrchestrator = new SinkOrchestrator(telemetryExporter);
         sinkOrchestrator.addSubscriber(telemetryExporter);
-        streamInfo.getDataStream().sinkTo(sinkOrchestrator.getSink(configuration, streamInfo.getColumnNames(), stencilClientOrchestrator, daggerStatsDReporter, InfluxSinkOverrides.none()));
+        DataStreamSink<Row> dataStreamSink = streamInfo.getDataStream()
+                .sinkTo(sinkOrchestrator.getSink(configuration, streamInfo.getColumnNames(), stencilClientOrchestrator, daggerStatsDReporter, InfluxSinkOverrides.none()));
+
+        // make sure previous tasks aggregate the data to one value if you don't want multiple rows for same keys/labels in csv
+        // For example
+        // GoFood created 35 (from task 0)
+        // GoFood created 15 (from task 1)
+        if (Constants.SINK_TYPE_CSV.equals(configuration.getString(Constants.SINK_TYPE_KEY, Constants.SINK_TYPE_DEFAULT))) {
+            dataStreamSink.setParallelism(1).name("csv-file-sink");
+        }
     }
 }
