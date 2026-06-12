@@ -10,7 +10,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.time.Clock;
-import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -24,8 +24,9 @@ import java.util.Map;
  * from {@code prepareCommit}, which Flink invokes on every checkpoint (via prepareSnapshotPreBarrier)
  * and once with endOfInput=true at end of input; this is the reliable hook for a stateless sink,
  * since {@code snapshotState} is only invoked for sinks that expose a writer-state serializer.
- * The destination path rolls over daily: {@code basePath/<jobId>/<prefix>-<date>.csv}. Whether the
- * flush appends or fully replaces the file is decided by the configured {@link FileWriteStrategy}.
+ * The destination path is {@code basePath/<jobId>/<prefix>-<date>.csv}; the rolling/sharding
+ * granularity (yearly, daily, hourly, minutely, ...) is decided by the SINK_CSV_PARTITION_DATE_FORMAT pattern.
+ * Whether the flush appends or fully replaces the file is decided by the configured {@link FileWriteStrategy}.
  */
 public class CsvSinkWriter implements SinkWriter<Row, Void, Void> {
 
@@ -103,7 +104,7 @@ public class CsvSinkWriter implements SinkWriter<Row, Void, Void> {
     }
 
     private String buildPath() {
-        String date = LocalDate.now(clock).format(dateTimeFormatter);
+        String date = LocalDateTime.now(clock).format(dateTimeFormatter);
         return basePath + PATH_SEPARATOR + sanitizedJobId + PATH_SEPARATOR
                 + config.getFilenamePrefix() + "-" + date + FILE_EXTENSION;
     }

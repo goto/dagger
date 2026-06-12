@@ -212,9 +212,11 @@ public class Constants {
     public static final String SINK_CSV_WRITE_MODE_APPEND = "APPEND";
     public static final String SINK_CSV_WRITE_MODE_OVERWRITE = "OVERWRITE";
     public static final String SINK_CSV_WRITE_MODE_DEFAULT = SINK_CSV_WRITE_MODE_OVERWRITE;
-    // Java DateTimeFormatter pattern (dd day-of-month, MMM month abbrev, yyyy year). Rendered with Locale.ENGLISH.
-    public static final String SINK_CSV_DATE_FORMAT_KEY = "SINK_CSV_DATE_FORMAT";
-    public static final String SINK_CSV_DATE_FORMAT_DEFAULT = "dd-MMM-yyyy";
+    // Java DateTimeFormatter pattern rendered with Locale.ENGLISH. Its finest field decides the file rolling/sharding
+    // granularity (e.g. yyyy=yearly, yyyy-MM=monthly, dd-MMM-yyyy=daily, yyyy-MMM-dd-HH-mm=minutely).
+    // Allowed characters: pattern letters (y, M, d, H, m, s, ...) and the separators '-' and '_'; anything else is rejected.
+    public static final String SINK_CSV_PARTITION_DATE_FORMAT_KEY = "SINK_CSV_PARTITION_DATE_FORMAT";
+    public static final String SINK_CSV_PARTITION_DATE_FORMAT_DEFAULT = "yyyy-MMM-dd-HH-mm";
     public static final String SINK_CSV_DELIMITER_KEY = "SINK_CSV_DELIMITER";
     public static final String SINK_CSV_DELIMITER_DEFAULT = ",";
     public static final String SINK_CSV_WRITE_HEADER_KEY = "SINK_CSV_WRITE_HEADER";

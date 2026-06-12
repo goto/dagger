@@ -64,4 +64,38 @@ public class CsvSinkBuilderTest {
         assertThrows(IllegalArgumentException.class,
                 () -> CsvSinkBuilder.build(configurationOf(values), COLUMN_NAMES));
     }
+
+    @Test
+    public void shouldBuildCsvSinkWithValidDateFormats() {
+        for (String dateFormat : new String[]{"yyyy", "yyyy-MMM-dd-HH-mm", "yyyy_MM_dd"}) {
+            Map<String, String> values = new HashMap<>();
+            values.put(Constants.SINK_CSV_BASE_PATH_KEY, "file:///tmp/out");
+            values.put(Constants.SINK_CSV_PARTITION_DATE_FORMAT_KEY, dateFormat);
+
+            assertNotNull(CsvSinkBuilder.build(configurationOf(values), COLUMN_NAMES));
+        }
+    }
+
+    @Test
+    public void shouldThrowForDateFormatWithDisallowedCharacters() {
+        for (String dateFormat : new String[]{"yyyy/MM/dd", "yyyy:MM", "yyyy|MM", "yyyy.MM.dd", "yyyy MM dd"}) {
+            Map<String, String> values = new HashMap<>();
+            values.put(Constants.SINK_CSV_BASE_PATH_KEY, "file:///tmp/out");
+            values.put(Constants.SINK_CSV_PARTITION_DATE_FORMAT_KEY, dateFormat);
+
+            assertThrows("Expected rejection for date format '" + dateFormat + "'", IllegalArgumentException.class,
+                    () -> CsvSinkBuilder.build(configurationOf(values), COLUMN_NAMES));
+        }
+    }
+
+    @Test
+    public void shouldThrowForUnparseableDateFormat() {
+        // 'J' passes the character allowlist but is an unknown DateTimeFormatter pattern letter.
+        Map<String, String> values = new HashMap<>();
+        values.put(Constants.SINK_CSV_BASE_PATH_KEY, "file:///tmp/out");
+        values.put(Constants.SINK_CSV_PARTITION_DATE_FORMAT_KEY, "J");
+
+        assertThrows(IllegalArgumentException.class,
+                () -> CsvSinkBuilder.build(configurationOf(values), COLUMN_NAMES));
+    }
 }

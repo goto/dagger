@@ -42,6 +42,11 @@ public class CsvSinkWriterTest {
         return new CsvSinkWriter(new String[]{"a"}, config(basePath, false), storageClient, new OverwriteWriteStrategy(), DAY_ONE);
     }
 
+    private CsvSinkWriter writerWithFormat(String dateFormat, Clock clock) {
+        CsvSinkConfig config = new CsvSinkConfig(BASE_PATH, "my bookings job", "output", dateFormat, ",", false);
+        return new CsvSinkWriter(new String[]{"a"}, config, storageClient, new OverwriteWriteStrategy(), clock);
+    }
+
     @Test
     public void shouldWriteHeaderAndRowOnPrepareCommit() throws Exception {
         CsvSinkWriter writer = writer(new String[]{"service_type", "booking_count"}, true, DAY_ONE);
@@ -92,6 +97,44 @@ public class CsvSinkWriterTest {
         dayTwoWriter.prepareCommit(false);
 
         assertTrue(storageClient.exists("file:///tmp/out/my_bookings_job/output-10-Jun-2026.csv"));
+    }
+
+    @Test
+    public void shouldRollYearlyWithYearPattern() throws Exception {
+        CsvSinkWriter writer = writerWithFormat("yyyy", DAY_ONE);
+
+        writer.write(Row.of("x"), null);
+        writer.prepareCommit(false);
+
+        assertTrue(storageClient.exists("file:///tmp/out/my_bookings_job/output-2026.csv"));
+    }
+
+    @Test
+    public void shouldRollMinutelyWithMinutePattern() throws Exception {
+        CsvSinkWriter writer = writerWithFormat("yyyy-MMM-dd-HH-mm", DAY_ONE);
+
+        writer.write(Row.of("x"), null);
+        writer.prepareCommit(false);
+
+        assertTrue(storageClient.exists("file:///tmp/out/my_bookings_job/output-2026-Jun-09-10-00.csv"));
+    }
+
+    @Test
+    public void shouldShardIntoSeparateFilesPerMinute() throws Exception {
+        Clock minuteZero = Clock.fixed(Instant.parse("2026-06-09T10:00:00Z"), ZoneOffset.UTC);
+        Clock minuteOne = Clock.fixed(Instant.parse("2026-06-09T10:01:00Z"), ZoneOffset.UTC);
+
+        CsvSinkWriter firstMinuteWriter = writerWithFormat("yyyy-MMM-dd-HH-mm", minuteZero);
+        firstMinuteWriter.write(Row.of("x"), null);
+        firstMinuteWriter.prepareCommit(false);
+
+        CsvSinkWriter secondMinuteWriter = writerWithFormat("yyyy-MMM-dd-HH-mm", minuteOne);
+        secondMinuteWriter.write(Row.of("y"), null);
+        secondMinuteWriter.prepareCommit(false);
+
+        assertTrue(storageClient.exists("file:///tmp/out/my_bookings_job/output-2026-Jun-09-10-00.csv"));
+        assertTrue(storageClient.exists("file:///tmp/out/my_bookings_job/output-2026-Jun-09-10-01.csv"));
+        assertEquals(2, storageClient.getWriteCount());
     }
 
     @Test

@@ -491,13 +491,21 @@ Defines how each flush writes to the daily file. `OVERWRITE` fully replaces the 
 * Type: `optional`
 * Default value: `OVERWRITE`
 
-#### `SINK_CSV_DATE_FORMAT`
+#### `SINK_CSV_PARTITION_DATE_FORMAT`
 
-Defines the date pattern used in the daily file name. It is a Java `DateTimeFormatter` pattern, rendered with `Locale.ENGLISH`.
+Defines the date-time pattern used both to name and to partition the output files. It is a Java `DateTimeFormatter` pattern, rendered with `Locale.ENGLISH`. The finest field in the pattern decides the file rolling/partitioning granularity, for example:
+
+* `yyyy` -> `output-2026.csv` (yearly)
+* `yyyy-MM` -> `output-2026-06.csv` (monthly)
+* `dd-MMM-yyyy` -> `output-12-Jun-2026.csv` (daily)
+* `yyyy-MMM-dd-HH` -> `output-2026-Jun-12-06.csv` (hourly)
+* `yyyy-MMM-dd-HH-mm` -> `output-2026-Jun-12-06-18.csv` (minutely)
+
+Allowed characters: the `DateTimeFormatter` pattern letters (such as `y`, `M`, `d`, `H`, `m`, `s`) and the separators hyphen (`-`) and underscore (`_`). Any other character (including `/`, `:`, `|`, `.`, and spaces) is rejected at startup; this keeps file names cross-platform and prevents the date value from injecting subfolders into the path.
 
 * Example value: `dd-MMM-yyyy`
 * Type: `optional`
-* Default value: `dd-MMM-yyyy`
+* Default value: `yyyy-MMM-dd-HH-mm`
 
 #### `SINK_CSV_DELIMITER`
 
