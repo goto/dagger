@@ -507,6 +507,14 @@ Allowed characters: the `DateTimeFormatter` pattern letters (such as `y`, `M`, `
 * Type: `optional`
 * Default value: `yyyy-MMM-dd-HH-mm`
 
+#### `SINK_CSV_PARTITION_TIMEZONE`
+
+Defines the timezone used to resolve the wall-clock date that drives the partition boundary (the `SINK_CSV_PARTITION_DATE_FORMAT` value). It must be a valid IANA timezone id; an invalid id is rejected at startup. Set this to your local zone so files roll over at local midnight (or the local hour/minute) rather than at UTC.
+
+* Example value: `Asia/Jakarta`
+* Type: `optional`
+* Default value: `Asia/Jakarta`
+
 #### `SINK_CSV_DELIMITER`
 
 Defines the field delimiter used between columns. Values containing the delimiter, double-quotes, or newlines are quoted following RFC 4180.

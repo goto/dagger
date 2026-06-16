@@ -7,6 +7,8 @@ import com.gotocompany.dagger.core.sink.csv.writemode.FileWriteStrategy;
 import com.gotocompany.dagger.core.sink.csv.writemode.FileWriteStrategyFactory;
 import com.gotocompany.dagger.core.utils.Constants;
 
+import java.time.DateTimeException;
+import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.Locale;
 import java.util.regex.Pattern;
@@ -33,13 +35,16 @@ public class CsvSinkBuilder {
         String dateFormat = configuration.getString(Constants.SINK_CSV_PARTITION_DATE_FORMAT_KEY, Constants.SINK_CSV_PARTITION_DATE_FORMAT_DEFAULT);
         validateDateFormat(dateFormat);
 
+        String timezone = configuration.getString(Constants.SINK_CSV_PARTITION_TIMEZONE_KEY, Constants.SINK_CSV_PARTITION_TIMEZONE_DEFAULT);
+        ZoneId zoneId = validateTimezone(timezone);
+
         String writeMode = configuration.getString(Constants.SINK_CSV_WRITE_MODE_KEY, Constants.SINK_CSV_WRITE_MODE_DEFAULT);
         String delimiter = configuration.getString(Constants.SINK_CSV_DELIMITER_KEY, Constants.SINK_CSV_DELIMITER_DEFAULT);
         boolean writeHeader = configuration.getBoolean(Constants.SINK_CSV_WRITE_HEADER_KEY, Constants.SINK_CSV_WRITE_HEADER_DEFAULT);
         String filenamePrefix = configuration.getString(Constants.SINK_CSV_FILENAME_PREFIX_KEY, Constants.SINK_CSV_FILENAME_PREFIX_DEFAULT);
         String jobId = configuration.getString(Constants.FLINK_JOB_ID_KEY, Constants.FLINK_JOB_ID_DEFAULT);
 
-        CsvSinkConfig config = new CsvSinkConfig(basePath.trim(), jobId, filenamePrefix, dateFormat, delimiter, writeHeader);
+        CsvSinkConfig config = new CsvSinkConfig(basePath.trim(), jobId, filenamePrefix, dateFormat, zoneId, delimiter, writeHeader);
         FileWriteStrategy writeStrategy = FileWriteStrategyFactory.getWriteStrategy(writeMode);
         FileStorageClient storageClient = new FlinkFileSystemStorageClient();
 
@@ -57,6 +62,15 @@ public class CsvSinkBuilder {
         } catch (IllegalArgumentException e) {
             throw new IllegalArgumentException("Invalid '" + Constants.SINK_CSV_PARTITION_DATE_FORMAT_KEY + "' value '" + dateFormat
                     + "' for CSV sink: not a valid date-time pattern.", e);
+        }
+    }
+
+    private static ZoneId validateTimezone(String timezone) {
+        try {
+            return ZoneId.of(timezone);
+        } catch (DateTimeException e) {
+            throw new IllegalArgumentException("Invalid '" + Constants.SINK_CSV_PARTITION_TIMEZONE_KEY + "' value '" + timezone
+                    + "' for CSV sink. Expected an IANA timezone id such as 'Asia/Jakarta' or 'UTC'.", e);
         }
     }
 }

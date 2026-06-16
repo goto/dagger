@@ -120,6 +120,7 @@ public class SinkOrchestratorTest {
         when(configuration.getString(eq(Constants.SINK_CSV_BASE_PATH_KEY), anyString())).thenReturn("file:///tmp/out");
         when(configuration.getString(eq(Constants.SINK_CSV_WRITE_MODE_KEY), anyString())).thenReturn(Constants.SINK_CSV_WRITE_MODE_OVERWRITE);
         when(configuration.getString(eq(Constants.SINK_CSV_PARTITION_DATE_FORMAT_KEY), anyString())).thenReturn(Constants.SINK_CSV_PARTITION_DATE_FORMAT_DEFAULT);
+        when(configuration.getString(eq(Constants.SINK_CSV_PARTITION_TIMEZONE_KEY), anyString())).thenReturn(Constants.SINK_CSV_PARTITION_TIMEZONE_DEFAULT);
         when(configuration.getBoolean(eq(Constants.SINK_CSV_WRITE_HEADER_KEY), anyBoolean())).thenReturn(true);
 
         Sink sinkFunction = sinkOrchestrator.getSink(configuration, new String[]{"id"}, stencilClientOrchestrator, daggerStatsDReporter, influxSinkOverrides);

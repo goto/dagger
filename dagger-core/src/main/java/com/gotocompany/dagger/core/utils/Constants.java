@@ -217,6 +217,9 @@ public class Constants {
     // Allowed characters: pattern letters (y, M, d, H, m, s, ...) and the separators '-' and '_'; anything else is rejected.
     public static final String SINK_CSV_PARTITION_DATE_FORMAT_KEY = "SINK_CSV_PARTITION_DATE_FORMAT";
     public static final String SINK_CSV_PARTITION_DATE_FORMAT_DEFAULT = "yyyy-MMM-dd-HH-mm";
+    // IANA timezone id (e.g. Asia/Jakarta, UTC) used to resolve the wall-clock date that drives the partition boundary.
+    public static final String SINK_CSV_PARTITION_TIMEZONE_KEY = "SINK_CSV_PARTITION_TIMEZONE";
+    public static final String SINK_CSV_PARTITION_TIMEZONE_DEFAULT = "Asia/Jakarta";
     public static final String SINK_CSV_DELIMITER_KEY = "SINK_CSV_DELIMITER";
     public static final String SINK_CSV_DELIMITER_DEFAULT = ",";
     public static final String SINK_CSV_WRITE_HEADER_KEY = "SINK_CSV_WRITE_HEADER";

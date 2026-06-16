@@ -89,6 +89,29 @@ public class CsvSinkBuilderTest {
     }
 
     @Test
+    public void shouldBuildCsvSinkWithValidTimezones() {
+        for (String timezone : new String[]{"Asia/Jakarta", "UTC", "Europe/London"}) {
+            Map<String, String> values = new HashMap<>();
+            values.put(Constants.SINK_CSV_BASE_PATH_KEY, "file:///tmp/out");
+            values.put(Constants.SINK_CSV_PARTITION_TIMEZONE_KEY, timezone);
+
+            assertNotNull(CsvSinkBuilder.build(configurationOf(values), COLUMN_NAMES));
+        }
+    }
+
+    @Test
+    public void shouldThrowForInvalidTimezone() {
+        for (String timezone : new String[]{"Indonesia/Jakarta", "Not/AZone", "GMT+25"}) {
+            Map<String, String> values = new HashMap<>();
+            values.put(Constants.SINK_CSV_BASE_PATH_KEY, "file:///tmp/out");
+            values.put(Constants.SINK_CSV_PARTITION_TIMEZONE_KEY, timezone);
+
+            assertThrows("Expected rejection for timezone '" + timezone + "'", IllegalArgumentException.class,
+                    () -> CsvSinkBuilder.build(configurationOf(values), COLUMN_NAMES));
+        }
+    }
+
+    @Test
     public void shouldThrowForUnparseableDateFormat() {
         // 'J' passes the character allowlist but is an unknown DateTimeFormatter pattern letter.
         Map<String, String> values = new HashMap<>();

@@ -1,6 +1,7 @@
 package com.gotocompany.dagger.core.sink.csv;
 
 import java.io.Serializable;
+import java.time.ZoneId;
 
 /**
  * Immutable, serializable configuration for the CSV sink. The full output path for a given day is
@@ -14,14 +15,16 @@ public class CsvSinkConfig implements Serializable {
     private final String jobId;
     private final String filenamePrefix;
     private final String dateFormat;
+    private final ZoneId zoneId;
     private final String delimiter;
     private final boolean writeHeader;
 
-    public CsvSinkConfig(String basePath, String jobId, String filenamePrefix, String dateFormat, String delimiter, boolean writeHeader) {
+    public CsvSinkConfig(String basePath, String jobId, String filenamePrefix, String dateFormat, ZoneId zoneId, String delimiter, boolean writeHeader) {
         this.basePath = basePath;
         this.jobId = jobId;
         this.filenamePrefix = filenamePrefix;
         this.dateFormat = dateFormat;
+        this.zoneId = zoneId;
         this.delimiter = delimiter;
         this.writeHeader = writeHeader;
     }
@@ -40,6 +43,10 @@ public class CsvSinkConfig implements Serializable {
 
     public String getDateFormat() {
         return dateFormat;
+    }
+
+    public ZoneId getZoneId() {
+        return zoneId;
     }
 
     public String getDelimiter() {

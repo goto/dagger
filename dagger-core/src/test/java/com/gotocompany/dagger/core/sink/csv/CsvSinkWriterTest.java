@@ -8,6 +8,7 @@ import org.junit.Test;
 import java.time.Clock;
 import java.time.Instant;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.time.ZoneOffset;
 
 import static org.junit.Assert.assertEquals;
@@ -31,7 +32,7 @@ public class CsvSinkWriterTest {
     }
 
     private CsvSinkConfig config(String basePath, boolean writeHeader) {
-        return new CsvSinkConfig(basePath, "my bookings job", "output", "dd-MMM-yyyy", ",", writeHeader);
+        return new CsvSinkConfig(basePath, "my bookings job", "output", "dd-MMM-yyyy", ZoneId.of("UTC"), ",", writeHeader);
     }
 
     private CsvSinkWriter writer(String[] columnNames, boolean writeHeader, Clock clock) {
@@ -43,7 +44,7 @@ public class CsvSinkWriterTest {
     }
 
     private CsvSinkWriter writerWithFormat(String dateFormat, Clock clock) {
-        CsvSinkConfig config = new CsvSinkConfig(BASE_PATH, "my bookings job", "output", dateFormat, ",", false);
+        CsvSinkConfig config = new CsvSinkConfig(BASE_PATH, "my bookings job", "output", dateFormat, ZoneId.of("UTC"), ",", false);
         return new CsvSinkWriter(new String[]{"a"}, config, storageClient, new OverwriteWriteStrategy(), clock);
     }
 
@@ -135,6 +136,19 @@ public class CsvSinkWriterTest {
         assertTrue(storageClient.exists("file:///tmp/out/my_bookings_job/output-2026-Jun-09-10-00.csv"));
         assertTrue(storageClient.exists("file:///tmp/out/my_bookings_job/output-2026-Jun-09-10-01.csv"));
         assertEquals(2, storageClient.getWriteCount());
+    }
+
+    @Test
+    public void shouldResolvePartitionDateInConfiguredTimezone() throws Exception {
+        // 2026-06-09T17:30:00Z is already 2026-06-10 00:30 in Asia/Jakarta (UTC+7), so the daily partition rolls to the 10th.
+        Clock jakartaClock = Clock.fixed(Instant.parse("2026-06-09T17:30:00Z"), ZoneId.of("Asia/Jakarta"));
+        CsvSinkConfig config = new CsvSinkConfig(BASE_PATH, "my bookings job", "output", "dd-MMM-yyyy", ZoneId.of("Asia/Jakarta"), ",", false);
+        CsvSinkWriter writer = new CsvSinkWriter(new String[]{"a"}, config, storageClient, new OverwriteWriteStrategy(), jakartaClock);
+
+        writer.write(Row.of("x"), null);
+        writer.prepareCommit(false);
+
+        assertTrue(storageClient.exists("file:///tmp/out/my_bookings_job/output-10-Jun-2026.csv"));
     }
 
     @Test

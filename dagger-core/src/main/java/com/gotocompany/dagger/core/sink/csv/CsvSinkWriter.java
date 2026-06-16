@@ -46,7 +46,7 @@ public class CsvSinkWriter implements SinkWriter<Row, Void, Void> {
     private final List<String> bufferedLines = new ArrayList<>();
 
     public CsvSinkWriter(String[] columnNames, CsvSinkConfig config, FileStorageClient storageClient, FileWriteStrategy writeStrategy) {
-        this(columnNames, config, storageClient, writeStrategy, Clock.systemDefaultZone());
+        this(columnNames, config, storageClient, writeStrategy, Clock.system(config.getZoneId()));
     }
 
     CsvSinkWriter(String[] columnNames, CsvSinkConfig config, FileStorageClient storageClient, FileWriteStrategy writeStrategy, Clock clock) {
