@@ -487,9 +487,9 @@ Defines the root path under which the daily CSV files are written. The job id an
 
 Defines how each flush writes to the daily file. `OVERWRITE` fully replaces the file with the latest buffer (best for windowed/aggregated snapshots), while `APPEND` performs a read-modify-write to accumulate rows (best for time-series/passthrough). `APPEND` is at-least-once and may produce duplicate rows on restart.
 
-* Example value: `APPEND`
+* Example value: `OVERWRITE`
 * Type: `optional`
-* Default value: `OVERWRITE`
+* Default value: `APPEND`
 
 #### `SINK_CSV_PARTITION_DATE_FORMAT`
 

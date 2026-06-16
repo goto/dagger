@@ -211,7 +211,7 @@ public class Constants {
     public static final String SINK_CSV_WRITE_MODE_KEY = "SINK_CSV_WRITE_MODE";
     public static final String SINK_CSV_WRITE_MODE_APPEND = "APPEND";
     public static final String SINK_CSV_WRITE_MODE_OVERWRITE = "OVERWRITE";
-    public static final String SINK_CSV_WRITE_MODE_DEFAULT = SINK_CSV_WRITE_MODE_OVERWRITE;
+    public static final String SINK_CSV_WRITE_MODE_DEFAULT = SINK_CSV_WRITE_MODE_APPEND;
     // Java DateTimeFormatter pattern rendered with Locale.ENGLISH. Its finest field decides the file rolling/sharding
     // granularity (e.g. yyyy=yearly, yyyy-MM=monthly, dd-MMM-yyyy=daily, yyyy-MMM-dd-HH-mm=minutely).
     // Allowed characters: pattern letters (y, M, d, H, m, s, ...) and the separators '-' and '_'; anything else is rejected.
