@@ -8,6 +8,12 @@ import java.util.Map;
  * The interface Telemetry publisher.
  */
 public interface TelemetryPublisher {
+    /**
+     * Shared registry of {@link TelemetrySubscriber} instances notified when telemetry changes.
+     *
+     * <p>Being declared in an interface, this collection is implicitly {@code static}, so all
+     * publishers share the same subscriber list.
+     */
     List<TelemetrySubscriber> TELEMETRY_SUBSCRIBERS = new ArrayList<>();
 
     /**

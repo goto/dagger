@@ -11,7 +11,13 @@ import com.google.protobuf.util.JsonFormat;
  */
 public class GrpcRequestHandler {
 
+    /**
+     * The gRPC source configuration providing the request pattern and request proto schema.
+     */
     private GrpcSourceConfig grpcSourceConfig;
+    /**
+     * Resolver used to look up the protobuf descriptor for the request message.
+     */
     private DescriptorManager descriptorManager;
 
     /**

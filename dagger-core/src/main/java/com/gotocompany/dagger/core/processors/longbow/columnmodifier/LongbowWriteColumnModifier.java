@@ -10,6 +10,15 @@ import java.util.Arrays;
  */
 public class LongbowWriteColumnModifier implements ColumnModifier {
 
+    /**
+     * Appends the synchronizer metadata columns to the input column names.
+     *
+     * <p>Used by the Longbow write flow to expose the BigTable table id, the input class name and the
+     * Longbow read key needed to synchronize with the downstream reader.
+     *
+     * @param inputColumnNames the incoming column names
+     * @return the column names with the synchronizer columns appended
+     */
     @Override
     public String[] modifyColumnNames(String[] inputColumnNames) {
         ArrayList<String> outputList = new ArrayList<>(Arrays.asList(inputColumnNames));

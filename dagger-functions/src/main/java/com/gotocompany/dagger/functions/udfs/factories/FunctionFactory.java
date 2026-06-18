@@ -63,8 +63,14 @@ import static com.gotocompany.dagger.common.core.Constants.STREAM_INPUT_SCHEMA_T
  */
 public class FunctionFactory extends UdfFactory {
 
+    /**
+     * Shared {@link Gson} instance used to parse the JSON stream configuration into objects.
+     */
     private static final Gson GSON = new Gson();
 
+    /**
+     * Orchestrator that supplies Stencil-backed Protobuf descriptors to the UDFs that need schema awareness.
+     */
     private final StencilClientOrchestrator stencilClientOrchestrator;
 
 
@@ -79,6 +85,16 @@ public class FunctionFactory extends UdfFactory {
         stencilClientOrchestrator = new StencilClientOrchestrator(configuration);
     }
 
+    /**
+     * {@inheritDoc}
+     *
+     * <p>Builds the full set of scalar UDFs provided by Dagger functions, covering DART lookups,
+     * geospatial helpers, time helpers, JSON manipulation, array helpers and feature builders. UDFs
+     * that require schema awareness or external state are wired with the
+     * {@link StencilClientOrchestrator} or DART data store they depend on.
+     *
+     * @return a {@code HashSet<ScalarUdf>} containing one instance of every registered scalar UDF
+     */
     @Override
     public HashSet<ScalarUdf> getScalarUdfs() {
         HashSet<ScalarUdf> scalarUdfs = new HashSet<>();
@@ -115,6 +131,14 @@ public class FunctionFactory extends UdfFactory {
         return scalarUdfs;
     }
 
+    /**
+     * {@inheritDoc}
+     *
+     * <p>Builds the set of table UDFs provided by Dagger functions, namely {@link HistogramBucket}
+     * and {@link OutlierMad}, each of which can emit multiple rows per input row.
+     *
+     * @return a {@code HashSet<TableUdf>} containing one instance of every registered table UDF
+     */
     @Override
     public HashSet<TableUdf> getTableUdfs() {
         HashSet<TableUdf> tableUdfs = new HashSet<>();
@@ -123,6 +147,14 @@ public class FunctionFactory extends UdfFactory {
         return tableUdfs;
     }
 
+    /**
+     * {@inheritDoc}
+     *
+     * <p>Builds the set of aggregate UDFs provided by Dagger functions, such as array collection,
+     * distinct counting, feature accumulation and percentile aggregation.
+     *
+     * @return a {@code HashSet<AggregateUdf>} containing one instance of every registered aggregate UDF
+     */
     @Override
     public HashSet<AggregateUdf> getAggregateUdfs() {
         HashSet<AggregateUdf> aggregateUdfs = new HashSet<>();
@@ -134,6 +166,15 @@ public class FunctionFactory extends UdfFactory {
         return aggregateUdfs;
     }
 
+    /**
+     * Builds the DART data store backing the {@code DartGet} and {@code DartContains} UDFs.
+     *
+     * <p>The configured store provider, project id and bucket id are read from the job
+     * {@link Configuration}. When no explicit provider is configured this falls back to the
+     * GCS-backed store using the GCS-specific project and bucket defaults.
+     *
+     * @return a fully configured {@link DartDataStore} for serving DART lookups
+     */
     private DartDataStore getDartDataSource() {
         String projectID = getConfiguration().getString(Constants.UDF_DART_PROJECT_ID_KEY, Constants.UDF_DART_PROJECT_ID_DEFAULT);
         String bucketID = getConfiguration().getString(Constants.UDF_DART_BUCKET_ID_KEY, Constants.UDF_DART_BUCKET_ID_DEFAULT);
@@ -148,6 +189,16 @@ public class FunctionFactory extends UdfFactory {
         return new DefaultDartDataStore(new DartDataStoreClientProvider(udfStoreProvider, projectID, getConfiguration()), bucketID, getConfiguration());
     }
 
+    /**
+     * Extracts the mapping of input table name to its Protobuf message class from the job configuration.
+     *
+     * <p>The {@code INPUT_STREAMS} configuration value is parsed as a JSON array of stream
+     * definitions, and for each stream the input schema table name is associated with its configured
+     * Protobuf class name.
+     *
+     * @return an ordered {@code LinkedHashMap<String, String>} keyed by table name with the Protobuf
+     *         class name as value
+     */
     private LinkedHashMap<String, String> getProtosInInputStreams() {
         LinkedHashMap<String, String> protoClassForTable = new LinkedHashMap<>();
         String jsonArrayString = getConfiguration().getString(INPUT_STREAMS, "");

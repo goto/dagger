@@ -84,12 +84,26 @@ public class ProtoToRow implements Serializable {
                 .toArray(String[]::new);
     }
 
+    /**
+     * Converts a list of protobuf map-entry messages into an array of two-field key-value rows.
+     *
+     * @param protos the list of map-entry messages to convert
+     * @return an array of {@code Row} values, one per map entry
+     */
     private Object[] getMapRow(List<DynamicMessage> protos) {
         ArrayList<Row> rows = new ArrayList<>();
         protos.forEach(entry -> rows.add(getRowFromMap(entry)));
         return rows.toArray();
     }
 
+    /**
+     * Converts a single protobuf map-entry message into a two-field {@code Row} of key and value.
+     *
+     * <p>Missing key or value fields default to an empty string.
+     *
+     * @param protos the map-entry message to convert
+     * @return a {@code Row} holding the entry key at index 0 and the entry value at index 1
+     */
     private Row getRowFromMap(DynamicMessage protos) {
         Row row = new Row(2);
         Object[] keyValue = protos.getAllFields().values().toArray();
@@ -112,6 +126,12 @@ public class ProtoToRow implements Serializable {
         return list;
     }
 
+    /**
+     * Copies a list of protobuf {@code ByteString} values into a {@code ByteString} array.
+     *
+     * @param listField the list of byte-string values to copy
+     * @return an array containing the same byte-string values in order
+     */
     private ByteString[] getRowForByteString(List<ByteString> listField) {
         ByteString[] byteStrings = new ByteString[listField.size()];
         for (int listIndex = 0; listIndex < listField.size(); listIndex++) {

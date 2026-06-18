@@ -13,7 +13,13 @@ import java.util.Map;
  */
 public class PathReader {
 
+    /**
+     * Root proto descriptor against which the configured field paths are resolved.
+     */
     private static Descriptors.Descriptor parentDescriptor;
+    /**
+     * Ordered names of the top-level input columns, used to resolve the root index of each field path.
+     */
     private List<String> inputColumns;
 
     /**

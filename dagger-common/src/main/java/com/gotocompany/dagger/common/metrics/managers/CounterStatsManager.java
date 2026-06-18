@@ -12,7 +12,9 @@ import java.util.Map;
  * The Counter stats manager.
  */
 public class CounterStatsManager {
+    /** The Flink metric group under which counters are registered. */
     private MetricGroup metricGroup;
+    /** Registered counters keyed by the aspect they measure. */
     private Map<Aspects, Counter> counters = new HashMap<>();
 
     /**

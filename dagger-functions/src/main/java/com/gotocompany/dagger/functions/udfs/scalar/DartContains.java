@@ -12,7 +12,14 @@ import java.util.Map;
  * The DartContains udf.
  */
 public class DartContains extends DartScalarUdf {
+    /**
+     * Backing store from which Dart set collections are fetched (for example Redis or GCS).
+     */
     private final DartDataStore dataStore;
+
+    /**
+     * In-memory cache of fetched sets keyed by list name, refreshed when its TTL expires.
+     */
     private final Map<String, SetCache> setCache;
 
     /**
@@ -81,6 +88,15 @@ public class DartContains extends DartScalarUdf {
         return isPresent;
     }
 
+    /**
+     * Returns the cached {@code SetCache} for the given list, refreshing it from the data store when the
+     * cache is empty, missing the entry, or the entry has expired.
+     *
+     * @param listName           the name of the Dart collection to look up
+     * @param field              the field being evaluated (used by the underlying store lookup)
+     * @param refreshRateInHours the cache time-to-live, in hours, after which the set is re-fetched
+     * @return the up-to-date {@code SetCache} for {@code listName}
+     */
     private SetCache getListData(String listName, String field, int refreshRateInHours) {
         if (setCache.isEmpty() || !setCache.containsKey(listName) || setCache.get(listName).hasExpired(refreshRateInHours) || setCache.get(listName).isEmpty()) {
             setCache.put(listName, dataStore.getSet(listName, getMeterStatsManager(), getGaugeStatsManager()));
@@ -89,6 +105,11 @@ public class DartContains extends DartScalarUdf {
         return setCache.get(listName);
     }
 
+    /**
+     * Records a cache-hit or cache-miss metric based on whether the value was found.
+     *
+     * @param isPresent {@code true} to mark a Dart cache hit, {@code false} to mark a cache miss
+     */
     private void updateMetrics(boolean isPresent) {
         if (isPresent) {
             getMeterStatsManager().markEvent(DartAspects.DART_CACHE_HIT);

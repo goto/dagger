@@ -41,11 +41,22 @@ public class FileConfigurationProvider implements ConfigurationProvider {
         this.environmentParameters.entrySet().forEach(t -> System.out.println(t.getKey() + t.getValue()));
     }
 
+    /**
+     * {@inheritDoc}
+     *
+     * <p>Builds the {@link Configuration} from the properties loaded out of the configuration file,
+     * wrapping them in Flink's {@code ParameterTool}.
+     *
+     * @return the configuration loaded from the properties file
+     */
     @Override
     public Configuration get() {
         return new Configuration(ParameterTool.fromMap(this.environmentParameters));
     }
 
+    /**
+     * The key/value pairs loaded from the Dagger properties file, used to build the configuration.
+     */
     private Map<String, String> environmentParameters;
 
 }

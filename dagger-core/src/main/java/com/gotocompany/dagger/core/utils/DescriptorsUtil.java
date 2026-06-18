@@ -13,6 +13,9 @@ import static com.google.protobuf.Descriptors.FieldDescriptor.JavaType.MESSAGE;
  */
 public class DescriptorsUtil {
 
+    /**
+     * Logger used to record when a nested field descriptor cannot be resolved.
+     */
     private static final Logger LOGGER = LoggerFactory.getLogger(DescriptorsUtil.class.getName());
 
     /**

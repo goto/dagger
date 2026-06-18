@@ -21,11 +21,29 @@ import java.util.Map;
  * Enables to apply a SQL transformation on top of streaming data in post processors.
  */
 public class SQLTransformer implements Serializable, Transformer {
+    /**
+     * Ordered names of the columns in the incoming {@link Row}, used to build the table schema.
+     */
     private final String[] columnNames;
+    /**
+     * SQL query applied to the registered table to produce the transformed stream.
+     */
     private final String sqlQuery;
+    /**
+     * Name under which the input stream is registered as a table for the SQL query.
+     */
     private final String tableName;
+    /**
+     * Allowed lateness, in milliseconds, used when assigning watermarks for the rowtime attribute.
+     */
     private final long allowedLatenessInMs;
+    /**
+     * Name of the column treated as the event-time (rowtime) attribute.
+     */
     private static final String ROWTIME = "rowtime";
+    /**
+     * Dagger context providing access to the Flink table environment.
+     */
     private final DaggerContext daggerContext;
 
     /**
@@ -43,6 +61,17 @@ public class SQLTransformer implements Serializable, Transformer {
         this.daggerContext = daggerContext;
     }
 
+    /**
+     * Applies the configured SQL query to the input stream and returns the resulting stream.
+     *
+     * <p>Builds the table schema from the column names, registers the input stream as a table (assigning
+     * a rowtime time attribute and watermarks when a rowtime column is present), runs the SQL query and
+     * converts the resulting retract stream back into an append-only stream of {@link Row} records.
+     *
+     * @param inputStreamInfo the incoming stream and its column metadata
+     * @return a {@link StreamInfo} wrapping the query-result stream together with the query output column names
+     * @throws IllegalArgumentException if no SQL query was provided in the transformation arguments
+     */
     @Override
     public StreamInfo transform(StreamInfo inputStreamInfo) {
         DataStream<Row> inputStream = inputStreamInfo.getDataStream();
@@ -65,6 +94,15 @@ public class SQLTransformer implements Serializable, Transformer {
         return new StreamInfo(outputStream, table.getSchema().getFieldNames());
     }
 
+    /**
+     * Assigns timestamps and watermarks to the stream based on the rowtime field.
+     *
+     * <p>Uses a {@link StreamWatermarkAssigner} backed by a {@link RowtimeFieldWatermark} over the column
+     * names, applying the configured allowed lateness.
+     *
+     * @param inputStream the stream to which timestamps and watermarks are assigned
+     * @return the input stream with timestamps and watermarks assigned
+     */
     private DataStream<Row> assignTimeAttribute(DataStream<Row> inputStream) {
         StreamWatermarkAssigner streamWatermarkAssigner = new StreamWatermarkAssigner(new RowtimeFieldWatermark(columnNames));
         return streamWatermarkAssigner.assignTimeStampAndWatermark(inputStream, allowedLatenessInMs);

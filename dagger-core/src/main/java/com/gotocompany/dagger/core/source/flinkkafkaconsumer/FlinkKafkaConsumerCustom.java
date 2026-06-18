@@ -18,7 +18,13 @@ import java.util.regex.Pattern;
  */
 public class FlinkKafkaConsumerCustom extends FlinkKafkaConsumer<Row> {
 
+    /**
+     * Dagger configuration used to build the {@link ErrorReporter} when consumption fails.
+     */
     private Configuration configuration;
+    /**
+     * Reporter used to publish fatal exceptions raised while consuming Kafka records.
+     */
     private ErrorReporter errorReporter;
 
     /**
@@ -35,6 +41,17 @@ public class FlinkKafkaConsumerCustom extends FlinkKafkaConsumer<Row> {
         this.configuration = configuration;
     }
 
+    /**
+     * {@inheritDoc}
+     *
+     * <p>Delegates to {@code runBaseConsumer} and, on any non-chained failure, reports the
+     * exception as fatal through the {@link ErrorReporter} before rethrowing it. An
+     * {@code ExceptionInChainedOperatorException} is rethrown unchanged so that downstream
+     * operator failures are not masked.
+     *
+     * @param sourceContext the Flink source context that emitted records are written to
+     * @throws Exception if the underlying Kafka consumer fails
+     */
     @Override
     public void run(SourceContext<Row> sourceContext) throws Exception {
         try {

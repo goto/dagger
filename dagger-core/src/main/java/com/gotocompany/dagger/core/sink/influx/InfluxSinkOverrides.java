@@ -46,18 +46,42 @@ public final class InfluxSinkOverrides implements Serializable {
         return NONE;
     }
 
+    /**
+     * Creates overrides that set only the measurement name.
+     *
+     * @param measurementName the measurement name to use; {@code null}/blank means fall back to configuration
+     * @return overrides carrying the given measurement name and no retention-policy override
+     */
     public static InfluxSinkOverrides withMeasurementName(String measurementName) {
         return new InfluxSinkOverrides(measurementName, null);
     }
 
+    /**
+     * Creates overrides that set only the retention policy.
+     *
+     * @param retentionPolicy the retention policy to use; {@code null}/blank means fall back to configuration
+     * @return overrides carrying the given retention policy and no measurement-name override
+     */
     public static InfluxSinkOverrides withRetentionPolicy(String retentionPolicy) {
         return new InfluxSinkOverrides(null, retentionPolicy);
     }
 
+    /**
+     * Creates overrides that set both the measurement name and the retention policy.
+     *
+     * @param measurementName the measurement name to use; {@code null}/blank means fall back to configuration
+     * @param retentionPolicy the retention policy to use; {@code null}/blank means fall back to configuration
+     * @return overrides carrying both values
+     */
     public static InfluxSinkOverrides of(String measurementName, String retentionPolicy) {
         return new InfluxSinkOverrides(measurementName, retentionPolicy);
     }
 
+    /**
+     * Returns a fluent {@link Builder} for assembling overrides.
+     *
+     * @return a new builder
+     */
     public static Builder builder() {
         return new Builder();
     }
@@ -72,14 +96,29 @@ public final class InfluxSinkOverrides implements Serializable {
         return retentionPolicy;
     }
 
+    /**
+     * Indicates whether a usable measurement-name override is present.
+     *
+     * @return {@code true} if the measurement name is non-null and non-empty
+     */
     public boolean hasMeasurementName() {
         return !Strings.isNullOrEmpty(measurementName);
     }
 
+    /**
+     * Indicates whether a usable retention-policy override is present.
+     *
+     * @return {@code true} if the retention policy is non-null and non-empty
+     */
     public boolean hasRetentionPolicy() {
         return !Strings.isNullOrEmpty(retentionPolicy);
     }
 
+    /**
+     * {@inheritDoc}
+     *
+     * <p>Two instances are equal when both the measurement name and the retention policy are equal.
+     */
     @Override
     public boolean equals(Object o) {
         if (this == o) {
@@ -93,11 +132,21 @@ public final class InfluxSinkOverrides implements Serializable {
                 && Objects.equals(retentionPolicy, that.retentionPolicy);
     }
 
+    /**
+     * {@inheritDoc}
+     *
+     * <p>Derived from the measurement name and the retention policy.
+     */
     @Override
     public int hashCode() {
         return Objects.hash(measurementName, retentionPolicy);
     }
 
+    /**
+     * {@inheritDoc}
+     *
+     * <p>Renders the measurement name and retention policy for debugging and logging.
+     */
     @Override
     public String toString() {
         return "InfluxSinkOverrides{measurementName='" + measurementName
@@ -109,19 +158,40 @@ public final class InfluxSinkOverrides implements Serializable {
         private String measurementName;
         private String retentionPolicy;
 
+        /**
+         * Creates an empty builder; use {@link InfluxSinkOverrides#builder()} to obtain instances.
+         */
         private Builder() {
         }
 
+        /**
+         * Sets the measurement-name override.
+         *
+         * @param name the measurement name; {@code null}/blank means fall back to configuration
+         * @return this builder, for chaining
+         */
         public Builder measurementName(String name) {
             this.measurementName = name;
             return this;
         }
 
+        /**
+         * Sets the retention-policy override.
+         *
+         * @param policy the retention policy; {@code null}/blank means fall back to configuration
+         * @return this builder, for chaining
+         */
         public Builder retentionPolicy(String policy) {
             this.retentionPolicy = policy;
             return this;
         }
 
+        /**
+         * Builds the overrides, returning the shared {@link InfluxSinkOverrides#none()} instance when
+         * neither value was set.
+         *
+         * @return the assembled overrides
+         */
         public InfluxSinkOverrides build() {
             if (measurementName == null && retentionPolicy == null) {
                 return NONE;

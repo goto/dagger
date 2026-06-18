@@ -44,6 +44,18 @@ public class PostProcessorFactory {
         return postProcessors;
     }
 
+    /**
+     * Builds the Longbow post processor used for feature and range lookups backed by BigTable.
+     *
+     * <p>Creates a {@link LongbowSchema} from the supplied column names and delegates to a
+     * {@link LongbowFactory} to construct the appropriate Longbow processor implementation.
+     *
+     * @param columnNames               the output column names used to derive the Longbow schema
+     * @param configuration             the job configuration controlling Longbow behavior
+     * @param metricsTelemetryExporter  the exporter that publishes Longbow telemetry
+     * @param stencilClientOrchestrator the orchestrator used to resolve Protobuf descriptors
+     * @return the Longbow post processor instance produced by the factory
+     */
     private static PostProcessor getLongBowProcessor(String[] columnNames, Configuration configuration, MetricsTelemetryExporter metricsTelemetryExporter, StencilClientOrchestrator stencilClientOrchestrator) {
         final LongbowSchema longbowSchema = new LongbowSchema(columnNames);
         LongbowFactory longbowFactory = new LongbowFactory(longbowSchema, configuration, stencilClientOrchestrator, metricsTelemetryExporter);

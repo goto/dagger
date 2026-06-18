@@ -23,6 +23,12 @@ import java.util.concurrent.ConcurrentHashMap;
  * The factory class for Type handler.
  */
 public class TypeHandlerFactory {
+    /**
+     * Cache of previously resolved handlers, keyed by each field's fully qualified name.
+     *
+     * <p>Every entry pairs the field descriptor's hash code with its {@code TypeHandler} so a
+     * cached handler can be reused, while still being rebuilt whenever the descriptor changes.
+     */
     private static Map<String, Pair<Integer, TypeHandler>> typeHandlerMap = new ConcurrentHashMap<>();
 
     /**
@@ -60,6 +66,16 @@ public class TypeHandlerFactory {
         typeHandlerMap.clear();
     }
 
+    /**
+     * Builds the ordered list of candidate handlers for the given field.
+     *
+     * <p>Ordering is significant: {@code getTypeHandler} selects the first handler whose
+     * {@code canHandle()} returns {@code true}, so more specific handlers (maps, timestamps,
+     * enums, structs and repeated variants) are listed before the generic message handler.
+     *
+     * @param fieldDescriptor the field descriptor to build candidate handlers for
+     * @return the ordered list of candidate handlers to try
+     */
     private static List<TypeHandler> getSpecificHandlers(Descriptors.FieldDescriptor fieldDescriptor) {
         return Arrays.asList(
                 new MapHandler(fieldDescriptor),

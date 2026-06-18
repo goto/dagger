@@ -37,6 +37,16 @@ public class FileSourceFactory {
         }
     }
 
+    /**
+     * Extracts the upper-cased scheme prefix from a configured Python file location.
+     *
+     * <p>The portion preceding {@code ://} is returned, so {@code gs://bucket/file.py}
+     * yields {@code GS}; a location without a scheme separator yields the whole string
+     * upper-cased, which is treated as a local file path.
+     *
+     * @param pythonFile the configured Python file location
+     * @return the upper-cased scheme prefix used to select the matching file source
+     */
     private static String getFileSourcePrefix(String pythonFile) {
         String[] files = pythonFile.split("://");
         return files[0].toUpperCase();

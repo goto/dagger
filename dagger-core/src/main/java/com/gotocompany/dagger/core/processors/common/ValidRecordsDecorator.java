@@ -17,8 +17,17 @@ import java.util.Arrays;
  */
 public class ValidRecordsDecorator extends RichFilterFunction<Row> implements FilterDecorator {
 
+    /**
+     * The name of the table whose records are being validated, used in error messages.
+     */
     private final String tableName;
+    /**
+     * The index of the internal validation field within each row.
+     */
     private final int validationIndex;
+    /**
+     * The job configuration used to construct the error reporter.
+     */
     private final Configuration configuration;
     /**
      * The Error reporter.
@@ -38,16 +47,41 @@ public class ValidRecordsDecorator extends RichFilterFunction<Row> implements Fi
         this.configuration = configuration;
     }
 
+    /**
+     * {@inheritDoc}
+     *
+     * <p>Initializes the error reporter from the Flink runtime metric group when the function is
+     * opened on a task manager.
+     *
+     * @param internalFlinkConfig the Flink configuration supplied when the function is opened
+     * @throws Exception if initialization fails
+     */
     @Override
     public void open(org.apache.flink.configuration.Configuration internalFlinkConfig) throws Exception {
         errorReporter = ErrorReporterFactory.getErrorReporter(getRuntimeContext().getMetricGroup(), this.configuration);
     }
 
+    /**
+     * {@inheritDoc}
+     *
+     * @return {@code true} always, since invalid records must always be filtered out
+     */
     @Override
     public Boolean canDecorate() {
         return true;
     }
 
+    /**
+     * {@inheritDoc}
+     *
+     * <p>Keeps only valid records. When a record's internal validation flag is {@code false} the
+     * failure is reported and an exception is thrown to fail the job, preventing bad records from
+     * propagating downstream.
+     *
+     * @param value the record to validate
+     * @return {@code true} when the record is valid
+     * @throws Exception if the record is invalid, wrapping an {@code InvalidProtocolBufferException}
+     */
     @Override
     public boolean filter(Row value) throws Exception {
         if (!(boolean) value.getField(validationIndex)) {

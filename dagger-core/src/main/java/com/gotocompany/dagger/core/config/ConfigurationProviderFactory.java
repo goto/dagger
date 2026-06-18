@@ -10,8 +10,18 @@ import java.util.Arrays;
  * The Factory class for configuration provider.
  */
 public class ConfigurationProviderFactory {
+    /**
+     * Logger used to record the supplied program arguments and the resolved configuration source.
+     */
     private static final Logger LOGGER = LoggerFactory.getLogger(ConfigurationProviderFactory.class);
+    /**
+     * The raw command-line arguments forwarded to the selected {@link ConfigurationProvider}.
+     */
     private String[] args;
+    /**
+     * System-property key identifying the configuration source, such as {@code "FILE"},
+     * {@code "ARGS"}, or {@code "ENVIRONMENT"}.
+     */
     public static final String CONFIG_SOURCE = "ConfigSource";
 
     /**

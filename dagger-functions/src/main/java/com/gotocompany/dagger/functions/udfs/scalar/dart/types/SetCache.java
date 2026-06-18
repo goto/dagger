@@ -14,6 +14,9 @@ public class SetCache extends Cache implements Serializable {
      * The constant NULL_CACHE.
      */
     public static final SetCache NULL_CACHE = new SetCache(new HashSet<>(), null);
+    /**
+     * The backing set of values held by this cache entry.
+     */
     private Set<String> cache;
 
     /**
@@ -25,6 +28,12 @@ public class SetCache extends Cache implements Serializable {
         this(cache, new Date());
     }
 
+    /**
+     * Instantiates a new Set cache with an explicit caching timestamp.
+     *
+     * @param cache         the set of values to cache
+     * @param timeOfCaching the time at which the values were cached, used to evaluate expiry
+     */
     private SetCache(Set<String> cache, Date timeOfCaching) {
         super(timeOfCaching);
         this.cache = cache;
@@ -49,6 +58,12 @@ public class SetCache extends Cache implements Serializable {
         return cache.isEmpty();
     }
 
+    /**
+     * Compares this set cache with another object for equality based on the cached values.
+     *
+     * @param o the object to compare with
+     * @return {@code true} if the other object is a {@code SetCache} with equal cached contents
+     */
     @Override
     public boolean equals(Object o) {
         if (this == o) {
@@ -63,6 +78,11 @@ public class SetCache extends Cache implements Serializable {
         return cache != null ? cache.equals(setCache.cache) : setCache.cache == null;
     }
 
+    /**
+     * Returns a hash code derived from the cached values.
+     *
+     * @return the hash code for this set cache
+     */
     @Override
     public int hashCode() {
         return cache != null ? cache.hashCode() : 0;

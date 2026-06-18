@@ -7,7 +7,13 @@ import java.util.List;
  * A class that holds Table transformer configuration.
  */
 public class TableTransformConfig {
+    /**
+     * The name of the input table whose stream these transformers are applied to.
+     */
     protected String tableName;
+    /**
+     * The ordered list of {@link TransformConfig} entries applied to the table's stream.
+     */
     protected List<TransformConfig> transformers;
 
     /**

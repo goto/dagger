@@ -27,11 +27,34 @@ import java.util.Optional;
  * The ElementAt udf.
  */
 public class ElementAt extends ScalarUdf {
+    /**
+     * Mapping of table name to its protobuf class name, used to resolve the descriptor for array elements.
+     */
     private LinkedHashMap<String, String> protos;
+
+    /**
+     * Orchestrator used to obtain the {@link StencilClient} for protobuf descriptor lookups.
+     */
     private final StencilClientOrchestrator stencilClientOrchestrator;
+
+    /**
+     * Cached Stencil client resolved on open and reused for descriptor lookups.
+     */
     private StencilClient stencilClient;
+
+    /**
+     * Maximum number of arguments accepted by the {@code ElementAt} SQL function.
+     */
     private static final int MAX_ARG_COUNT = 5;
+
+    /**
+     * Minimum number of arguments accepted by the {@code ElementAt} SQL function.
+     */
     private static final int MINIMUM_ARG_COUNT = 2;
+
+    /**
+     * Argument count used when the function is applied to a single-table (non-join) query.
+     */
     private static final int ARG_COUNT_WHEN_SINGLE_TABLE_QUERY = 4;
 
 
@@ -46,6 +69,15 @@ public class ElementAt extends ScalarUdf {
         this.stencilClientOrchestrator = stencilClientOrchestrator;
     }
 
+    /**
+     * {@inheritDoc}
+     *
+     * <p>Resolves and caches the {@link StencilClient} on first open so protobuf descriptors can be
+     * looked up while evaluating array elements.
+     *
+     * @param context the Flink function context supplied during initialisation
+     * @throws Exception if the superclass fails to open
+     */
     @Override
     public void open(FunctionContext context) throws Exception {
         super.open(context);
@@ -163,6 +195,15 @@ public class ElementAt extends ScalarUdf {
         return stencilClientOrchestrator.getStencilClient();
     }
 
+    /**
+     * {@inheritDoc}
+     *
+     * <p>Configures the variable-arity input strategy (two, four or five arguments) and a {@code STRING}
+     * output type for this SQL function.
+     *
+     * @param typeFactory the factory used to resolve Flink {@link DataType}s
+     * @return the {@link TypeInference} describing input and output type strategies
+     */
     @Override
     public TypeInference getTypeInference(DataTypeFactory typeFactory) {
         return TypeInference.newBuilder()
@@ -171,18 +212,44 @@ public class ElementAt extends ScalarUdf {
                 .build();
     }
 
+    /**
+     * Output {@link TypeStrategy} for {@link ElementAt} that always reports a {@code STRING} result.
+     */
     private static class ElementAtOutputTypeStrategy implements TypeStrategy {
+        /**
+         * Infers the output type as {@code STRING}.
+         *
+         * @param callContext the context describing the current SQL call
+         * @return an {@link Optional} containing the {@code STRING} {@link DataType}
+         */
         @Override
         public Optional<DataType> inferType(CallContext callContext) {
             return Optional.of(DataTypes.STRING());
         }
     }
 
+    /**
+     * Null-safely converts a value to its {@code String} representation.
+     *
+     * @param value the value to stringify; may be {@code null}
+     * @return the string form of {@code value}, or {@code null} when {@code value} is {@code null}
+     */
     private String getString(Object value) {
         return value == null ? null : String.valueOf(value);
     }
 
+    /**
+     * Input {@link InputTypeStrategy} for {@link ElementAt} accepting two, four or five arguments.
+     *
+     * <p>Two arguments select from a plain object array, four arguments target a single table, and five
+     * arguments additionally specify the table name for joined streams.
+     */
     private static class ElementAtInputTypeStrategy implements InputTypeStrategy {
+        /**
+         * Builds an {@link ArgumentCount} that accepts the two-, four- or five-argument forms of the UDF.
+         *
+         * @return an {@link ArgumentCount} validating the supported argument counts
+         */
         @Override
         public ArgumentCount getArgumentCount() {
             return new ArgumentCount() {
@@ -206,6 +273,15 @@ public class ElementAt extends ScalarUdf {
             };
         }
 
+        /**
+         * Resolves the argument types depending on the call arity: the supplied types for the two-argument
+         * form, or the array type followed by {@code STRING}/{@code INT} positional types for the four- and
+         * five-argument forms.
+         *
+         * @param callContext    the context describing the current SQL call
+         * @param throwOnFailure whether to raise an error when types cannot be inferred
+         * @return an {@link Optional} holding the resolved list of argument {@link DataType}s
+         */
         @Override
         public Optional<List<DataType>> inferInputTypes(CallContext callContext, boolean throwOnFailure) {
             List<DataType> argumentDataTypes = callContext.getArgumentDataTypes();
@@ -219,6 +295,14 @@ public class ElementAt extends ScalarUdf {
             return Optional.of(Arrays.asList(argumentDataTypes.get(0), DataTypes.STRING(), DataTypes.INT(), DataTypes.STRING(), DataTypes.STRING()));
         }
 
+        /**
+         * {@inheritDoc}
+         *
+         * <p>This UDF does not advertise explicit call signatures.
+         *
+         * @param definition the Flink function definition
+         * @return {@code null}, as no fixed signatures are declared
+         */
         @Override
         public List<Signature> getExpectedSignatures(FunctionDefinition definition) {
             return null;

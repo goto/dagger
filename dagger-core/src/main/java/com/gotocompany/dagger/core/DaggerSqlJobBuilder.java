@@ -41,15 +41,45 @@ import static com.gotocompany.dagger.functions.common.Constants.PYTHON_UDF_ENABL
 import static com.gotocompany.dagger.functions.common.Constants.PYTHON_UDF_ENABLE_KEY;
 import static org.apache.flink.table.api.Expressions.$;
 
+/**
+ * Default {@link JobBuilder} implementation that assembles and runs a Dagger SQL job on Flink.
+ *
+ * <p>The builder is driven by {@link KafkaProtoSQLProcessor} and wires together every stage of a
+ * Dagger pipeline: it configures the Flink execution and table environments, registers source
+ * streams (with their watermark strategies and pre-processors), registers user-defined functions,
+ * runs the configured SQL query, applies post-processors and finally attaches the sink. Each
+ * {@code register*} step returns {@code this} so the registration stages can be chained fluently.
+ */
 public class DaggerSqlJobBuilder implements JobBuilder {
 
+    /**
+     * Dagger configuration that supplies all Flink, source, SQL and processor settings.
+     */
     private final Configuration configuration;
+    /**
+     * Flink streaming execution environment configured and used to run the job.
+     */
     private final StreamExecutionEnvironment executionEnvironment;
+    /**
+     * Flink table environment used to register sources and functions and to run the SQL query.
+     */
     private final StreamTableEnvironment tableEnvironment;
+    /**
+     * Exporter that publishes pipeline metrics gathered from sources, processors and sinks.
+     */
     private final MetricsTelemetryExporter telemetryExporter = new MetricsTelemetryExporter();
+    /**
+     * Orchestrates the Stencil client used to resolve Protobuf descriptors at runtime.
+     */
     private StencilClientOrchestrator stencilClientOrchestrator;
+    /**
+     * Reporter that emits StatsD metrics for the running job.
+     */
     private DaggerStatsDReporter daggerStatsDReporter;
 
+    /**
+     * Context holding the configuration together with the Flink execution and table environments.
+     */
     private final DaggerContext daggerContext;
 
     /**
@@ -119,10 +149,28 @@ public class DaggerSqlJobBuilder implements JobBuilder {
         return this;
     }
 
+    /**
+     * Selects the watermark strategy definition to apply when registering a source stream.
+     *
+     * @param enablePerPartitionWatermark whether per-partition watermarks are enabled; when
+     *                                    {@code true} a {@link LastColumnWatermark} is used,
+     *                                    otherwise a {@link NoWatermark} is returned
+     * @return the watermark strategy definition matching the requested behaviour
+     */
     private WatermarkStrategyDefinition getSourceWatermarkDefinition(Boolean enablePerPartitionWatermark) {
         return enablePerPartitionWatermark ? new LastColumnWatermark() : new NoWatermark();
     }
 
+    /**
+     * Builds the Flink Table API expressions used to convert a source data stream into a table.
+     *
+     * <p>Every column is projected by its name and the final column is bound to the configured
+     * row-time attribute so that event-time based SQL operations work as expected.
+     *
+     * @param streamInfo the stream metadata holding the ordered column names of the source
+     * @return an array of {@code ApiExpression}, one per column, with the last element marked as the
+     *         row-time attribute; an empty array when the stream has no columns
+     */
     private ApiExpression[] getApiExpressions(StreamInfo streamInfo) {
         String rowTimeAttributeName = configuration.getString(Constants.FLINK_ROWTIME_ATTRIBUTE_NAME_KEY, Constants.FLINK_ROWTIME_ATTRIBUTE_NAME_DEFAULT);
         String[] columnNames = streamInfo.getColumnNames();
@@ -167,6 +215,21 @@ public class DaggerSqlJobBuilder implements JobBuilder {
         return this;
     }
 
+    /**
+     * Reflectively instantiates a {@link UdfFactory} from its fully-qualified class name.
+     *
+     * <p>The factory class is expected to expose a constructor that accepts a
+     * {@code StreamTableEnvironment} and a {@link Configuration}, which receive the job's table
+     * environment and configuration respectively.
+     *
+     * @param udfFactoryClassName the fully-qualified name of the UDF factory class to load
+     * @return the instantiated UDF factory, ready to register its functions
+     * @throws ClassNotFoundException    if the named class cannot be found on the classpath
+     * @throws NoSuchMethodException     if the class has no constructor with the expected signature
+     * @throws IllegalAccessException    if the constructor is not accessible
+     * @throws InvocationTargetException if the underlying constructor throws an exception
+     * @throws InstantiationException    if the class cannot be instantiated
+     */
     private UdfFactory getUdfFactory(String udfFactoryClassName) throws ClassNotFoundException,
             NoSuchMethodException, IllegalAccessException, InvocationTargetException, InstantiationException {
         Class<?> udfFactoryClass = Class.forName(udfFactoryClassName);
@@ -212,6 +275,16 @@ public class DaggerSqlJobBuilder implements JobBuilder {
         return new StreamInfo(stream, table.getSchema().getFieldNames());
     }
 
+    /**
+     * Applies the configured post-processors to the given stream in declaration order.
+     *
+     * <p>Post-processors enrich or transform the output {@code Row} records (for example through
+     * HTTP, GRPC, Elasticsearch, Postgres, longbow or transformer lookups) before the data is
+     * handed off to the sink.
+     *
+     * @param streamInfo the stream produced by the SQL query
+     * @return the stream after every post-processor has been applied
+     */
     private StreamInfo addPostProcessor(StreamInfo streamInfo) {
         List<PostProcessor> postProcessors = PostProcessorFactory.getPostProcessors(daggerContext, stencilClientOrchestrator, streamInfo.getColumnNames(), telemetryExporter);
         for (PostProcessor postProcessor : postProcessors) {
@@ -220,6 +293,13 @@ public class DaggerSqlJobBuilder implements JobBuilder {
         return streamInfo;
     }
 
+    /**
+     * Applies the configured pre-processors for a source table to the given stream in order.
+     *
+     * @param streamInfo the stream registered from the source
+     * @param tableName  the name of the source table whose pre-processors should be applied
+     * @return the stream after every pre-processor has been applied
+     */
     private StreamInfo addPreProcessor(StreamInfo streamInfo, String tableName) {
         List<Preprocessor> preProcessors = PreProcessorFactory.getPreProcessors(daggerContext, tableName, telemetryExporter);
         for (Preprocessor preprocessor : preProcessors) {
@@ -228,6 +308,14 @@ public class DaggerSqlJobBuilder implements JobBuilder {
         return streamInfo;
     }
 
+    /**
+     * Builds the configured sink and attaches it to the stream as the job's terminal stage.
+     *
+     * <p>A {@code SinkOrchestrator} resolves the sink implementation from the configuration and the
+     * telemetry exporter is subscribed so that sink metrics are reported.
+     *
+     * @param streamInfo the fully processed stream to be written to the sink
+     */
     private void addSink(StreamInfo streamInfo) {
         SinkOrchestrator sinkOrchestrator = new SinkOrchestrator(telemetryExporter);
         sinkOrchestrator.addSubscriber(telemetryExporter);

@@ -21,7 +21,14 @@ import java.util.function.Predicate;
  */
 public class Filters extends ScalarUdf {
 
+    /**
+     * Orchestrator used to obtain the {@link StencilClient} for protobuf descriptor lookups.
+     */
     private StencilClientOrchestrator stencilClientOrchestrator;
+
+    /**
+     * Stencil client used to resolve protobuf descriptors; supplied directly or via the orchestrator.
+     */
     private StencilClient stencilClient;
 
     /**
@@ -42,6 +49,14 @@ public class Filters extends ScalarUdf {
         this.stencilClient = stencilClient;
     }
 
+    /**
+     * {@inheritDoc}
+     *
+     * <p>Resolves the {@link StencilClient} used to look up protobuf descriptors when the UDF is opened.
+     *
+     * @param context the Flink function context supplied during initialisation
+     * @throws Exception if the superclass fails to open
+     */
     @Override
     public void open(FunctionContext context) throws Exception {
         super.open(context);
@@ -81,6 +96,17 @@ public class Filters extends ScalarUdf {
         return output;
     }
 
+    /**
+     * Tests a single {@code DynamicMessage} against all supplied predicates, requiring every predicate
+     * to pass.
+     *
+     * <p>Evaluation short-circuits on the first failing predicate; the message is accepted only when the
+     * number of satisfied predicates equals the total number supplied.
+     *
+     * @param dynamicMessage the decoded protobuf message to evaluate
+     * @param predicates     the predicates to apply; a message must satisfy all of them
+     * @return {@code true} if the message satisfies every predicate, otherwise {@code false}
+     */
     @SafeVarargs
     private final boolean testDynamicMessage(DynamicMessage dynamicMessage, Predicate<DynamicMessage>... predicates) {
         int counter = 0;
@@ -94,6 +120,13 @@ public class Filters extends ScalarUdf {
         return counter == predicates.length;
     }
 
+    /**
+     * Resolves the protobuf {@link Descriptors.Descriptor} for the given class name via the Stencil client.
+     *
+     * @param protoClassName the fully-qualified protobuf message class name
+     * @return the resolved descriptor for {@code protoClassName}
+     * @throws ClassNotFoundException if no descriptor is registered for {@code protoClassName}
+     */
     private Descriptors.Descriptor getDescriptor(String protoClassName) throws ClassNotFoundException {
         Descriptors.Descriptor descriptor = getStencilClient().get(protoClassName);
         if (descriptor == null) {

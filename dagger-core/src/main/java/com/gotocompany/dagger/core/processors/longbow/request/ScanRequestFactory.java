@@ -13,7 +13,13 @@ import java.io.Serializable;
  * The factory class for scan request.
  */
 public class ScanRequestFactory implements Serializable {
+    /**
+     * Schema used to decide between the table and proto-byte scan representations.
+     */
     private LongbowSchema longbowSchema;
+    /**
+     * Identifier of the BigTable table the created scan requests target.
+     */
     private String tableId;
 
     /**
@@ -42,6 +48,12 @@ public class ScanRequestFactory implements Serializable {
         }
     }
 
+    /**
+     * Resolves the BigTable table name carried by the input row for Longbow-plus scans.
+     *
+     * @param input the input row holding the synchronizer-provided table id
+     * @return the table name read from the {@code Constants.SYNCHRONIZER_BIGTABLE_TABLE_ID_KEY} column
+     */
     private String parseTableName(Row input) {
         return (String) longbowSchema.getValue(input, Constants.SYNCHRONIZER_BIGTABLE_TABLE_ID_KEY);
     }

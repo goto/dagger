@@ -14,6 +14,9 @@ import java.util.List;
  * The type Boolean primitive type handler.
  */
 public class BooleanHandler implements PrimitiveHandler {
+    /**
+     * The protobuf {@code FieldDescriptor} of the boolean field this handler processes.
+     */
     private Descriptors.FieldDescriptor fieldDescriptor;
 
     /**
@@ -25,16 +28,33 @@ public class BooleanHandler implements PrimitiveHandler {
         this.fieldDescriptor = fieldDescriptor;
     }
 
+    /**
+     * Determines whether this handler applies to the field.
+     *
+     * @return {@code true} if the field's Java type is {@code BOOLEAN}
+     */
     @Override
     public boolean canHandle() {
         return fieldDescriptor.getJavaType() == JavaType.BOOLEAN;
     }
 
+    /**
+     * Parses the given value into a Java {@code boolean}.
+     *
+     * @param field the value to parse, defaulting to {@code false} when {@code null}
+     * @return the parsed boolean value
+     */
     @Override
     public Object parseObject(Object field) {
         return Boolean.parseBoolean(getValueOrDefault(field, "false"));
     }
 
+    /**
+     * Reads the boolean value for this field from a Parquet {@code SimpleGroup}.
+     *
+     * @param simpleGroup the Parquet group holding the encoded record
+     * @return the boolean value, or {@code false} when the field is absent
+     */
     @Override
     public Object parseSimpleGroup(SimpleGroup simpleGroup) {
         String fieldName = fieldDescriptor.getName();
@@ -48,6 +68,12 @@ public class BooleanHandler implements PrimitiveHandler {
         }
     }
 
+    /**
+     * Converts a list of boolean values into a primitive {@code boolean[]}.
+     *
+     * @param field the list of boolean values, or {@code null}
+     * @return the values as a {@code boolean[]}, empty when {@code field} is {@code null}
+     */
     @Override
     public Object parseRepeatedObjectField(Object field) {
         boolean[] inputValues = new boolean[0];
@@ -57,6 +83,12 @@ public class BooleanHandler implements PrimitiveHandler {
         return inputValues;
     }
 
+    /**
+     * Reads the repeated boolean field from a Parquet {@code SimpleGroup} into a {@code boolean[]}.
+     *
+     * @param simpleGroup the Parquet group holding the encoded record
+     * @return the boolean array, empty when the field is absent
+     */
     @Override
     public Object parseRepeatedSimpleGroupField(SimpleGroup simpleGroup) {
         String fieldName = fieldDescriptor.getName();
@@ -71,11 +103,21 @@ public class BooleanHandler implements PrimitiveHandler {
         return new boolean[0];
     }
 
+    /**
+     * Returns the Flink {@code TypeInformation} for a single boolean value.
+     *
+     * @return {@code Types.BOOLEAN}
+     */
     @Override
     public TypeInformation getTypeInformation() {
         return Types.BOOLEAN;
     }
 
+    /**
+     * Returns the Flink {@code TypeInformation} for a repeated boolean field.
+     *
+     * @return a primitive boolean-array type
+     */
     @Override
     public TypeInformation getArrayType() {
         return Types.PRIMITIVE_ARRAY(Types.BOOLEAN);

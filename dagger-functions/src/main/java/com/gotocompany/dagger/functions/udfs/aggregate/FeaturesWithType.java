@@ -16,11 +16,28 @@ import org.apache.flink.types.Row;
 @FunctionHint(output = @DataTypeHint("RAW"))
 public class FeaturesWithType extends AggregateUdf<Row[], FeatureWithTypeAccumulator> {
 
+    /**
+     * Creates a fresh, empty {@link FeatureWithTypeAccumulator} for a new aggregation group.
+     *
+     * <p>Flink invokes this once per aggregation key to obtain the mutable state used to
+     * collect typed key/value feature triplets.
+     *
+     * @return a new, empty {@link FeatureWithTypeAccumulator} instance
+     */
     @Override
     public FeatureWithTypeAccumulator createAccumulator() {
         return new FeatureWithTypeAccumulator();
     }
 
+    /**
+     * Returns the accumulated typed features as an array of Feast feature {@link Row} values.
+     *
+     * <p>Flink calls this to produce the final aggregation output, converting every collected
+     * typed feature triplet into its {@link Row} representation.
+     *
+     * @param featureAccumulator the accumulator holding the collected typed features
+     * @return an array of {@link Row} values, one per accumulated feature
+     */
     @Override
     public Row[] getValue(FeatureWithTypeAccumulator featureAccumulator) {
         return featureAccumulator.getFeaturesAsRows();
@@ -56,12 +73,33 @@ public class FeaturesWithType extends AggregateUdf<Row[], FeatureWithTypeAccumul
         }
     }
 
+    /**
+     * Merges the typed features collected by other accumulators into the target accumulator.
+     *
+     * <p>Every feature triplet from each {@link FeatureWithTypeAccumulator} in {@code it} is
+     * re-added to {@code featureWithTypeAccumulator}, combining partial aggregates produced in
+     * parallel while preserving the de-duplication keyed on feature name and value.
+     *
+     * @param featureWithTypeAccumulator the accumulator that receives the merged features
+     * @param it                         the other accumulators whose features are merged in
+     */
     public void merge(FeatureWithTypeAccumulator featureWithTypeAccumulator, Iterable<FeatureWithTypeAccumulator> it) {
         for (FeatureWithTypeAccumulator accumulatorInstance : it) {
             accumulatorInstance.getFeatures().forEach((s, tuple3) -> featureWithTypeAccumulator.add(tuple3.f0, tuple3.f1, tuple3.f2));
         }
     }
 
+    /**
+     * Validates that the supplied arguments form complete feature triplets.
+     *
+     * <p>Each feature requires a fixed number of arguments
+     * ({@link Constants#NUMBER_OF_ARGUMENTS_IN_FEATURE_ACCUMULATOR}: name, value and type), so the
+     * total number of arguments must be an exact multiple of that group size.
+     *
+     * @param objects the raw arguments passed to {@code accumulate} or {@code retract}
+     * @throws InvalidNumberOfArgumentsException if the number of arguments is not a multiple of the
+     *                                           required triplet size
+     */
     private void validate(Object[] objects) {
         if (objects.length % Constants.NUMBER_OF_ARGUMENTS_IN_FEATURE_ACCUMULATOR != 0) {
             throw new InvalidNumberOfArgumentsException();

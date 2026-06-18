@@ -13,7 +13,17 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
+/**
+ * Alibaba Cloud Object Storage Service (OSS) client used to download Python UDF artifacts.
+ *
+ * <p>Wraps an {@code OSS} client built against a configured endpoint, resolving the bucket
+ * name and object key from an {@code oss://} location and reading the object content into
+ * an in-memory byte array.
+ */
 public class OssClient {
+    /**
+     * Underlying Alibaba Cloud OSS client used to fetch objects.
+     */
     private final OSS libOssClient;
 
     /**

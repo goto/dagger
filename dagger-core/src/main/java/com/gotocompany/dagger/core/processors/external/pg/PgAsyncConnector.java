@@ -29,8 +29,17 @@ import java.util.concurrent.TimeUnit;
  * The Postgre async connector.
  */
 public class PgAsyncConnector extends AsyncConnector {
+    /**
+     * Logger used to record connection pool lifecycle events.
+     */
     private static final Logger LOGGER = LoggerFactory.getLogger(PgAsyncConnector.class.getName());
+    /**
+     * Configuration describing the Postgres connection, pool sizing, query pattern and output mapping.
+     */
     private final PgSourceConfig pgSourceConfig;
+    /**
+     * The Vert.x Postgres connection pool used to execute lookup queries.
+     */
     private PgPool pgClient;
 
     /**
@@ -63,6 +72,12 @@ public class PgAsyncConnector extends AsyncConnector {
         this.pgSourceConfig = pgSourceConfig;
     }
 
+    /**
+     * {@inheritDoc}
+     *
+     * <p>Lazily builds the Vert.x {@code PgPool} from the configured host, port, database, credentials and
+     * timeouts when a client has not already been injected.
+     */
     @Override
     protected void createClient() {
         if (pgClient == null) {
@@ -82,6 +97,17 @@ public class PgAsyncConnector extends AsyncConnector {
         }
     }
 
+    /**
+     * {@inheritDoc}
+     *
+     * <p>Resolves the query variable values from the incoming row, validates them and, when valid, formats
+     * the configured query pattern and executes it asynchronously. A {@link PgResponseHandler} completes the
+     * {@code resultFuture} with the enriched row. A query that cannot be created is recorded as an
+     * invalid-configuration metric and completes the future exceptionally.
+     *
+     * @param input the input {@link Row} carrying the values used to build the query
+     * @param resultFuture the future completed with the enriched output row or an error
+     */
     @Override
     public void process(Row input, ResultFuture<Row> resultFuture) {
         RowManager rowManager = new RowManager(input);
@@ -107,6 +133,12 @@ public class PgAsyncConnector extends AsyncConnector {
         }
     }
 
+    /**
+     * {@inheritDoc}
+     *
+     * <p>Closes the Postgres connection pool, clears the reference, records a close-connection metric and
+     * logs that the pool has been released.
+     */
     @Override
     public void close() {
         pgClient.close();
@@ -115,6 +147,17 @@ public class PgAsyncConnector extends AsyncConnector {
         LOGGER.info("DB Connector : Connection pool released");
     }
 
+    /**
+     * Creates a new Vert.x {@code PgPool} backed by a dedicated {@code Vertx} instance.
+     *
+     * <p>Fails when invoked from within an existing Vert.x context, and enables native transport when the
+     * connection uses a domain socket.
+     *
+     * @param connectOptions the Postgres connection options describing host, port, database and credentials
+     * @param poolOptions the pool options describing the maximum pool size
+     * @return a newly created {@code PgPool} bound to a fresh Vert.x context
+     * @throws IllegalStateException if called from within an existing Vert.x context
+     */
     private PgPool pool(PgConnectOptions connectOptions, PoolOptions poolOptions) {
         if (Vertx.currentContext() != null) {
             throw new IllegalStateException("Running in a Vertx context => use PgPool#pool(Vertx, PgConnectOptions, PoolOptions) instead");

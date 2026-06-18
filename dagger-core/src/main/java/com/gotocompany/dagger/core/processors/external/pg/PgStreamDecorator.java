@@ -16,8 +16,17 @@ import java.util.concurrent.TimeUnit;
 public class PgStreamDecorator implements StreamDecorator {
 
 
+    /**
+     * Configuration describing the Postgres connection, query and output mapping to enrich the stream with.
+     */
     private final PgSourceConfig pgSourceConfig;
+    /**
+     * Metric configuration carrying the telemetry settings shared with the created connector.
+     */
     private final ExternalMetricConfig externalMetricConfig;
+    /**
+     * Schema configuration providing the descriptors and column metadata for the stream.
+     */
     private final SchemaConfig schemaConfig;
 
     /**
@@ -33,11 +42,28 @@ public class PgStreamDecorator implements StreamDecorator {
         this.schemaConfig = schemaConfig;
     }
 
+    /**
+     * {@inheritDoc}
+     *
+     * <p>A Postgres decorator can decorate the stream only when a {@code PgSourceConfig} has been configured.
+     *
+     * @return {@code true} when the Postgres source config is present, {@code false} otherwise
+     */
     @Override
     public Boolean canDecorate() {
         return pgSourceConfig != null;
     }
 
+    /**
+     * {@inheritDoc}
+     *
+     * <p>Wraps the input stream in an order-preserving asynchronous operator backed by a
+     * {@link PgAsyncConnector}, using the configured stream timeout and capacity. The connector is
+     * subscribed to the telemetry subscriber before the operator is created.
+     *
+     * @param inputStream the stream of {@link Row} records to enrich with Postgres lookups
+     * @return the decorated stream emitting enriched {@link Row} records
+     */
     @Override
     public DataStream<Row> decorate(DataStream<Row> inputStream) {
         PgAsyncConnector pgAsyncConnector = new PgAsyncConnector(pgSourceConfig, externalMetricConfig, schemaConfig);

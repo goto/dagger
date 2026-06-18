@@ -10,11 +10,16 @@ import java.util.Map;
  * A class that holds internal post processor configuration.
  */
 public class InternalSourceConfig implements Validator, Serializable {
+    /** Configuration key under which the nested internal-processor settings are supplied. */
     public static final String INTERNAL_PROCESSOR_CONFIG_KEY = "internal_processor_config";
 
+    /** Name of the output column this mapping writes its resolved value into. */
     private String outputField;
+    /** The configured value or expression to resolve; its meaning depends on {@link #type}. */
     private String value;
+    /** The processor type handling this mapping, for example {@code sql}, {@code function} or {@code constant}. */
     private String type;
+    /** Additional key/value settings consumed by the selected internal processor. */
     private Map<String, String> internalProcessorConfig;
 
     /**
@@ -32,6 +37,14 @@ public class InternalSourceConfig implements Validator, Serializable {
         this.internalProcessorConfig = internalProcessorConfig;
     }
 
+    /**
+     * {@inheritDoc}
+     *
+     * <p>Declares {@code output_field}, {@code type} and {@code value} as mandatory so that
+     * validation fails fast when any of them is missing from the internal source config.
+     *
+     * @return a map of mandatory field names to their currently configured values
+     */
     @Override
     public HashMap<String, Object> getMandatoryFields() {
         HashMap<String, Object> mandatoryFields = new HashMap<>();

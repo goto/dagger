@@ -43,6 +43,17 @@ public class KafkaProtoSQLProcessor {
         }
     }
 
+    /**
+     * Reflectively creates the {@link JobBuilder} instance configured for the job.
+     *
+     * <p>The implementation class is read from the {@code JOB_BUILDER_FQCN} configuration key and
+     * must expose a constructor accepting a single {@code DaggerContext} argument. When the class
+     * cannot be loaded or instantiated, the failure is logged and a {@link DaggerSqlJobBuilder} is
+     * returned as a fallback.
+     *
+     * @param daggerContext the context passed to the job builder's constructor
+     * @return the configured job builder, or a {@link DaggerSqlJobBuilder} when instantiation fails
+     */
     private static JobBuilder getJobBuilderInstance(DaggerContext daggerContext) {
         String className = daggerContext.getConfiguration().getString(JOB_BUILDER_FQCN_KEY, Constants.DEFAULT_JOB_BUILDER_FQCN);
         try {

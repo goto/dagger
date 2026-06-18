@@ -19,6 +19,9 @@ import java.util.Map;
  */
 public class FeatureWithTypeTransformer implements MapFunction<Row, Row>, Transformer {
 
+    /**
+     * Handler that holds the feature configuration and builds the typed feature rows for each input row.
+     */
     private FeatureWithTypeHandler featureWithTypeHandler;
 
     /**
@@ -32,6 +35,16 @@ public class FeatureWithTypeTransformer implements MapFunction<Row, Row>, Transf
         this.featureWithTypeHandler = new FeatureWithTypeHandler(transformationArguments, columnNames);
     }
 
+    /**
+     * Builds typed feast feature rows for the incoming row and stores them in the output column.
+     *
+     * <p>Delegates to the {@link FeatureWithTypeHandler} to populate the feature rows, copies all fields
+     * of {@code inputRow} into a new {@link Row} and sets the configured output column to the generated
+     * array of feature rows.
+     *
+     * @param inputRow the row to transform
+     * @return a new row whose output column holds the generated typed feast feature rows
+     */
     @Override
     public Row map(Row inputRow) {
         ArrayList<Row> featureRows = featureWithTypeHandler.populateFeatures(inputRow);
@@ -44,6 +57,15 @@ public class FeatureWithTypeTransformer implements MapFunction<Row, Row>, Transf
         return outputRow;
     }
 
+    /**
+     * Wires this map function into the streaming pipeline.
+     *
+     * <p>Applies this transformer as a {@link MapFunction} over the input data stream and returns a new
+     * {@link StreamInfo} that preserves the original column names.
+     *
+     * @param inputStreamInfo the incoming stream and its column metadata
+     * @return a {@link StreamInfo} wrapping the mapped data stream with the original column names
+     */
     @Override
     public StreamInfo transform(StreamInfo inputStreamInfo) {
         DataStream<Row> inputStream = inputStreamInfo.getDataStream();

@@ -11,6 +11,9 @@ import java.util.List;
  */
 public class ArrayAccumulator implements Serializable {
 
+    /**
+     * Backing list that stores every object collected by the owning aggregation.
+     */
     private @DataTypeHint("RAW") List<Object> arrayList = new ArrayList<>();
 
     /**
@@ -31,10 +34,22 @@ public class ArrayAccumulator implements Serializable {
         return arrayList;
     }
 
+    /**
+     * Returns the backing list of accumulated objects.
+     *
+     * <p>Primarily intended for state access during {@code merge} and for serialization.
+     *
+     * @return the mutable list of collected objects
+     */
     public List<Object> getArrayList() {
         return arrayList;
     }
 
+    /**
+     * Replaces the backing list of accumulated objects.
+     *
+     * @param arrayList the list of objects to use as the accumulator state
+     */
     public void setArrayList(List<Object> arrayList) {
         this.arrayList = arrayList;
     }

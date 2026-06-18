@@ -28,27 +28,60 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * Example {@link JobBuilder} that demonstrates assembling a Dagger job with the raw Flink DataStream
+ * API instead of SQL.
+ *
+ * <p>This is a reference/template implementation (not used in production) showing how to register
+ * sources with pre-processors, keep references to specific input streams by name, and apply native
+ * Flink stream operators before sinking the result. The data-processing body is intentionally minimal
+ * and contains commented-out snippets illustrating common patterns such as keying and aggregation.
+ */
 public class ExampleStreamApiJobBuilder implements JobBuilder {
 
 //    static final String KEY_PATH = "meta.customer.id";
 
+    /** Name of the first demo input stream this example keeps a reference to. */
     private final String inputStreamName1 = "data_streams_0";
+    /** Name of the second demo input stream this example keeps a reference to. */
     private final String inputStreamName2 = "data_streams_1";
+    /** Registered input streams keyed by stream name, populated during source registration. */
     private final Map<String, StreamInfo> dataStreams = new HashMap<>();
 
+    /** Shared context bundling configuration and the Flink execution environment. */
     private final DaggerContext daggerContext;
+    /** Dagger job configuration resolved from the program arguments. */
     private final Configuration configuration;
+    /** Flink streaming execution environment the job is built on and submitted to. */
     private final StreamExecutionEnvironment executionEnvironment;
+    /** Provides Protobuf/stencil schema descriptors to sources, processors, and sinks. */
     private StencilClientOrchestrator stencilClientOrchestrator;
+    /** StatsD reporter used to emit Dagger metrics. */
     private DaggerStatsDReporter daggerStatsDReporter;
+    /** Collects and publishes job telemetry to subscribers as processors and sinks are added. */
     private final MetricsTelemetryExporter telemetryExporter = new MetricsTelemetryExporter();
 
+    /**
+     * Creates the example job builder bound to the given Dagger context.
+     *
+     * @param daggerContext the shared context providing configuration and the Flink execution
+     *                      environment
+     */
     public ExampleStreamApiJobBuilder(DaggerContext daggerContext) {
         this.daggerContext = daggerContext;
         this.configuration = daggerContext.getConfiguration();
         this.executionEnvironment = daggerContext.getExecutionEnvironment();
     }
 
+    /**
+     * {@inheritDoc}
+     *
+     * <p>Builds the {@link StencilClientOrchestrator} and {@link DaggerStatsDReporter} and applies a
+     * minimal set of Flink runtime settings (max parallelism, exactly-once checkpointing, and global
+     * job parameters) onto the execution environment.
+     *
+     * @return this builder, for fluent chaining
+     */
     @Override
     public JobBuilder registerConfigs() {
         stencilClientOrchestrator = new StencilClientOrchestrator(configuration);
@@ -65,6 +98,15 @@ public class ExampleStreamApiJobBuilder implements JobBuilder {
         return this;
     }
 
+    /**
+     * {@inheritDoc}
+     *
+     * <p>Registers each configured source as a watermark-assigned {@code DataStream} of {@code Row}
+     * records, runs it through the configured pre-processors, and stores the streams named
+     * {@code data_streams_0} and {@code data_streams_1} for later use by the example output stage.
+     *
+     * @return this builder, for fluent chaining
+     */
     @Override
     public JobBuilder registerSourceWithPreProcessors() {
         long watermarkDelay = configuration.getLong(Constants.FLINK_WATERMARK_DELAY_MS_KEY, Constants.FLINK_WATERMARK_DELAY_MS_DEFAULT);
@@ -98,11 +140,29 @@ public class ExampleStreamApiJobBuilder implements JobBuilder {
         return this;
     }
 
+    /**
+     * {@inheritDoc}
+     *
+     * <p>This example registers no user-defined functions and simply returns the builder unchanged.
+     *
+     * @return this builder, for fluent chaining
+     * @throws IOException declared to satisfy the interface; never thrown by this implementation
+     */
     @Override
     public JobBuilder registerFunctions() throws IOException {
         return this;
     }
 
+    /**
+     * {@inheritDoc}
+     *
+     * <p>Takes the registered {@code data_streams_0} input, applies a trivial keyed aggregation using
+     * the Flink DataStream API as a placeholder for real processing logic, and routes the result to
+     * the configured sink. Richer keying/aggregation patterns are shown in the commented-out snippets.
+     *
+     * @return this builder, for fluent chaining
+     * @throws NullPointerException if the expected input stream was not registered
+     */
     @Override
     public JobBuilder registerOutputStream() {
         // NOTE - GET THE DATASTREAM REFERENCE
@@ -142,11 +202,26 @@ public class ExampleStreamApiJobBuilder implements JobBuilder {
         return this;
     }
 
+    /**
+     * {@inheritDoc}
+     *
+     * <p>Submits the assembled pipeline to the Flink execution environment under the configured job
+     * name.
+     *
+     * @throws Exception if the Flink job fails to submit or execute
+     */
     @Override
     public void execute() throws Exception {
         executionEnvironment.execute(configuration.getString(Constants.FLINK_JOB_ID_KEY, Constants.FLINK_JOB_ID_DEFAULT));
     }
 
+    /**
+     * Applies all configured pre-processors for a source stream in sequence.
+     *
+     * @param streamInfo the stream to pre-process
+     * @param tableName  the name of the source/table whose pre-processors should be applied
+     * @return the stream after every pre-processor has been applied
+     */
     private StreamInfo addPreProcessor(StreamInfo streamInfo, String tableName) {
         List<Preprocessor> preProcessors = PreProcessorFactory.getPreProcessors(daggerContext, tableName, telemetryExporter);
         for (Preprocessor preprocessor : preProcessors) {

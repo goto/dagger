@@ -15,6 +15,9 @@ import java.util.List;
  * The type String primitive type handler.
  */
 public class StringHandler implements PrimitiveHandler {
+    /**
+     * The protobuf {@code FieldDescriptor} of the string field this handler processes.
+     */
     private Descriptors.FieldDescriptor fieldDescriptor;
 
     /**
@@ -26,16 +29,33 @@ public class StringHandler implements PrimitiveHandler {
         this.fieldDescriptor = fieldDescriptor;
     }
 
+    /**
+     * Determines whether this handler applies to the field.
+     *
+     * @return {@code true} if the field's Java type is {@code STRING}
+     */
     @Override
     public boolean canHandle() {
         return fieldDescriptor.getJavaType() == JavaType.STRING;
     }
 
+    /**
+     * Converts the given value into its string form.
+     *
+     * @param field the value to convert, defaulting to an empty string when {@code null}
+     * @return the value's string representation
+     */
     @Override
     public Object parseObject(Object field) {
         return getValueOrDefault(field, "");
     }
 
+    /**
+     * Reads the string value for this field from a Parquet {@code SimpleGroup}.
+     *
+     * @param simpleGroup the Parquet group holding the encoded record
+     * @return the string value, or an empty string when the field is absent
+     */
     @Override
     public Object parseSimpleGroup(SimpleGroup simpleGroup) {
         String fieldName = fieldDescriptor.getName();
@@ -49,6 +69,12 @@ public class StringHandler implements PrimitiveHandler {
         }
     }
 
+    /**
+     * Converts a list of string values into a {@code String[]}.
+     *
+     * @param field the list of string values, or {@code null}
+     * @return the values as a {@code String[]}, empty when {@code field} is {@code null}
+     */
     @Override
     public Object parseRepeatedObjectField(Object field) {
         List<String> inputValues = new ArrayList<>();
@@ -58,6 +84,12 @@ public class StringHandler implements PrimitiveHandler {
         return inputValues.toArray(new String[]{});
     }
 
+    /**
+     * Reads the repeated string field from a Parquet {@code SimpleGroup} into a {@code String[]}.
+     *
+     * @param simpleGroup the Parquet group holding the encoded record
+     * @return the string array, empty when the field is absent
+     */
     @Override
     public Object parseRepeatedSimpleGroupField(SimpleGroup simpleGroup) {
         String fieldName = fieldDescriptor.getName();
@@ -72,11 +104,21 @@ public class StringHandler implements PrimitiveHandler {
         return new String[0];
     }
 
+    /**
+     * Returns the Flink {@code TypeInformation} for a single string value.
+     *
+     * @return {@code Types.STRING}
+     */
     @Override
     public TypeInformation getTypeInformation() {
         return Types.STRING;
     }
 
+    /**
+     * Returns the Flink {@code TypeInformation} for a repeated string field.
+     *
+     * @return an object-array type of {@code String}
+     */
     @Override
     public TypeInformation getArrayType() {
         return ObjectArrayTypeInfo.getInfoFor(Types.STRING);

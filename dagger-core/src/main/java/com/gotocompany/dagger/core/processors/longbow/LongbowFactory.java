@@ -40,12 +40,33 @@ import static com.gotocompany.dagger.core.utils.Constants.PROCESSOR_LONGBOW_GCP_
  * The factory class for Longbow.
  */
 public class LongbowFactory {
+    /**
+     * The Longbow schema describing the column layout and Longbow type of the input stream.
+     */
     private LongbowSchema longbowSchema;
+    /**
+     * The Dagger configuration used to resolve Longbow, BigTable and stream settings.
+     */
     private Configuration configuration;
+    /**
+     * The async processor used to wrap the rich async functions into ordered-wait operators.
+     */
     private AsyncProcessor asyncProcessor;
+    /**
+     * The orchestrator that supplies the Stencil client for resolving Protobuf descriptors.
+     */
     private StencilClientOrchestrator stencilClientOrchestrator;
+    /**
+     * The exporter that the reader and writer notify so their metrics are published.
+     */
     private MetricsTelemetryExporter metricsTelemetryExporter;
+    /**
+     * The Longbow column names derived from the schema, used to build readers and writers.
+     */
     private String[] columnNames;
+    /**
+     * Shared {@code Gson} instance used to parse the input streams configuration JSON.
+     */
     private static final Gson GSON = new Gson();
 
     /**
@@ -119,6 +140,16 @@ public class LongbowFactory {
         }
     }
 
+    /**
+     * Builds a {@link LongbowReader} for the Longbow+ read flow, where the scanned BigTable rows
+     * carry serialized Protobuf payloads.
+     *
+     * <p>The reader is wired with the range resolved from the schema, a {@code ScanRequestFactory}
+     * targeting the configured BigTable table, a {@link LongbowProtoData} parser and a
+     * {@code ReaderOutputProtoData} output mapper.
+     *
+     * @return the configured Longbow reader for the Protobuf-backed read flow
+     */
     private LongbowReader longbowReaderPlus() {
         LongbowRange longbowRange = LongbowRangeFactory.getLongbowRange(longbowSchema);
         ScanRequestFactory scanRequestFactory = new ScanRequestFactory(longbowSchema, getTableId(configuration));
@@ -127,6 +158,16 @@ public class LongbowFactory {
         return new LongbowReader(configuration, longbowSchema, longbowRange, longbowTableData, scanRequestFactory, readerOutputRow);
     }
 
+    /**
+     * Builds a {@link LongbowReader} for the standard Longbow read flow, where scanned BigTable rows
+     * are mapped back into individual schema columns.
+     *
+     * <p>The reader is wired with the range resolved from the schema, a {@code ScanRequestFactory}
+     * targeting the configured table, a {@link LongbowTableData} parser and a
+     * {@code ReaderOutputLongbowData} output mapper.
+     *
+     * @return the configured Longbow reader for the column-based read flow
+     */
     private LongbowReader longbowReader() {
         LongbowRange longbowRange = LongbowRangeFactory.getLongbowRange(longbowSchema);
         ScanRequestFactory scanRequestFactory = new ScanRequestFactory(longbowSchema, getTableId(configuration));
@@ -135,6 +176,16 @@ public class LongbowFactory {
         return new LongbowReader(configuration, longbowSchema, longbowRange, longbowTableData, scanRequestFactory, readerOutputRow);
     }
 
+    /**
+     * Builds a {@link LongbowWriter} for the Longbow+ write flow, serializing the input row into a
+     * Protobuf payload before persisting it to BigTable.
+     *
+     * <p>A {@link ProtoSerializer} is created from the configured input Protobuf class, and the
+     * writer is given a {@code PutRequestFactory} plus an {@code OutputSynchronizer} that records the
+     * synchronization metadata for the downstream reader.
+     *
+     * @return the configured Longbow writer for the Protobuf-backed write flow
+     */
     private LongbowWriter longbowWriterPlus() {
         ProtoSerializer protoSerializer = new ProtoSerializer(null, getMessageProtoClassName(configuration), columnNames, stencilClientOrchestrator);
         String tableId = getTableId(configuration);
@@ -143,6 +194,15 @@ public class LongbowFactory {
         return new LongbowWriter(configuration, longbowSchema, putRequestFactory, tableId, outputSynchronizer);
     }
 
+    /**
+     * Builds a {@link LongbowWriter} for the standard Longbow write flow, persisting the row columns
+     * directly to BigTable.
+     *
+     * <p>The writer uses a {@code PutRequestFactory} without a serializer and an
+     * {@code OutputIdentity} that passes the input row through unchanged.
+     *
+     * @return the configured Longbow writer for the column-based write flow
+     */
     private LongbowWriter longbowWriter() {
         String tableId = getTableId(configuration);
         PutRequestFactory putRequestFactory = new PutRequestFactory(longbowSchema, null, tableId);
@@ -150,11 +210,26 @@ public class LongbowFactory {
         return new LongbowWriter(configuration, longbowSchema, putRequestFactory, tableId, outputIdentity);
     }
 
+    /**
+     * Resolves the BigTable table id to use for Longbow operations.
+     *
+     * <p>The explicit Longbow GCP table id is preferred; when it is absent the Dagger job name (or
+     * its default) is used instead.
+     *
+     * @param config the configuration to read the table id and Dagger name from
+     * @return the resolved BigTable table id
+     */
     private String getTableId(Configuration config) {
         return config
                 .getString(PROCESSOR_LONGBOW_GCP_TABLE_ID_KEY, config.getString(DAGGER_NAME_KEY, DAGGER_NAME_DEFAULT));
     }
 
+    /**
+     * Extracts the input Protobuf message class name from the first configured input stream.
+     *
+     * @param config the configuration holding the input streams JSON
+     * @return the fully-qualified Protobuf class name of the first input stream
+     */
     private String getMessageProtoClassName(Configuration config) {
         String jsonArrayString = config.getString(INPUT_STREAMS, "");
         Map[] streamsConfig = GSON.fromJson(jsonArrayString, Map[].class);

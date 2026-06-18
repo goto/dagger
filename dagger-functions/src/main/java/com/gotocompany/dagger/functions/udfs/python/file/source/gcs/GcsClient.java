@@ -14,6 +14,10 @@ import java.util.stream.Collectors;
  */
 public class GcsClient {
 
+    /**
+     * Google Cloud Storage service handle used to fetch blobs; built from the default
+     * {@code StorageOptions} or injected for testing.
+     */
     private Storage storage;
 
     /**

@@ -19,9 +19,18 @@ import static com.gotocompany.dagger.common.core.Constants.UDF_TELEMETRY_GROUP_K
  */
 public class GcsDartClient implements DartDataStoreClient {
 
+    /**
+     * The GCS storage client used to read dart blobs from buckets.
+     */
     private Storage storage;
 
+    /**
+     * The divisor used to convert blob sizes from bytes to kilobytes when reporting file-size telemetry.
+     */
     private static final Double BYTES_TO_KB = 1024.0;
+    /**
+     * The gauge group key under which the dart path is registered for file-size telemetry.
+     */
     private static final String DART_PATH = "dartpath";
 
     /**

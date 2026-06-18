@@ -9,7 +9,9 @@ import java.util.HashSet;
  * The Udf factory for scalar functions, table functions, and aggregate functions.
  */
 public abstract class UdfFactory {
+    /** The Flink table environment into which the UDFs are registered as temporary functions. */
     private final StreamTableEnvironment streamTableEnvironment;
+    /** The Dagger configuration made available to concrete factory implementations. */
     private final Configuration configuration;
 
     /**

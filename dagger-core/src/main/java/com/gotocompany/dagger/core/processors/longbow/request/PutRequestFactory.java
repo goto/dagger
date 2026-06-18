@@ -13,8 +13,17 @@ import java.io.Serializable;
  */
 public class PutRequestFactory implements Serializable {
 
+    /**
+     * Schema used to decide between the table and proto-byte put representations.
+     */
     private final LongbowSchema longbowSchema;
+    /**
+     * Serializer passed to the proto-byte put request when Longbow-plus is enabled.
+     */
     private final ProtoSerializer protoSerializer;
+    /**
+     * Identifier of the BigTable table the created put requests target.
+     */
     private final String tableId;
 
     /**

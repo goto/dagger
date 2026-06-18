@@ -15,9 +15,21 @@ import java.util.stream.BaseStream;
  * The Abstract class of Array processor.
  */
 public abstract class ArrayProcessor {
+    /**
+     * The JEXL context that holds the input stream variable consumed by the compiled script.
+     */
     private JexlContext jexlContext;
+    /**
+     * The compiled JEXL script that is executed to produce the processing result.
+     */
     private JexlScript jexlScript;
+    /**
+     * The JEXL engine used to compile expression strings into executable scripts.
+     */
     private JexlEngine jexlEngine;
+    /**
+     * The expression that supplies the JEXL string describing the operation or aggregation to run.
+     */
     private Expression expression;
 
     /**

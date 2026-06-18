@@ -7,7 +7,13 @@ import org.apache.flink.types.Row;
  * The class to hold the data stream and column names.
  */
 public class StreamInfo {
+    /**
+     * The underlying Flink data stream of {@link Row} records.
+     */
     private DataStream<Row> dataStream;
+    /**
+     * The column names describing the schema of each {@link Row} in the stream.
+     */
     private String[] columnNames;
 
     /**

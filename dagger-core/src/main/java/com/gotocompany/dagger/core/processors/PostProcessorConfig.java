@@ -21,9 +21,21 @@ import java.util.List;
  */
 public class PostProcessorConfig implements Serializable {
 
+    /**
+     * Configuration for external post processor sources such as HTTP, GRPC, Elasticsearch and Postgres.
+     */
     private ExternalSourceConfig externalSource;
+    /**
+     * Configuration for the transformers applied to the stream during post processing.
+     */
     private List<TransformConfig> transformers;
+    /**
+     * Configuration for internal post processor sources that derive output fields from existing data.
+     */
     private List<InternalSourceConfig> internalSource;
+    /**
+     * Shared Gson instance configured to map snake_case JSON keys onto the config fields.
+     */
     private static final Gson GSON = new GsonBuilder().setFieldNamingPolicy(FieldNamingPolicy.LOWER_CASE_WITH_UNDERSCORES).create();
 
     /**

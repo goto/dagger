@@ -13,6 +13,7 @@ import java.io.Serializable;
  */
 public class InvalidInternalConfigProcessor implements InternalConfigProcessor, Serializable {
 
+    /** The internal source configuration whose unsupported type triggered this fallback. */
     private InternalSourceConfig internalSourceConfig;
 
     /**
@@ -24,11 +25,23 @@ public class InvalidInternalConfigProcessor implements InternalConfigProcessor, 
         this.internalSourceConfig = internalSourceConfig;
     }
 
+    /**
+     * Always reports that no internal config type can be processed.
+     *
+     * @param type the configured internal source type (ignored)
+     * @return {@code false} always
+     */
     @Override
     public boolean canProcess(String type) {
         return false;
     }
 
+    /**
+     * Always fails because the configured internal source type is unsupported.
+     *
+     * @param rowManager the row manager wrapping the current record (unused)
+     * @throws InvalidConfigurationException always, naming the unsupported type
+     */
     public void process(RowManager rowManager) {
         String type = "";
         if (internalSourceConfig != null && StringUtils.isNotEmpty(internalSourceConfig.getType())) {

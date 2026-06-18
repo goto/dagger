@@ -7,7 +7,14 @@ import com.gotocompany.dagger.common.udfs.ScalarUdf;
  */
 public class Distance extends ScalarUdf {
 
+    /**
+     * Mean radius of the Earth in kilometres, used to scale the haversine result into a distance.
+     */
     private static final int RADIUS_OF_EARTH = 6371;
+
+    /**
+     * Divisor ({@code 180}) used together with {@link Math#PI} to convert degrees into radians.
+     */
     private static final int DEGREE_TO_RADIAN_DIVISOR = 180;
 
     /**
@@ -33,6 +40,12 @@ public class Distance extends ScalarUdf {
         return RADIUS_OF_EARTH * c;
     }
 
+    /**
+     * Converts an angle expressed in degrees into radians.
+     *
+     * @param value the angle in degrees
+     * @return the equivalent angle in radians
+     */
     private static Double degreeToRadian(Double value) {
         return value * Math.PI / DEGREE_TO_RADIAN_DIVISOR;
     }

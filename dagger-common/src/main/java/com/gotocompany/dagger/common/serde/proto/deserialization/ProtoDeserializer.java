@@ -25,12 +25,33 @@ import java.util.List;
  */
 public class ProtoDeserializer implements KafkaDeserializationSchema<Row>, DaggerDeserializer<Row> {
 
+    /**
+     * Logger used to warn about null payloads and invalid protobuf records.
+     */
     private static final Logger LOGGER = LoggerFactory.getLogger(ProtoDeserializer.class);
+    /**
+     * The fully-qualified protobuf class name used to resolve the message descriptor.
+     */
     private final String protoClassName;
+    /**
+     * The field number of the protobuf timestamp field appended as the rowtime column.
+     */
     private final int timestampFieldIndex;
+    /**
+     * The orchestrator used to obtain the Stencil client that resolves proto descriptors.
+     */
     private final StencilClientOrchestrator stencilClientOrchestrator;
+    /**
+     * The Flink {@link TypeInformation} describing the {@link Row} produced by this deserializer.
+     */
     private final TypeInformation<Row> typeInformation;
+    /**
+     * Cache of field descriptors used to build rows efficiently when schema auto-refresh is on.
+     */
     private final FieldDescriptorCache fieldDescriptorCache;
+    /**
+     * Whether the Stencil cache auto-refresh is enabled, which selects the descriptor-cache row path.
+     */
     private final boolean stencilAutoRefreshEnable;
 
     /**
@@ -50,11 +71,33 @@ public class ProtoDeserializer implements KafkaDeserializationSchema<Row>, Dagge
         this.stencilAutoRefreshEnable = stencilClientOrchestrator.createStencilConfig().getCacheAutoRefresh();
     }
 
+    /**
+     * {@inheritDoc}
+     *
+     * <p>This stream is unbounded, so the implementation always reports that the end of stream
+     * has not been reached.
+     *
+     * @param nextElement the most recently deserialized row
+     * @return {@code false} always, since the Kafka source is treated as never-ending
+     */
     @Override
     public boolean isEndOfStream(Row nextElement) {
         return false;
     }
 
+    /**
+     * Deserializes a Kafka record into a Flink {@link Row}.
+     *
+     * <p>A {@code null} payload, or a record that fails protobuf parsing, yields a default
+     * "invalid" row (flagged as invalid with a zero timestamp) rather than failing the job;
+     * a successfully parsed message is converted and augmented with its rowtime timestamp.
+     *
+     * @param consumerRecord the Kafka record whose key and value byte arrays are read
+     * @return the deserialized row, or a default invalid row when the value is {@code null}
+     *         or cannot be parsed as the expected protobuf message
+     * @throws DescriptorNotFoundException if the proto descriptor cannot be resolved
+     * @throws DaggerDeserializationException if an unexpected runtime error occurs while parsing
+     */
     @Override
     public Row deserialize(ConsumerRecord<byte[], byte[]> consumerRecord) {
         Descriptors.Descriptor descriptor = getProtoParser();
@@ -76,11 +119,23 @@ public class ProtoDeserializer implements KafkaDeserializationSchema<Row>, Dagge
         }
     }
 
+    /**
+     * {@inheritDoc}
+     *
+     * @return the {@link TypeInformation} of the {@link Row} this deserializer produces
+     */
     @Override
     public TypeInformation<Row> getProducedType() {
         return this.typeInformation;
     }
 
+    /**
+     * Resolves the protobuf message {@link Descriptors.Descriptor} for {@code protoClassName}
+     * from the Stencil client.
+     *
+     * @return the descriptor for the configured proto class
+     * @throws DescriptorNotFoundException if no descriptor is registered for {@code protoClassName}
+     */
     private Descriptors.Descriptor getProtoParser() {
         Descriptors.Descriptor dsc = stencilClientOrchestrator.getStencilClient().get(protoClassName);
         if (dsc == null) {
@@ -89,6 +144,15 @@ public class ProtoDeserializer implements KafkaDeserializationSchema<Row>, Dagge
         return dsc;
     }
 
+    /**
+     * Builds a placeholder {@link Row} for records that cannot be deserialized.
+     *
+     * <p>The row is created from the proto default instance with two extra trailing columns,
+     * the validity flag set to {@code false} and the rowtime set to epoch zero.
+     *
+     * @param defaultInstance the default protobuf message instance used to shape the row
+     * @return a row flagged as invalid with a zero timestamp
+     */
     private Row createDefaultInvalidRow(DynamicMessage defaultInstance) {
         Row row;
         if (stencilAutoRefreshEnable) {
@@ -101,6 +165,15 @@ public class ProtoDeserializer implements KafkaDeserializationSchema<Row>, Dagge
         return row;
     }
 
+    /**
+     * Converts a parsed protobuf message into a {@link Row} and appends rowtime metadata.
+     *
+     * <p>Two trailing columns are added: a validity flag set to {@code true} and a
+     * {@link Timestamp} derived from the seconds and nanos of the configured timestamp field.
+     *
+     * @param proto the successfully parsed protobuf message
+     * @return the row representation including the validity flag and event-time timestamp
+     */
     private Row addTimestampFieldToRow(DynamicMessage proto) {
         Row finalRecord;
         if (stencilAutoRefreshEnable) {

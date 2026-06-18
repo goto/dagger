@@ -13,6 +13,12 @@ public class TagDoesNotExistException extends RuntimeException {
         super(message);
     }
 
+    /**
+     * Instantiates a new Tag does not exist exception with a root cause.
+     *
+     * @param message the detail message describing which tag was missing
+     * @param cause   the underlying cause of this exception
+     */
     public TagDoesNotExistException(String message, Throwable cause) {
         super(message, cause);
     }

@@ -35,6 +35,15 @@ public class ArrayAggregateProcessor extends ArrayProcessor {
         super(jexlEngine, jexlContext, jexlScript, expression);
     }
 
+    /**
+     * {@inheritDoc}
+     *
+     * <p>Executes the configured JEXL aggregation script against the prepared context and unwraps any
+     * {@code Optional}-typed numeric result into a concrete value.
+     *
+     * @return the aggregation result, or {@code 0} when an empty optional numeric result is produced
+     * @throws ArrayAggregationException if the script execution fails
+     */
     @Override
     public Object process() {
         try {
@@ -45,6 +54,12 @@ public class ArrayAggregateProcessor extends ArrayProcessor {
         }
     }
 
+    /**
+     * Unwraps an {@code OptionalDouble}, {@code OptionalInt}, or {@code OptionalLong} result into a concrete value.
+     *
+     * @param result the raw script execution result
+     * @return the unwrapped numeric value defaulting to {@code 0} when the optional is empty, or the original result when it is not optional
+     */
     private Object getValueFromOptionalOutput(Object result) {
         if (result instanceof OptionalDouble) {
             return ((OptionalDouble) result).orElse(0);

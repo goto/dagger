@@ -23,6 +23,12 @@ class RowElement extends Element {
         super(parent, row, fieldDescriptor);
     }
 
+    /**
+     * Creates the next element in the path chain for the given child field of this message element.
+     *
+     * @param pathElement the name of the child field to descend into
+     * @return an {@link Optional} containing the next element, or empty when the field is absent
+     */
     public Optional<Element> createNext(String pathElement) {
         Optional<Element> childElement = initialize(this, null, new CustomDescriptor(getFieldDescriptor().getMessageType()), pathElement);
         return childElement;

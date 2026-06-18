@@ -31,15 +31,56 @@ import java.util.function.Supplier;
 import static com.gotocompany.dagger.core.source.config.models.SourceName.PARQUET_SOURCE;
 import static com.gotocompany.dagger.core.source.config.models.SourceType.BOUNDED;
 
+/**
+ * {@link DaggerSource} implementation that reads bounded batches of records from Parquet files via
+ * Flink's {@code FileSource}.
+ *
+ * <p>It is selected when the configured {@code SOURCE_DETAILS} declare a single
+ * {@link SourceName#PARQUET_SOURCE} of type {@link SourceType#BOUNDED} and the deserializer is a
+ * {@link SimpleGroupDeserializer}. The source discovers the configured Parquet paths, builds a
+ * {@link ParquetFileRecordFormat} (which yields a {@code ParquetReader} per file), and orders the
+ * resulting splits according to the configured {@link SourceParquetReadOrderStrategy} — currently
+ * only chronological ordering via {@link ChronologyOrderedSplitAssigner} is supported. Fatal
+ * configuration errors are reported through StatsD before being thrown.
+ */
 public class ParquetDaggerSource implements DaggerSource<Row> {
+    /**
+     * Deserializer applied to each Parquet record; must be a {@link SimpleGroupDeserializer}.
+     */
     private final DaggerDeserializer<Row> deserializer;
+    /**
+     * The per-stream configuration supplying the Parquet paths, date range, and read-order strategy.
+     */
     private final StreamConfig streamConfig;
+    /**
+     * The global Dagger job configuration.
+     */
     private final Configuration configuration;
+    /**
+     * Supplier of the StatsD reporter propagated into the file source, readers, and split assigner.
+     */
     private final SerializedStatsDReporterSupplier statsDReporterSupplier;
+    /**
+     * The single source type this implementation supports ({@code BOUNDED}).
+     */
     private static final SourceType SUPPORTED_SOURCE_TYPE = BOUNDED;
+    /**
+     * The single source name this implementation supports ({@code PARQUET_SOURCE}).
+     */
     private static final SourceName SUPPORTED_SOURCE_NAME = PARQUET_SOURCE;
+    /**
+     * Error reporter used to surface fatal configuration errors to StatsD.
+     */
     private final StatsDErrorReporter statsDErrorReporter;
 
+    /**
+     * Creates a Parquet source from the given configuration, deserializer, and StatsD supplier.
+     *
+     * @param streamConfig           the per-stream configuration carrying Parquet paths and ordering
+     * @param configuration          the global Dagger job configuration
+     * @param deserializer           the record deserializer; expected to be a {@link SimpleGroupDeserializer}
+     * @param statsDReporterSupplier supplier of the StatsD reporter used for error/metric reporting
+     */
     public ParquetDaggerSource(StreamConfig streamConfig, Configuration configuration, DaggerDeserializer<Row> deserializer, SerializedStatsDReporterSupplier statsDReporterSupplier) {
         this.streamConfig = streamConfig;
         this.configuration = configuration;
@@ -48,11 +89,25 @@ public class ParquetDaggerSource implements DaggerSource<Row> {
         this.statsDErrorReporter = new StatsDErrorReporter(statsDReporterSupplier);
     }
 
+    /**
+     * {@inheritDoc}
+     *
+     * <p>Builds the bounded Parquet {@code FileSource} and registers it on the environment via
+     * {@code fromSource}, using the supplied watermark strategy and the stream's schema table as the
+     * source name.
+     */
     @Override
     public DataStream<Row> register(StreamExecutionEnvironment executionEnvironment, WatermarkStrategy<Row> watermarkStrategy) {
         return executionEnvironment.fromSource(buildFileSource(), watermarkStrategy, streamConfig.getSchemaTable());
     }
 
+    /**
+     * {@inheritDoc}
+     *
+     * <p>Returns {@code true} only when exactly one {@code SOURCE_DETAILS} entry is configured with
+     * source name {@link SourceName#PARQUET_SOURCE} and type {@link SourceType#BOUNDED}, and the
+     * deserializer is a {@link SimpleGroupDeserializer}.
+     */
     @Override
     public boolean canBuild() {
         SourceDetails[] sourceDetailsArray = streamConfig.getSourceDetails();
@@ -66,6 +121,15 @@ public class ParquetDaggerSource implements DaggerSource<Row> {
         }
     }
 
+    /**
+     * Assembles the Flink {@code FileSource} for the configured Parquet inputs.
+     *
+     * <p>Wires together the file paths, the {@link ParquetFileRecordFormat}, the source type, and the
+     * read-order-derived {@code FileSplitAssigner.Provider} through {@link ParquetFileSource.Builder},
+     * then delegates to {@link ParquetFileSource#buildFileSource()}.
+     *
+     * @return the configured Flink {@code FileSource} of {@code Row}
+     */
     FileSource<Row> buildFileSource() {
         ParquetFileSource.Builder parquetFileSourceBuilder = ParquetFileSource.Builder.getInstance();
         ParquetFileRecordFormat parquetFileRecordFormat = buildParquetFileRecordFormat();
@@ -82,6 +146,11 @@ public class ParquetDaggerSource implements DaggerSource<Row> {
         return parquetFileSource.buildFileSource();
     }
 
+    /**
+     * Converts the configured Parquet path strings into Flink {@link Path} instances.
+     *
+     * @return an array of Flink {@code Path}s, one per configured Parquet file path
+     */
     private Path[] buildFlinkFilePaths() {
         String[] parquetFilePaths = streamConfig.getParquetFilePaths();
         return Arrays.stream(parquetFilePaths)
@@ -89,6 +158,17 @@ public class ParquetDaggerSource implements DaggerSource<Row> {
                 .toArray(Path[]::new);
     }
 
+    /**
+     * Selects the split-assigner provider matching the configured read-order strategy.
+     *
+     * <p>For {@link SourceParquetReadOrderStrategy#EARLIEST_TIME_URL_FIRST} it returns a provider that
+     * builds a {@link ChronologyOrderedSplitAssigner} configured with the parquet date range, a
+     * {@link HourDatePathParser}, and the StatsD supplier. The index-ordered strategy is not yet
+     * supported: a {@link DaggerConfigurationException} is reported to StatsD and thrown.
+     *
+     * @return a {@code FileSplitAssigner.Provider} for the configured ordering strategy
+     * @throws DaggerConfigurationException if the configured read-order strategy is unsupported
+     */
     private FileSplitAssigner.Provider buildParquetFileSplitAssignerProvider() {
         SourceParquetReadOrderStrategy readOrderStrategy = streamConfig.getParquetFilesReadOrderStrategy();
         switch (readOrderStrategy) {
@@ -107,6 +187,15 @@ public class ParquetDaggerSource implements DaggerSource<Row> {
         }
     }
 
+    /**
+     * Builds the {@link ParquetFileRecordFormat} that produces a reader per Parquet file.
+     *
+     * <p>Wraps the {@link SimpleGroupDeserializer} in a {@link ParquetReader.ParquetReaderProvider}
+     * and supplies a serializable {@code Supplier} of the produced {@code TypeInformation} so the
+     * record format can advertise its output type to Flink.
+     *
+     * @return the configured {@code ParquetFileRecordFormat}
+     */
     private ParquetFileRecordFormat buildParquetFileRecordFormat() {
         SimpleGroupDeserializer simpleGroupDeserializer = (SimpleGroupDeserializer) deserializer;
         ReaderProvider parquetFileReaderProvider = new ParquetReader.ParquetReaderProvider(simpleGroupDeserializer, statsDReporterSupplier);

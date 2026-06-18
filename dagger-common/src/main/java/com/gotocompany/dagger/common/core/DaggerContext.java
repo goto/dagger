@@ -13,10 +13,25 @@ import org.slf4j.LoggerFactory;
  * It initializes with StreamExecutionEnvironment, StreamTableEnvironment and Configuration.
  */
 public class DaggerContext {
+    /**
+     * Logger used to record lifecycle events of the {@link DaggerContext} singleton.
+     */
     private static final Logger LOGGER = LoggerFactory.getLogger(DaggerContext.class.getName());
+    /**
+     * The lazily-created, {@code volatile} singleton instance shared across the Dagger job.
+     */
     private static volatile DaggerContext daggerContext = null;
+    /**
+     * The Flink {@link StreamExecutionEnvironment} that backs the streaming job.
+     */
     private final StreamExecutionEnvironment executionEnvironment;
+    /**
+     * The Flink {@link StreamTableEnvironment} used to evaluate the Table/SQL pipeline.
+     */
     private final StreamTableEnvironment tableEnvironment;
+    /**
+     * The user-supplied {@link Configuration} that parameterizes the Dagger job.
+     */
     private final Configuration configuration;
 
     /**
@@ -55,14 +70,29 @@ public class DaggerContext {
         return daggerContext;
     }
 
+    /**
+     * Returns the Flink {@link StreamExecutionEnvironment} held by this context.
+     *
+     * @return the stream execution environment
+     */
     public StreamExecutionEnvironment getExecutionEnvironment() {
         return executionEnvironment;
     }
 
+    /**
+     * Returns the Flink {@link StreamTableEnvironment} held by this context.
+     *
+     * @return the stream table environment
+     */
     public StreamTableEnvironment getTableEnvironment() {
         return tableEnvironment;
     }
 
+    /**
+     * Returns the {@link Configuration} that was used to initialize this context.
+     *
+     * @return the configuration
+     */
     public Configuration getConfiguration() {
         return configuration;
     }

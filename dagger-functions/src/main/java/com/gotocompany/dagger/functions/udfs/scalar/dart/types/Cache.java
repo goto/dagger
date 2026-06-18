@@ -10,6 +10,9 @@ import java.util.Date;
  */
 public abstract class Cache implements Serializable {
 
+    /**
+     * The timestamp at which this cache entry was populated, used to evaluate expiry.
+     */
     private Date timeOfCaching;
 
     /**

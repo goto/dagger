@@ -27,11 +27,26 @@ import java.util.Set;
  */
 public class DefaultDartDataStore implements DartDataStore, Serializable {
 
+    /**
+     * The object-storage directory prefix under which {@code dart-get} map payloads are stored.
+     */
     public static final String DART_GET_DIRECTORY = "dart-get/";
+    /**
+     * The object-storage directory prefix under which {@code dart-contains} set payloads are stored.
+     */
     public static final String DART_CONTAINS_DIRECTORY = "dart-contains/";
 
+    /**
+     * Provider of the backend-specific client used to fetch dart JSON payloads from object storage.
+     */
     private final DartDataStoreClientProvider clientProvider;
+    /**
+     * The identifier of the object-storage bucket that holds the dart data.
+     */
     private final String bucketId;
+    /**
+     * The Dagger configuration used to resolve dart-related settings.
+     */
     private final Configuration configuration;
 
     /**
@@ -46,17 +61,50 @@ public class DefaultDartDataStore implements DartDataStore, Serializable {
         this.configuration = configuration;
     }
 
+    /**
+     * {@inheritDoc}
+     *
+     * <p>Fetches the {@code dart-contains} payload for the given set name from object storage and
+     * wraps the resulting values in a {@link SetCache}.
+     *
+     * @param setName           the name of the dart set to load
+     * @param meterStatsManager the meter manager used to record fetch successes and failures
+     * @param gaugeManager      the gauge manager used to record payload size and path telemetry
+     * @return a {@link SetCache} backed by the fetched set of values
+     */
     @Override
     public SetCache getSet(String setName, MeterStatsManager meterStatsManager, GaugeStatsManager gaugeManager) {
         return new SetCache(getSetOfObjects(setName, meterStatsManager, gaugeManager));
     }
 
+    /**
+     * {@inheritDoc}
+     *
+     * <p>Fetches the {@code dart-get} payload for the given map name from object storage and wraps
+     * the resulting key-value pairs in a {@link MapCache}.
+     *
+     * @param mapName           the name of the dart map to load
+     * @param meterStatsManager the meter manager used to record fetch successes and failures
+     * @param gaugeManager      the gauge manager used to record payload size and path telemetry
+     * @return a {@link MapCache} backed by the fetched map of values
+     */
     @Override
     public MapCache getMap(String mapName, MeterStatsManager meterStatsManager, GaugeStatsManager gaugeManager) {
         Map<String, String> mapOfObjects = getMapOfObjects(mapName, meterStatsManager, gaugeManager);
         return new MapCache(mapOfObjects);
     }
 
+    /**
+     * Fetches and parses the {@code dart-get} JSON payload for the given dart name into a key-value map.
+     *
+     * <p>On a parsing failure the error is recorded via {@link DartAspects#DART_GCS_FETCH_FAILURES}
+     * and {@code null} is returned.
+     *
+     * @param dartName     the name of the dart whose map payload should be fetched
+     * @param meterManager the meter manager used to record fetch failures
+     * @param gaugeManager the gauge manager used to record path and size telemetry
+     * @return the parsed {@code Map<String, String>} of key-value pairs, or {@code null} when the payload cannot be parsed
+     */
     private Map<String, String> getMapOfObjects(String dartName, MeterStatsManager meterManager, GaugeStatsManager gaugeManager) {
         String jsonData = clientProvider.getDartDataStoreClient().fetchJsonData(
                 DartGet.class.getSimpleName(),
@@ -76,6 +124,17 @@ public class DefaultDartDataStore implements DartDataStore, Serializable {
         return map;
     }
 
+    /**
+     * Fetches and parses the {@code dart-contains} JSON payload for the given dart name into a set of values.
+     *
+     * <p>The payload is expected to contain a {@code "data"} array of strings; on any failure the error
+     * is recorded via {@link DartAspects#DART_GCS_FETCH_FAILURES} and an empty set is returned.
+     *
+     * @param dartName     the name of the dart whose set payload should be fetched
+     * @param meterManager the meter manager used to record fetch failures
+     * @param gaugeManager the gauge manager used to record path and size telemetry
+     * @return the parsed {@code Set<String>} of values, or an empty set when the payload cannot be parsed
+     */
     private Set<String> getSetOfObjects(String dartName, MeterStatsManager meterManager, GaugeStatsManager gaugeManager) {
         String jsonData = clientProvider.getDartDataStoreClient().fetchJsonData(DartContains.class.getSimpleName(), gaugeManager, this.bucketId, DART_CONTAINS_DIRECTORY + dartName);
         ObjectMapper mapper = new ObjectMapper();

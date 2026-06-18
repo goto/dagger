@@ -14,6 +14,9 @@ import java.util.List;
  * The type Double primitive type handler.
  */
 public class DoubleHandler implements PrimitiveHandler {
+    /**
+     * The protobuf {@code FieldDescriptor} of the double field this handler processes.
+     */
     private Descriptors.FieldDescriptor fieldDescriptor;
 
     /**
@@ -25,16 +28,33 @@ public class DoubleHandler implements PrimitiveHandler {
         this.fieldDescriptor = fieldDescriptor;
     }
 
+    /**
+     * Determines whether this handler applies to the field.
+     *
+     * @return {@code true} if the field's Java type is {@code DOUBLE}
+     */
     @Override
     public boolean canHandle() {
         return fieldDescriptor.getJavaType() == JavaType.DOUBLE;
     }
 
+    /**
+     * Parses the given value into a Java {@code double}.
+     *
+     * @param field the value to parse, defaulting to {@code 0} when {@code null}
+     * @return the parsed double value
+     */
     @Override
     public Object parseObject(Object field) {
         return Double.parseDouble(getValueOrDefault(field, "0"));
     }
 
+    /**
+     * Reads the double value for this field from a Parquet {@code SimpleGroup}.
+     *
+     * @param simpleGroup the Parquet group holding the encoded record
+     * @return the double value, or {@code 0.0} when the field is absent
+     */
     @Override
     public Object parseSimpleGroup(SimpleGroup simpleGroup) {
         String fieldName = fieldDescriptor.getName();
@@ -48,6 +68,12 @@ public class DoubleHandler implements PrimitiveHandler {
         }
     }
 
+    /**
+     * Converts a list of double values into a primitive {@code double[]}.
+     *
+     * @param field the list of double values, or {@code null}
+     * @return the values as a {@code double[]}, empty when {@code field} is {@code null}
+     */
     @Override
     public Object parseRepeatedObjectField(Object field) {
         double[] inputValues = new double[0];
@@ -57,6 +83,12 @@ public class DoubleHandler implements PrimitiveHandler {
         return inputValues;
     }
 
+    /**
+     * Reads the repeated double field from a Parquet {@code SimpleGroup} into a {@code double[]}.
+     *
+     * @param simpleGroup the Parquet group holding the encoded record
+     * @return the double array, empty when the field is absent
+     */
     @Override
     public Object parseRepeatedSimpleGroupField(SimpleGroup simpleGroup) {
         String fieldName = fieldDescriptor.getName();
@@ -71,11 +103,21 @@ public class DoubleHandler implements PrimitiveHandler {
         return new double[0];
     }
 
+    /**
+     * Returns the Flink {@code TypeInformation} for a single double value.
+     *
+     * @return {@code Types.DOUBLE}
+     */
     @Override
     public TypeInformation getTypeInformation() {
         return Types.DOUBLE;
     }
 
+    /**
+     * Returns the Flink {@code TypeInformation} for a repeated double field.
+     *
+     * @return a primitive double-array type
+     */
     @Override
     public TypeInformation getArrayType() {
         return Types.PRIMITIVE_ARRAY(Types.DOUBLE);

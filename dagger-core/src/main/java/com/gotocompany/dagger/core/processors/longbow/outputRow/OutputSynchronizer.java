@@ -12,8 +12,17 @@ import java.util.stream.IntStream;
  * The Output synchronizer.
  */
 public class OutputSynchronizer implements WriterOutputRow {
+    /**
+     * Schema describing the Longbow columns and key layout for the current job.
+     */
     private LongbowSchema longbowSchema;
+    /**
+     * Identifier of the BigTable table that received the written record.
+     */
     private String tableId;
+    /**
+     * Fully qualified name of the input Protobuf message class.
+     */
     private String inputProto;
 
     /**
@@ -29,6 +38,17 @@ public class OutputSynchronizer implements WriterOutputRow {
         this.inputProto = inputProto;
     }
 
+    /**
+     * Builds the synchronizer output row for a written Longbow record.
+     *
+     * <p>The returned row copies every field of {@code input} and appends three extra fields: the
+     * BigTable table id, the input Protobuf class name, and the Longbow key extracted from the
+     * configured write key column. The output arity is the input arity plus
+     * {@code Constants.LONGBOW_OUTPUT_ADDITIONAL_ARITY}.
+     *
+     * @param input the input row produced upstream of the Longbow writer
+     * @return a new row containing the original fields followed by the synchronizer metadata
+     */
     @Override
     public Row get(Row input) {
         int outputArity = input.getArity() + Constants.LONGBOW_OUTPUT_ADDITIONAL_ARITY;

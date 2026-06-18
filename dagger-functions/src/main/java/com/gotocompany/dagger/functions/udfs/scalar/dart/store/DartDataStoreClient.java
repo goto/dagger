@@ -4,6 +4,14 @@ import com.gotocompany.dagger.common.metrics.managers.GaugeStatsManager;
 import com.gotocompany.dagger.functions.exceptions.BucketDoesNotExistException;
 import com.gotocompany.dagger.functions.exceptions.TagDoesNotExistException;
 
+/**
+ * Low-level client that downloads raw dart JSON content from a specific object-storage provider.
+ *
+ * <p>Each backend (GCS, OSS, COS) supplies its own implementation, which is selected at runtime by
+ * {@link DartDataStoreClientProvider}. {@link DefaultDartDataStore} layers parsing and caching on top
+ * of this client, so a new backend usually only needs to implement this single download method; a
+ * fully custom store should instead implement {@link DartDataStore} directly.
+ */
 public interface DartDataStoreClient {
 
     /**

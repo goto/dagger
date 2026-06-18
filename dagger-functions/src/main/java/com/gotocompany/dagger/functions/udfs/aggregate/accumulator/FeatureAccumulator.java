@@ -14,7 +14,13 @@ import java.util.List;
  */
 public class FeatureAccumulator implements Serializable {
 
+    /**
+     * Backing list of key/value feature pairs collected by the owning aggregation.
+     */
     private @DataTypeHint("RAW") List<Tuple2<String, Object>> features = new ArrayList<>();
+    /**
+     * Fixed number of fields used to build each emitted Feast feature {@link Row}.
+     */
     private static final Integer FEATURE_ROW_LENGTH = 3;
 
     /**
@@ -42,10 +48,22 @@ public class FeatureAccumulator implements Serializable {
         return featureRows.toArray(new Row[0]);
     }
 
+    /**
+     * Returns the backing list of collected feature pairs.
+     *
+     * <p>Primarily intended for state access during {@code merge} and for serialization.
+     *
+     * @return the mutable list of key/value feature pairs
+     */
     public List<Tuple2<String, Object>> getFeatures() {
         return features;
     }
 
+    /**
+     * Replaces the backing list of collected feature pairs.
+     *
+     * @param features the list of key/value feature pairs to use as the accumulator state
+     */
     public void setFeatures(List<Tuple2<String, Object>> features) {
         this.features = features;
     }

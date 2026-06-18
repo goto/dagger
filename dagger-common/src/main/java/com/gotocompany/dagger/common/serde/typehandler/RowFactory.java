@@ -81,6 +81,18 @@ public class RowFactory {
     }
 
 
+    /**
+     * Builds a Flink {@code Row} from a Parquet {@code SimpleGroup}, reserving extra trailing columns.
+     *
+     * <p>Each field declared by the descriptor is deserialized through its matching
+     * {@code TypeHandler} and placed at the field's index; the row is widened by
+     * {@code extraColumns} so callers can append derived columns afterwards.
+     *
+     * @param descriptor   the protobuf descriptor describing the row layout
+     * @param simpleGroup  the Parquet group holding the encoded record
+     * @param extraColumns the number of additional, initially empty columns to append
+     * @return the populated row
+     */
     public static Row createRow(Descriptors.Descriptor descriptor, SimpleGroup simpleGroup, int extraColumns) {
         List<FieldDescriptor> descriptorFields = descriptor.getFields();
         Row row = new Row(descriptorFields.size() + extraColumns);
@@ -91,6 +103,13 @@ public class RowFactory {
         return row;
     }
 
+    /**
+     * Builds a Flink {@code Row} from a Parquet {@code SimpleGroup} with no extra columns.
+     *
+     * @param descriptor  the protobuf descriptor describing the row layout
+     * @param simpleGroup the Parquet group holding the encoded record
+     * @return the populated row
+     */
     public static Row createRow(Descriptors.Descriptor descriptor, SimpleGroup simpleGroup) {
         return createRow(descriptor, simpleGroup, 0);
     }

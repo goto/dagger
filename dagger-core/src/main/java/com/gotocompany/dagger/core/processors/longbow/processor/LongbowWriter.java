@@ -39,18 +39,54 @@ import static java.time.Duration.between;
  */
 public class LongbowWriter extends RichAsyncFunction<Row, Row> implements TelemetryPublisher {
 
+    /**
+     * Logger used to record table-creation and write failures for this writer.
+     */
     private static final Logger LOGGER = LoggerFactory.getLogger(LongbowWriter.class.getName());
+    /**
+     * Default BigTable column family, in bytes, under which Longbow values are written.
+     */
     private static final byte[] COLUMN_FAMILY_NAME = Bytes.toBytes(Constants.LONGBOW_COLUMN_FAMILY_DEFAULT);
 
+    /**
+     * Manager used to emit meters and histograms for writer instrumentation.
+     */
     private MeterStatsManager meterStatsManager;
+    /**
+     * Schema describing the Longbow columns, keys and document duration for the current job.
+     */
     private LongbowSchema longbowSchema;
+    /**
+     * Dagger configuration used to read writer settings and build the {@link LongbowStore}.
+     */
     private Configuration configuration;
+    /**
+     * Configured time-to-live for written documents, used to derive the BigTable max-age GC rule.
+     */
     private String longbowDocumentDuration;
+    /**
+     * Factory that builds the appropriate {@link PutRequest} for each input row.
+     */
     private PutRequestFactory putRequestFactory;
+    /**
+     * Identifier of the BigTable table this writer persists records into.
+     */
     private String tableId;
+    /**
+     * Strategy that assembles the row emitted after a successful write.
+     */
     private WriterOutputRow writerOutputRow;
+    /**
+     * Client that creates tables and issues asynchronous writes against BigTable.
+     */
     private LongbowStore longBowStore;
+    /**
+     * Telemetry collected for this processor, keyed by telemetry type.
+     */
     private Map<String, List<String>> metrics = new HashMap<>();
+    /**
+     * Reporter used to surface fatal and non-fatal writer exceptions.
+     */
     private ErrorReporter errorReporter;
 
     /**
@@ -93,6 +129,18 @@ public class LongbowWriter extends RichAsyncFunction<Row, Row> implements Teleme
         this.errorReporter = errorReporter;
     }
 
+    /**
+     * {@inheritDoc}
+     *
+     * <p>Lazily initialises the {@link LongbowStore}, {@link MeterStatsManager} and
+     * {@link ErrorReporter} when they were not injected, registers the writer meter group, and
+     * creates the target BigTable table if it does not yet exist. Table creation applies a
+     * max-versions of one together with a max-age derived from the configured document duration, and
+     * is instrumented for both success and failure.
+     *
+     * @param internalFlinkConfig the Flink runtime configuration supplied when the function opens
+     * @throws Exception if the store cannot be created or the table cannot be provisioned
+     */
     @Override
     public void open(org.apache.flink.configuration.Configuration internalFlinkConfig) throws Exception {
         super.open(internalFlinkConfig);
@@ -131,11 +179,28 @@ public class LongbowWriter extends RichAsyncFunction<Row, Row> implements Teleme
         }
     }
 
+    /**
+     * {@inheritDoc}
+     *
+     * <p>Registers the post-processor type telemetry for the Longbow writer before subscribers are
+     * notified.
+     */
     @Override
     public void preProcessBeforeNotifyingSubscriber() {
         addMetric(TelemetryTypes.POST_PROCESSOR_TYPE.getValue(), Constants.LONGBOW_WRITER_PROCESSOR_KEY);
     }
 
+    /**
+     * {@inheritDoc}
+     *
+     * <p>Builds a {@link PutRequest} for the input row and writes it to BigTable asynchronously. On
+     * success it records the write metrics and completes {@code resultFuture} with the row produced by
+     * the configured {@link WriterOutputRow}; failures are logged and reported.
+     *
+     * @param input        the input row to persist into BigTable
+     * @param resultFuture the future completed with the single output row once the write succeeds
+     * @throws Exception if the put request cannot be created or submitted
+     */
     @Override
     public void asyncInvoke(Row input, ResultFuture<Row> resultFuture) throws Exception {
         PutRequest putRequest = putRequestFactory.create(input);
@@ -149,6 +214,16 @@ public class LongbowWriter extends RichAsyncFunction<Row, Row> implements Teleme
         });
     }
 
+    /**
+     * Handles a failed BigTable write by logging and reporting it.
+     *
+     * <p>Logs the error, marks the write-failure event, reports a non-fatal
+     * {@code LongbowWriterException} and records the failure response time.
+     *
+     * @param ex        the throwable raised while writing to BigTable
+     * @param startTime the instant the write started, used to compute the response time
+     * @return {@code null} always, matching the {@code Void} completion stage signature
+     */
     private Void logException(Throwable ex, Instant startTime) {
         LOGGER.error("failed to write document to table '{}'", tableId);
         ex.printStackTrace();
@@ -159,6 +234,16 @@ public class LongbowWriter extends RichAsyncFunction<Row, Row> implements Teleme
         return null;
     }
 
+    /**
+     * Handles an asynchronous write that exceeded its configured timeout.
+     *
+     * <p>Marks a writer timeout event, reports a fatal {@link TimeoutException} and completes the
+     * {@code resultFuture} exceptionally.
+     *
+     * @param input        the input row whose asynchronous write timed out
+     * @param resultFuture the future completed exceptionally with the timeout error
+     * @throws Exception if reporting the timeout fails
+     */
     public void timeout(Row input, ResultFuture<Row> resultFuture) throws Exception {
         LOGGER.error("LongbowWriter : timeout when writing document");
         meterStatsManager.markEvent(LongbowWriterAspects.TIMEOUTS_ON_WRITER);
@@ -167,6 +252,14 @@ public class LongbowWriter extends RichAsyncFunction<Row, Row> implements Teleme
         resultFuture.completeExceptionally(timeoutException);
     }
 
+    /**
+     * {@inheritDoc}
+     *
+     * <p>Releases the underlying {@link LongbowStore} if it was opened, marks the close-connection
+     * event and logs the closure.
+     *
+     * @throws Exception if closing the parent function or the store fails
+     */
     @Override
     public void close() throws Exception {
         super.close();
@@ -177,11 +270,22 @@ public class LongbowWriter extends RichAsyncFunction<Row, Row> implements Teleme
         LOGGER.error("LongbowWriter : Connection closed");
     }
 
+    /**
+     * {@inheritDoc}
+     *
+     * @return the telemetry collected by this writer, keyed by telemetry type
+     */
     @Override
     public Map<String, List<String>> getTelemetry() {
         return metrics;
     }
 
+    /**
+     * Appends a telemetry value under the given key.
+     *
+     * @param key   the telemetry type key to record under
+     * @param value the telemetry value to add for that key
+     */
     private void addMetric(String key, String value) {
         metrics.computeIfAbsent(key, k -> new ArrayList<>()).add(value);
     }

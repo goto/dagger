@@ -10,6 +10,9 @@ import java.util.List;
  */
 public class PythonFileType implements FileType {
 
+    /**
+     * The location of the single Python ({@code .py}) source file this type represents.
+     */
     private String pythonFile;
 
     /**
@@ -21,6 +24,15 @@ public class PythonFileType implements FileType {
         this.pythonFile = pythonFile;
     }
 
+    /**
+     * {@inheritDoc}
+     *
+     * <p>Returns a single-element list containing the bare file name (the segment after the
+     * last {@code /}) of the configured {@code .py} file.
+     *
+     * @return a singleton list holding the Python file name
+     * @throws PythonFilesEmptyException if no Python file was configured
+     */
     @Override
     public List<String> getFileNames() {
         if (pythonFile == null) {

@@ -15,8 +15,17 @@ import java.util.concurrent.TimeUnit;
  */
 public class HttpStreamDecorator implements StreamDecorator {
 
+    /**
+     * Configuration describing the HTTP endpoint, verb and output mapping to enrich the stream with.
+     */
     private final HttpSourceConfig httpSourceConfig;
+    /**
+     * Metric configuration carrying the telemetry settings shared with the created connector.
+     */
     private final ExternalMetricConfig externalMetricConfig;
+    /**
+     * Schema configuration providing the descriptors and column metadata for the stream.
+     */
     private final SchemaConfig schemaConfig;
 
     /**
@@ -32,11 +41,28 @@ public class HttpStreamDecorator implements StreamDecorator {
         this.schemaConfig = schemaConfig;
     }
 
+    /**
+     * {@inheritDoc}
+     *
+     * <p>An HTTP decorator can decorate the stream only when an {@code HttpSourceConfig} has been configured.
+     *
+     * @return {@code true} when the HTTP source config is present, {@code false} otherwise
+     */
     @Override
     public Boolean canDecorate() {
         return httpSourceConfig != null;
     }
 
+    /**
+     * {@inheritDoc}
+     *
+     * <p>Wraps the input stream in an order-preserving asynchronous operator backed by a
+     * {@link HttpAsyncConnector}, using the configured stream timeout and capacity. The connector is
+     * subscribed to the telemetry subscriber before the operator is created.
+     *
+     * @param inputStream the stream of {@link Row} records to enrich with HTTP responses
+     * @return the decorated stream emitting enriched {@link Row} records
+     */
     @Override
     public DataStream<Row> decorate(DataStream<Row> inputStream) {
         HttpAsyncConnector httpAsyncConnector = new HttpAsyncConnector(httpSourceConfig, externalMetricConfig, schemaConfig);

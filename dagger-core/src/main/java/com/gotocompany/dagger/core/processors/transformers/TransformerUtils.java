@@ -12,12 +12,26 @@ public class TransformerUtils {
          * Table name default argument.
          */
         INPUT_SCHEMA_TABLE("table_name");
+        /**
+         * The serialized argument key used to look this default argument up in a transformer's
+         * argument map.
+         */
         private final String argument;
 
+        /**
+         * Creates a default argument bound to the given serialized key.
+         *
+         * @param argument the argument key as it appears in a transformer's argument map
+         */
         DefaultArgument(String argument) {
             this.argument = argument;
         }
 
+        /**
+         * Returns the serialized argument key for this default argument.
+         *
+         * @return the argument key
+         */
         @Override
         public String toString() {
             return this.argument;

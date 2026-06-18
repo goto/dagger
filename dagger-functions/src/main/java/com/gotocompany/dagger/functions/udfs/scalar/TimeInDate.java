@@ -10,6 +10,9 @@ import java.util.TimeZone;
  * The Time in date udf.
  */
 public class TimeInDate extends ScalarUdf {
+    /**
+     * Number of milliseconds in one second, used to convert between seconds and milliseconds.
+     */
     private static final Integer SECOND_IN_MILLIS = 1000;
 
     /**

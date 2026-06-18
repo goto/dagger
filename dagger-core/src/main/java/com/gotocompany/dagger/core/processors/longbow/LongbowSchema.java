@@ -25,7 +25,13 @@ import static com.gotocompany.dagger.common.core.Constants.ROWTIME;
  * A class that holds the Longbow schema.
  */
 public class LongbowSchema implements Serializable {
+    /**
+     * Maps each column name to its positional index within the input {@link Row}.
+     */
     private HashMap<String, Integer> columnIndexMap;
+    /**
+     * The ordered list of column names that make up the Longbow input schema.
+     */
     private List<String> columnNames;
 
     /**
@@ -190,6 +196,12 @@ public class LongbowSchema implements Serializable {
         return getType() != LongbowType.LongbowProcess;
     }
 
+    /**
+     * Normalizes a rowtime field value into a {@link Timestamp}.
+     *
+     * @param timeStampField the rowtime field value, either a {@link LocalDateTime} or a {@link Timestamp}
+     * @return the value as a {@link Timestamp}
+     */
     private Timestamp convertToTimeStamp(Object timeStampField) {
         if (timeStampField instanceof LocalDateTime) {
             return Timestamp.valueOf((LocalDateTime) timeStampField);

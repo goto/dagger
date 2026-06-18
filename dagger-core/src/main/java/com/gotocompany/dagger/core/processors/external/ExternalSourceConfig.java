@@ -13,9 +13,21 @@ import java.util.List;
  * A class that holds external post processor configuration.
  */
 public class ExternalSourceConfig {
+    /**
+     * The list of HTTP external lookup configurations, or {@code null} when none are configured.
+     */
     private List<HttpSourceConfig> http;
+    /**
+     * The list of Elasticsearch external lookup configurations, or {@code null} when none are configured.
+     */
     private List<EsSourceConfig> es;
+    /**
+     * The list of Postgres external lookup configurations, or {@code null} when none are configured.
+     */
     private List<PgSourceConfig> pg;
+    /**
+     * The list of gRPC external lookup configurations, or {@code null} when none are configured.
+     */
     private List<GrpcSourceConfig> grpc;
 
     /**
@@ -93,6 +105,13 @@ public class ExternalSourceConfig {
         return columnNames;
     }
 
+    /**
+     * Collects the output column names contributed by each source in the given list.
+     *
+     * @param <T>     the concrete {@link SourceConfig} type held in the list
+     * @param configs the source configurations to read output columns from; may be {@code null}
+     * @return the aggregated output column names, or an empty list when {@code configs} is {@code null}
+     */
     private <T extends SourceConfig> ArrayList<String> getOutputColumnNames(List<T> configs) {
         ArrayList<String> columnNames = new ArrayList<>();
         if (configs == null) {

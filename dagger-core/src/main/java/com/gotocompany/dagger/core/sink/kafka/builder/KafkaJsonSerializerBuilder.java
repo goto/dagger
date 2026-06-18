@@ -18,20 +18,52 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * {@link KafkaSerializerBuilder} that produces a JSON {@link KafkaRecordSerializationSchema} for the
+ * Kafka sink.
+ *
+ * <p>On {@link #build()} it reads the output topic, stream and JSON schema from configuration, records
+ * the topic and stream as telemetry, converts the JSON schema into a Flink {@code TypeInformation<Row>}
+ * and builds a {@link JsonRowSerializationSchema} wrapped in a record serialization schema targeting
+ * the output topic. As a {@link TelemetryPublisher} it exposes the collected metrics through
+ * {@link #getTelemetry()}.
+ */
 public class KafkaJsonSerializerBuilder implements KafkaSerializerBuilder, TelemetryPublisher {
+    /** Collected telemetry (output topic and stream) keyed by telemetry type. */
     private Map<String, List<String>> metrics;
     private Configuration configuration;
 
+    /**
+     * Creates a JSON serializer builder.
+     *
+     * @param configuration the job configuration providing the output topic, stream and JSON schema
+     */
     public KafkaJsonSerializerBuilder(Configuration configuration) {
         this.configuration = configuration;
         this.metrics = new HashMap<>();
     }
 
+    /**
+     * {@inheritDoc}
+     *
+     * <p>Returns the output topic and stream recorded during {@link #build()}.
+     */
     @Override
     public Map<String, List<String>> getTelemetry() {
         return metrics;
     }
 
+    /**
+     * {@inheritDoc}
+     *
+     * <p>Reads the output topic, stream and JSON schema from configuration, records the topic and
+     * stream as telemetry and notifies subscribers, converts the JSON schema into a Flink row type, and
+     * returns a {@link KafkaRecordSerializationSchema} that serializes each row as JSON to the output
+     * topic.
+     *
+     * @return a JSON-based {@link KafkaRecordSerializationSchema} for the output topic
+     * @throws InvalidJSONSchemaException if the configured JSON schema is invalid and cannot be converted
+     */
     @Override
     public KafkaRecordSerializationSchema build() {
         String outputTopic = configuration.getString(Constants.SINK_KAFKA_TOPIC_KEY, "");
@@ -57,6 +89,12 @@ public class KafkaJsonSerializerBuilder implements KafkaSerializerBuilder, Telem
         }
     }
 
+    /**
+     * Appends a telemetry value under the given key, creating the backing list on first use.
+     *
+     * @param key   the telemetry key
+     * @param value the telemetry value to record
+     */
     private void addMetric(String key, String value) {
         metrics.computeIfAbsent(key, k -> new ArrayList<>()).add(value);
     }

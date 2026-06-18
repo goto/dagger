@@ -15,8 +15,20 @@ import java.util.List;
  */
 public class PythonUdfManager {
 
+    /**
+     * Flink table environment into which the discovered Python UDFs are registered as
+     * temporary SQL functions.
+     */
     private StreamTableEnvironment tableEnvironment;
+    /**
+     * Parsed Python UDF configuration describing the files, requirements, archives and
+     * execution tuning to apply.
+     */
     private PythonUdfConfig pythonUdfConfig;
+    /**
+     * Dagger configuration used to resolve the appropriate file source (local, GCS, OSS or
+     * COS) for each configured Python file.
+     */
     private final Configuration configuration;
 
     /**
@@ -52,6 +64,14 @@ public class PythonUdfManager {
         }
     }
 
+    /**
+     * Applies the Python execution settings from the {@link PythonUdfConfig} onto the
+     * underlying Flink table environment configuration.
+     *
+     * <p>Optional requirements and archives are only set when present, while the Python
+     * files, Arrow batch size, bundle size and bundle time are always configured using the
+     * values (or defaults) resolved from the config.
+     */
     private void registerPythonConfig() {
         if (pythonUdfConfig.getPythonRequirements() != null) {
             tableEnvironment.getConfig().getConfiguration().setString("python.requirements", pythonUdfConfig.getPythonRequirements());
@@ -65,12 +85,30 @@ public class PythonUdfManager {
         tableEnvironment.getConfig().getConfiguration().setLong("python.fn-execution.bundle.time", pythonUdfConfig.getPythonBundleTime());
     }
 
+    /**
+     * Executes each of the supplied SQL statements against the table environment.
+     *
+     * @param sqlQueries the SQL statements to run, typically temporary function
+     *                   registrations derived from the discovered Python files
+     */
     private void executeSql(List<String> sqlQueries) {
         for (String query : sqlQueries) {
             tableEnvironment.executeSql(query);
         }
     }
 
+    /**
+     * Builds the {@code CREATE TEMPORARY FUNCTION} SQL statements that register each
+     * discovered Python file as a Flink SQL function.
+     *
+     * <p>For every entry the {@code .py} suffix is stripped and path separators are
+     * converted to dots to form the fully-qualified Python callable; the derived function
+     * name (the last path segment, upper-cased) is bound to that callable using the
+     * {@code PYTHON} language.
+     *
+     * @param fileNames the Python file names discovered for a configured source
+     * @return one SQL registration statement per supplied file name
+     */
     private List<String> createQuery(List<String> fileNames) {
         List<String> sqlQueries = new ArrayList<>();
         for (String fileName : fileNames) {

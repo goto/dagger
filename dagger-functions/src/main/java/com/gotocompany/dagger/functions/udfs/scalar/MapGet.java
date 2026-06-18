@@ -41,6 +41,15 @@ public class MapGet extends ScalarUdf {
         return requiredRow.map(row -> row.getField(1)).orElse(null);
     }
 
+    /**
+     * {@inheritDoc}
+     *
+     * <p>Declares the input strategy (a map represented as an {@code ARRAY} of key/value {@code ROW}s plus
+     * a key argument) and an output strategy that yields the map's value type.
+     *
+     * @param typeFactory the factory used to resolve Flink {@link DataType}s
+     * @return the {@link TypeInference} describing input and output type strategies
+     */
     @Override
     public TypeInference getTypeInference(DataTypeFactory typeFactory) {
         return TypeInference.newBuilder()
@@ -49,7 +58,16 @@ public class MapGet extends ScalarUdf {
                 .build();
     }
 
+    /**
+     * Output {@link TypeStrategy} for {@link MapGet} that reports the map's value type as the result type.
+     */
     private static class MapOutputTypeStrategy implements TypeStrategy {
+        /**
+         * Infers the output type as the value (second) field of the map's key/value row.
+         *
+         * @param callContext the context describing the current SQL call
+         * @return an {@link Optional} containing the value {@link DataType} of the map
+         */
         @Override
         public Optional<DataType> inferType(CallContext callContext) {
             CollectionDataType firstArgumentDataType = (CollectionDataType) callContext.getArgumentDataTypes().get(0);
@@ -59,12 +77,28 @@ public class MapGet extends ScalarUdf {
         }
     }
 
+    /**
+     * Input {@link InputTypeStrategy} for {@link MapGet} accepting the map and the lookup key.
+     */
     private static class MapGetInputTypeStrategy implements InputTypeStrategy {
+        /**
+         * Restricts the SQL function to exactly two arguments.
+         *
+         * @return a constant {@link ArgumentCount} of two
+         */
         @Override
         public ArgumentCount getArgumentCount() {
             return ConstantArgumentCount.of(2);
         }
 
+        /**
+         * Resolves the argument types to an {@code ARRAY} of key/value {@code ROW}s (derived from the map)
+         * followed by the key's data type.
+         *
+         * @param callContext    the context describing the current SQL call
+         * @param throwOnFailure whether to raise an error when types cannot be inferred
+         * @return an {@link Optional} holding the resolved list of argument {@link DataType}s
+         */
         @Override
         public Optional<List<DataType>> inferInputTypes(CallContext callContext, boolean throwOnFailure) {
             CollectionDataType firstArgumentDataType = (CollectionDataType) callContext.getArgumentDataTypes().get(0);
@@ -75,6 +109,14 @@ public class MapGet extends ScalarUdf {
             return Optional.of(Arrays.asList(mapDataType, secondArgumentDataType));
         }
 
+        /**
+         * {@inheritDoc}
+         *
+         * <p>This UDF does not advertise explicit call signatures.
+         *
+         * @param definition the Flink function definition
+         * @return {@code null}, as no fixed signatures are declared
+         */
         @Override
         public List<Signature> getExpectedSignatures(FunctionDefinition definition) {
             return null;

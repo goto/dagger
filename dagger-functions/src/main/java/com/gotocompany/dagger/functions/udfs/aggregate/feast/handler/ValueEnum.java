@@ -37,8 +37,16 @@ public enum ValueEnum {
      */
     TimestampType(7);
 
+    /**
+     * The Feast value slot index associated with this type.
+     */
     private Integer value;
 
+    /**
+     * Creates an enum constant bound to its Feast value slot index.
+     *
+     * @param value the Feast value slot index this type maps to
+     */
     ValueEnum(Integer value) {
         this.value = value;
     }

@@ -15,6 +15,14 @@ import java.util.List;
 @FunctionHint(output = @DataTypeHint(value = "RAW", bridgedTo = ArrayList.class))
 public class CollectArray extends AggregateUdf<List<Object>, ArrayAccumulator> {
 
+    /**
+     * Creates a fresh, empty {@link ArrayAccumulator} for a new aggregation group.
+     *
+     * <p>Flink invokes this method once per aggregation key to obtain the mutable state
+     * into which input objects are folded by {@code accumulate}.
+     *
+     * @return a new, empty {@link ArrayAccumulator} instance
+     */
     public ArrayAccumulator createAccumulator() {
         return new ArrayAccumulator();
     }
@@ -32,10 +40,29 @@ public class CollectArray extends AggregateUdf<List<Object>, ArrayAccumulator> {
         arrayAccumulator.add(obj);
     }
 
+    /**
+     * Returns the aggregated result by emitting every object collected so far.
+     *
+     * <p>Flink calls this to compute the final output value of the aggregation from the
+     * supplied accumulator state.
+     *
+     * @param arrayAccumulator the accumulator holding the collected objects
+     * @return the list of all objects accumulated for the current group, in insertion order
+     */
     public List<Object> getValue(ArrayAccumulator arrayAccumulator) {
         return arrayAccumulator.emit();
     }
 
+    /**
+     * Merges the objects collected by other accumulators into the target accumulator.
+     *
+     * <p>Flink uses this when partial aggregates computed in parallel (for example across
+     * session windows or split groups) must be combined; every object from each accumulator
+     * in {@code it} is appended to {@code arrayAccumulator}.
+     *
+     * @param arrayAccumulator the accumulator that receives the merged objects
+     * @param it               the other accumulators whose collected objects are merged in
+     */
     public void merge(ArrayAccumulator arrayAccumulator, Iterable<ArrayAccumulator> it) {
         for (ArrayAccumulator accumulatorInstance : it) {
             arrayAccumulator.getArrayList().addAll(accumulatorInstance.getArrayList());

@@ -23,10 +23,25 @@ import java.util.List;
  */
 public class PreProcessorOrchestrator implements Preprocessor {
 
+    /**
+     * The exporter that publishes preprocessor telemetry to the metrics subscriber.
+     */
     private final MetricsTelemetryExporter metricsTelemetryExporter;
+    /**
+     * The parsed preprocessor configuration, or {@code null} when preprocessing is disabled.
+     */
     private final PreProcessorConfig processorConfig;
+    /**
+     * The name of the table whose transformers this orchestrator applies.
+     */
     private final String tableName;
+    /**
+     * The Dagger context exposing the job {@link Configuration} and shared runtime wiring.
+     */
     private final DaggerContext daggerContext;
+    /**
+     * Shared Gson instance configured to map snake_case JSON keys onto the config fields.
+     */
     private static final Gson GSON = new GsonBuilder().setFieldNamingPolicy(FieldNamingPolicy.LOWER_CASE_WITH_UNDERSCORES).create();
 
     /**
@@ -63,6 +78,15 @@ public class PreProcessorOrchestrator implements Preprocessor {
         return config;
     }
 
+    /**
+     * {@inheritDoc}
+     *
+     * <p>Runs each enabled preprocessor over the stream in turn and then wraps the result in a
+     * {@link ValidRecordsDecorator} so that only valid records are forwarded downstream.
+     *
+     * @param streamInfo the incoming stream together with its column names
+     * @return the resulting stream after all preprocessors and the valid-records filter have run
+     */
     @Override
     public StreamInfo process(StreamInfo streamInfo) {
         for (Preprocessor processor : getProcessors()) {
@@ -99,6 +123,14 @@ public class PreProcessorOrchestrator implements Preprocessor {
         return preprocessors;
     }
 
+    /**
+     * {@inheritDoc}
+     *
+     * <p>Determines whether this orchestrator has any preprocessing work to perform.
+     *
+     * @param config the preprocessor configuration to evaluate
+     * @return {@code true} when {@code config} is non-null and not empty, {@code false} otherwise
+     */
     @Override
     public boolean canProcess(PreProcessorConfig config) {
         return config != null && !config.isEmpty();
