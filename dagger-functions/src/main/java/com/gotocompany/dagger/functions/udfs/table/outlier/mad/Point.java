@@ -6,14 +6,39 @@ import java.sql.Timestamp;
  * The Point for OutlierMad udf.
  */
 public class Point {
+    /**
+     * The timestamp of this data point.
+     */
     private final Timestamp timestamp;
+    /**
+     * The observed value of this data point.
+     */
     private final Double value;
+    /**
+     * Whether this point falls inside the observation window and should be considered when detecting outliers.
+     */
     private final boolean observable;
+    /**
+     * The value's distance from the median scaled by the median absolute deviation.
+     */
     private Double distanceFromMad;
+    /**
+     * Whether this point has been classified as an outlier.
+     */
     private boolean isOutlier;
+    /**
+     * The upper bound beyond which the value is considered an outlier.
+     */
     private double upperBound;
+    /**
+     * The lower bound below which the value is considered an outlier.
+     */
     private double lowerBound;
 
+    /**
+     * A reusable placeholder point with a {@code null} timestamp, a zero value and marked as not
+     * observable, used to pre-fill collections before the real points are computed.
+     */
     public static final Point EMPTY_POINT = new Point(null, 0d, false);
 
     /**

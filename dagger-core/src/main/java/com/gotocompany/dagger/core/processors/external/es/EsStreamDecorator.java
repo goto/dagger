@@ -15,8 +15,17 @@ import java.util.concurrent.TimeUnit;
  */
 public class EsStreamDecorator implements StreamDecorator {
 
+    /**
+     * The Elasticsearch source configuration passed to the connector created by this decorator.
+     */
     private final EsSourceConfig esSourceConfig;
+    /**
+     * The metric configuration applied to the connector, including telemetry and the metric id.
+     */
     private final ExternalMetricConfig externalMetricConfig;
+    /**
+     * The schema configuration providing column and proto metadata to the connector.
+     */
     private final SchemaConfig schemaConfig;
 
     /**
@@ -32,11 +41,25 @@ public class EsStreamDecorator implements StreamDecorator {
         this.schemaConfig = schemaConfig;
     }
 
+    /**
+     * {@inheritDoc}
+     *
+     * @return {@code true} when an Elasticsearch source configuration is present
+     */
     @Override
     public Boolean canDecorate() {
         return esSourceConfig != null;
     }
 
+    /**
+     * {@inheritDoc}
+     *
+     * <p>Wraps the input stream in an ordered asynchronous Elasticsearch lookup, registering the telemetry
+     * subscriber and applying the configured stream timeout and capacity.
+     *
+     * @param inputStream the stream to enrich with Elasticsearch lookups
+     * @return the asynchronously enriched stream
+     */
     @Override
     public DataStream<Row> decorate(DataStream<Row> inputStream) {
         EsAsyncConnector esAsyncConnector = new EsAsyncConnector(esSourceConfig, externalMetricConfig, schemaConfig);

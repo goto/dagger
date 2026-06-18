@@ -34,15 +34,45 @@ import java.util.Map;
  */
 public class GrpcResponseHandler implements StreamObserver<DynamicMessage> {
 
+    /**
+     * Logger used to record gRPC response parsing and processing errors.
+     */
     private static final Logger LOGGER = LoggerFactory.getLogger(GrpcResponseHandler.class.getName());
+    /**
+     * Manager wrapping the input and output rows that response values are written into.
+     */
     private final RowManager rowManager;
+    /**
+     * Resolver mapping output column names to their positions in the output row.
+     */
     private ColumnNameManager columnNameManager;
+    /**
+     * The protobuf descriptor of the output message used to type-cast response values.
+     */
     private Descriptors.Descriptor descriptor;
+    /**
+     * The future completed with the enriched row once the response has been handled.
+     */
     private ResultFuture<Row> resultFuture;
+    /**
+     * The gRPC source configuration describing output mappings and error behaviour.
+     */
     private GrpcSourceConfig grpcSourceConfig;
+    /**
+     * Manager used to emit meter-style metrics for response outcomes.
+     */
     private MeterStatsManager meterStatsManager;
+    /**
+     * The time at which the request was issued, used to compute response latency telemetry.
+     */
     private Instant startTime;
+    /**
+     * Reporter used to surface fatal and non-fatal errors raised while handling responses.
+     */
     private ErrorReporter errorReporter;
+    /**
+     * Helper that emits success and failure telemetry for the external call.
+     */
     private PostResponseTelemetry postResponseTelemetry;
 
     /**
@@ -69,6 +99,15 @@ public class GrpcResponseHandler implements StreamObserver<DynamicMessage> {
         this.postResponseTelemetry = postResponseTelemetry;
     }
 
+    /**
+     * Handles a successful gRPC response by extracting each configured output value and populating the row.
+     *
+     * <p>The response message is rendered to JSON and each configured output mapping is read via its JSON
+     * path and written into the output row; path or protobuf parsing failures are reported as errors. On
+     * success the result future is completed with the enriched row.
+     *
+     * @param message the response message returned by the gRPC service
+     */
     private void successHandler(DynamicMessage message) {
         Map<String, OutputMapping> outputMappings = grpcSourceConfig.getOutputMapping();
         ArrayList<String> outputMappingKeys = new ArrayList<>(outputMappings.keySet());
@@ -103,6 +142,16 @@ public class GrpcResponseHandler implements StreamObserver<DynamicMessage> {
 
     }
 
+    /**
+     * Writes a single response value into the output row at the given index.
+     *
+     * <p>When the response type is not retained (or an explicit type is configured), the value is converted
+     * using the field's type handler; otherwise the raw value is stored directly.
+     *
+     * @param key        the output column (field) name being populated
+     * @param value      the raw value read from the response
+     * @param fieldIndex the output row index to write the value into
+     */
     private void setField(String key, Object value, int fieldIndex) {
         if (!grpcSourceConfig.isRetainResponseType() || grpcSourceConfig.hasType()) {
             setFieldUsingType(key, value, fieldIndex);
@@ -111,6 +160,13 @@ public class GrpcResponseHandler implements StreamObserver<DynamicMessage> {
         }
     }
 
+    /**
+     * Converts and writes a response value using the type handler resolved from the output descriptor.
+     *
+     * @param key        the output column (field) name being populated
+     * @param value      the raw value read from the response
+     * @param fieldIndex the output row index to write the value into
+     */
     private void setFieldUsingType(String key, Object value, int fieldIndex) {
         Descriptors.FieldDescriptor fieldDescriptor = null;
         try {
@@ -126,6 +182,11 @@ public class GrpcResponseHandler implements StreamObserver<DynamicMessage> {
     }
 
 
+    /**
+     * Reports the given exception as fatal and completes the result future exceptionally.
+     *
+     * @param e the exception to report and propagate
+     */
     private void reportAndThrowError(Exception e) {
         errorReporter.reportFatalException(e);
         resultFuture.completeExceptionally(e);
@@ -156,11 +217,25 @@ public class GrpcResponseHandler implements StreamObserver<DynamicMessage> {
         startTime = Instant.now();
     }
 
+    /**
+     * {@inheritDoc}
+     *
+     * <p>Delegates the received response message to the success handler.
+     *
+     * @param message the response message emitted by the gRPC stream
+     */
     @Override
     public void onNext(DynamicMessage message) {
         successHandler(message);
     }
 
+    /**
+     * {@inheritDoc}
+     *
+     * <p>Records an error metric and routes the failure through the failure handler.
+     *
+     * @param t the error raised by the gRPC stream
+     */
     @Override
     public void onError(Throwable t) {
         t.printStackTrace();
@@ -169,6 +244,12 @@ public class GrpcResponseHandler implements StreamObserver<DynamicMessage> {
 
     }
 
+    /**
+     * {@inheritDoc}
+     *
+     * <p>No action is required when the gRPC stream completes, as results are emitted from
+     * {@link #onNext(DynamicMessage)}.
+     */
     @Override
     public void onCompleted() {
     }

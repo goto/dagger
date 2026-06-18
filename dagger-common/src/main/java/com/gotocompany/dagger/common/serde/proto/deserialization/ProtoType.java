@@ -17,9 +17,22 @@ import java.io.Serializable;
  */
 public class ProtoType implements Serializable, DaggerInternalTypeInformation {
 
+    /**
+     * The cached, lazily-resolved protobuf {@link Descriptor} for {@code protoClassName};
+     * marked {@code transient} because descriptors are not serializable.
+     */
     private transient Descriptor protoFieldDescriptor;
+    /**
+     * The fully-qualified protobuf class name whose schema drives the row type.
+     */
     private String protoClassName;
+    /**
+     * The name of the attribute that carries the Flink rowtime (event-time) field.
+     */
     private String rowtimeAttributeName;
+    /**
+     * The orchestrator used to obtain the Stencil client that resolves proto descriptors.
+     */
     private StencilClientOrchestrator stencilClientOrchestrator;
 
     /**
@@ -45,6 +58,11 @@ public class ProtoType implements Serializable, DaggerInternalTypeInformation {
         return addInternalFields(rowNamed, rowtimeAttributeName);
     }
 
+    /**
+     * Returns the protobuf {@link Descriptor}, resolving and caching it on first access.
+     *
+     * @return the proto field descriptor for {@code protoClassName}
+     */
     private Descriptor getProtoFieldDescriptor() {
         if (protoFieldDescriptor == null) {
             protoFieldDescriptor = createFieldDescriptor();
@@ -52,6 +70,12 @@ public class ProtoType implements Serializable, DaggerInternalTypeInformation {
         return protoFieldDescriptor;
     }
 
+    /**
+     * Resolves the protobuf {@link Descriptor} for {@code protoClassName} via the Stencil client.
+     *
+     * @return the resolved descriptor
+     * @throws DescriptorNotFoundException if no descriptor is registered for {@code protoClassName}
+     */
     private Descriptor createFieldDescriptor() {
         Descriptors.Descriptor dsc = stencilClientOrchestrator.getStencilClient().get(protoClassName);
         if (dsc == null) {

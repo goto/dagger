@@ -17,11 +17,29 @@ import static com.gotocompany.dagger.core.utils.Constants.SINK_KAFKA_PROTO_MESSA
  * The Schema config.
  */
 public class SchemaConfig implements Serializable {
+    /**
+     * The job configuration providing access to stream and sink settings.
+     */
     private final Configuration configuration;
+    /**
+     * The orchestrator used to obtain Stencil clients for resolving Protobuf descriptors.
+     */
     private final StencilClientOrchestrator stencilClientOrchestrator;
+    /**
+     * Manager that resolves input and output column indices by name.
+     */
     private ColumnNameManager columnNameManager;
+    /**
+     * The fully qualified names of the input Protobuf message classes for each configured stream.
+     */
     private String[] inputProtoClasses;
+    /**
+     * The fully qualified name of the output Protobuf message class written to the sink.
+     */
     private String outputProtoClassName;
+    /**
+     * Shared Gson instance used to parse the JSON input streams configuration.
+     */
     private static final Gson GSON = new Gson();
 
     /**
@@ -75,6 +93,14 @@ public class SchemaConfig implements Serializable {
         return outputProtoClassName;
     }
 
+    /**
+     * Extracts the input Protobuf message class names from the configured input streams.
+     *
+     * <p>Parses the {@code INPUT_STREAMS} JSON configuration and collects the
+     * {@code STREAM_INPUT_SCHEMA_PROTO_CLASS} entry from each stream definition.
+     *
+     * @return the array of input proto class names, one per configured stream
+     */
     private String[] getMessageProtoClasses() {
         String jsonArrayString = configuration.getString(INPUT_STREAMS, "");
         Map[] streamsConfig = GSON.fromJson(jsonArrayString, Map[].class);

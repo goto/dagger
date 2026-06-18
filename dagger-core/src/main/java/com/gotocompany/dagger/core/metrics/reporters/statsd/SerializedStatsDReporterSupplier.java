@@ -11,5 +11,13 @@ fields serializable in Java 8: https://stackoverflow.com/a/22808112 */
 
 @FunctionalInterface
 public interface SerializedStatsDReporterSupplier extends Serializable {
+    /**
+     * Builds a fresh {@link StatsDReporter} instance.
+     *
+     * <p>Invoked lazily on the task managers so that the non-serializable reporter is constructed
+     * after this serializable supplier has been shipped as part of the Flink job graph.
+     *
+     * @return a newly constructed {@code StatsDReporter}
+     */
     StatsDReporter buildStatsDReporter();
 }

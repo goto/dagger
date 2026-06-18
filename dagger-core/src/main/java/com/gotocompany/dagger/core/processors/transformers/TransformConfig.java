@@ -11,7 +11,14 @@ import java.util.Map;
  */
 public class TransformConfig implements Validator, Serializable {
 
+    /**
+     * The fully-qualified class name of the
+     * {@link com.gotocompany.dagger.common.core.Transformer} implementation to instantiate and apply.
+     */
     private final String transformationClass;
+    /**
+     * The arguments supplied to the transformer, keyed by argument name.
+     */
     private final Map<String, Object> transformationArguments;
 
     /**
@@ -51,12 +58,30 @@ public class TransformConfig implements Validator, Serializable {
         return transformationArguments;
     }
 
+    /**
+     * Returns the fields that must be present for this configuration to be considered valid.
+     *
+     * <p>For a transform config the only mandatory field is the transformation class name.
+     *
+     * @return a map containing the {@code transformationClass} entry to be validated
+     */
     public HashMap<String, Object> getMandatoryFields() {
         HashMap<String, Object> mandatoryFields = new HashMap<>();
         mandatoryFields.put("transformationClass", transformationClass);
         return mandatoryFields;
     }
 
+    /**
+     * Validates this configuration, ensuring mandatory fields are present and that no reserved
+     * default-argument key is supplied by the user.
+     *
+     * <p>This first runs the default {@link Validator#validateFields()} checks, then rejects any
+     * transformation argument whose key collides with a {@link TransformerUtils.DefaultArgument}
+     * (for example {@code table_name}), since those keys are populated internally.
+     *
+     * @throws IllegalArgumentException if a mandatory field is missing or a reserved argument key
+     *                                  is present in the transformation arguments
+     */
     @Override
     public void validateFields() throws IllegalArgumentException {
         Validator.super.validateFields();

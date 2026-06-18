@@ -17,8 +17,17 @@ import static java.util.Collections.sort;
  * The Mad for OutlierMad udf.
  */
 public class Mad {
+    /**
+     * Logger used to record failures encountered while computing the median absolute deviation.
+     */
     private static final Logger LOGGER = LoggerFactory.getLogger(Mad.class.getName());
+    /**
+     * The time-series points being analysed for outliers.
+     */
     private List<Point> points;
+    /**
+     * Permitted deviation, expressed as a multiple of the MAD, beyond which a point is treated as an outlier.
+     */
     private final Integer tolerance;
 
     /**
@@ -55,6 +64,16 @@ public class Mad {
         return points.stream().filter(Point::isOutlier).collect(Collectors.toList());
     }
 
+    /**
+     * Computes and stores, for every point, its scaled distance from the median together with the
+     * tolerance-derived upper and lower bounds.
+     *
+     * <p>Points at or below the median use the lower-side MAD while points above the median use the
+     * upper-side MAD, supporting the double-MAD (asymmetric) variant of the algorithm.
+     *
+     * @param doubleMAD a two-element list holding the lower-side MAD at index {@code 0} and the
+     *                  upper-side MAD at index {@code 1}
+     */
     private void setDistanceFromMAD(ArrayList<Double> doubleMAD) {
         Double median = getMedian(points.stream().map(Point::getValue).collect(Collectors.toList()));
         for (Point point : points) {
@@ -66,6 +85,17 @@ public class Mad {
         }
     }
 
+    /**
+     * Computes the double (asymmetric) median absolute deviation around the median of the points.
+     *
+     * <p>Points are split into those at or below the median and those at or above it, and a MAD is
+     * computed for each side.
+     *
+     * @return a two-element {@code ArrayList<Double>} containing the lower-side MAD followed by the
+     *         upper-side MAD
+     * @throws MadZeroException if either side has a MAD of zero, which makes outliers undetectable
+     * @throws MedianNotFound   if the median cannot be computed because there are no values
+     */
     private ArrayList<Double> getDoubleMAD() {
         ArrayList<Point> valuesLessThanMedian = new ArrayList<>();
         ArrayList<Point> valuesGreaterThanMedian = new ArrayList<>();
@@ -86,6 +116,16 @@ public class Mad {
         return doubleMad;
     }
 
+    /**
+     * Computes the median absolute deviation (MAD) of the given points' values.
+     *
+     * <p>The MAD is the median of the absolute distances of each value from the values' median.
+     *
+     * @param points the points whose values the MAD is computed from
+     * @return the median absolute deviation of the supplied values
+     * @throws MadZeroException if the computed MAD is zero, in which case outliers cannot be detected
+     * @throws MedianNotFound   if a median cannot be computed because the list is empty
+     */
     private static Double getMAD(List<Point> points) {
         Double median = getMedian(points.stream().map(Point::getValue).collect(Collectors.toList()));
         List<Double> absoluteDistancesFromMedian =
@@ -101,6 +141,13 @@ public class Mad {
 
     }
 
+    /**
+     * Computes the absolute distance of each value from a reference value.
+     *
+     * @param values the values to measure
+     * @param value  the reference value distances are measured from
+     * @return a list of absolute distances aligned with the input {@code values}
+     */
     private static List<Double> getAbsoluteDistance(List<Double> values, Double value) {
         ArrayList<Double> absoluteDistances = new ArrayList<>(nCopies(values.size(), 0d));
         for (int index = 0; index < values.size(); index++) {
@@ -109,6 +156,15 @@ public class Mad {
         return absoluteDistances;
     }
 
+    /**
+     * Computes the median of the supplied values, sorting the list in place.
+     *
+     * <p>For an even number of elements the mean of the two central values is returned.
+     *
+     * @param values the values to compute the median of; reordered in place by this call
+     * @return the median value
+     * @throws MedianNotFound if {@code values} is empty
+     */
     private static Double getMedian(List<Double> values) {
         sort(values);
         int pointValueSize = values.size();

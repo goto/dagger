@@ -11,9 +11,24 @@ import java.util.TimeZone;
  */
 public class EndOfWeek extends ScalarUdf {
 
+    /**
+     * Hour-of-day ({@code 23}) representing the final hour, used to roll a timestamp to the end of the day.
+     */
     private static final Integer END_OF_DAY_HOUR = 23;
+
+    /**
+     * Minute and second value ({@code 59}) marking the last minute and second of the day.
+     */
     private static final Integer END_OF_DAY_MINUTE_AND_SECOND = 59;
+
+    /**
+     * Number of days in a week ({@code 7}), added to advance from the start of the week to its end.
+     */
     private static final Integer DAY_SPAN = 7;
+
+    /**
+     * Largest millisecond value ({@code 999}) within a second, used to reach the very end of the day.
+     */
     private static final Integer MAX_MILLISECONDS = 999;
 
     /**

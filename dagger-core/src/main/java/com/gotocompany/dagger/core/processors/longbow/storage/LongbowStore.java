@@ -25,16 +25,37 @@ import static com.google.cloud.bigtable.admin.v2.models.GCRules.GCRULES;
  * A class that responsible to store the event to big table for longbow.
  */
 public class LongbowStore {
+    /**
+     * Admin client used to check for and create BigTable tables.
+     */
     private BigtableTableAdminClient adminClient;
+    /**
+     * Asynchronous connection used to read from and write to BigTable tables.
+     */
     private BigtableAsyncConnection tableClient;
+    /**
+     * Cache of opened asynchronous tables keyed by table id.
+     */
     private Map<String, AsyncTable<AdvancedScanResultConsumer>> tables;
 
+    /**
+     * Creates a store backed by the given BigTable admin and async connection clients.
+     *
+     * @param adminClient the client used to manage BigTable tables
+     * @param tableClient the asynchronous connection used to access table data
+     */
     private LongbowStore(BigtableTableAdminClient adminClient, BigtableAsyncConnection tableClient) {
         this.adminClient = adminClient;
         this.tableClient = tableClient;
         this.tables = new HashMap<>();
     }
 
+    /**
+     * Returns the asynchronous table handle for the given id, opening and caching it on first use.
+     *
+     * @param tableId the identifier of the BigTable table
+     * @return the cached or newly opened {@code AsyncTable} for the table
+     */
     private AsyncTable<AdvancedScanResultConsumer> getTable(String tableId) {
         if (!tables.containsKey(tableId)) {
             tables.put(tableId, tableClient.getTable(TableName.valueOf(tableId)));

@@ -13,7 +13,14 @@ import java.util.Map;
  * The DartGet udf.
  */
 public class DartGet extends DartScalarUdf {
+    /**
+     * Backing store from which Dart map collections are fetched (for example Redis or GCS).
+     */
     private final DartDataStore dataStore;
+
+    /**
+     * In-memory cache of fetched maps keyed by collection name, refreshed when its TTL expires.
+     */
     private final Map<String, MapCache> cache;
 
     /**

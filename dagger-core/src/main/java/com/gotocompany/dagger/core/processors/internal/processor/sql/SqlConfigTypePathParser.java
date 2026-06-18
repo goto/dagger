@@ -13,7 +13,9 @@ import java.io.Serializable;
  */
 public class SqlConfigTypePathParser implements Serializable {
 
+    /** The internal source configuration supplying the input field name or select-all marker. */
     private InternalSourceConfig internalSourceConfig;
+    /** Resolves logical column names to their input row indices. */
     private ColumnNameManager columnNameManager;
 
     /**

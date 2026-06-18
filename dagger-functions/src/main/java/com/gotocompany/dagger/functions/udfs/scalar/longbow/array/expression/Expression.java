@@ -8,6 +8,9 @@ import java.util.stream.Collectors;
  * The interface Expression.
  */
 public interface Expression extends Serializable {
+    /**
+     * The name of the JEXL context variable that holds the input stream operated on by expressions.
+     */
     String BASE_STRING = "stream";
 
     /**

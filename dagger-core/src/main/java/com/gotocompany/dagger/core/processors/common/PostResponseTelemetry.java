@@ -63,9 +63,21 @@ public class PostResponseTelemetry {
         }
     }
 
+    /**
+     * Checks whether the given HTTP status code falls within the client-error (4xx) range.
+     *
+     * @param statusCode the HTTP status code returned by the external call
+     * @return {@code true} if the code is a client error, {@code false} otherwise
+     */
     private boolean isClientError(int statusCode) {
         return statusCode >= CLIENT_ERROR_MIN_STATUS_CODE && statusCode <= CLIENT_ERROR_MAX_STATUS_CODE;
     }
+    /**
+     * Checks whether the given HTTP status code falls within the server-error (5xx) range.
+     *
+     * @param statusCode the HTTP status code returned by the external call
+     * @return {@code true} if the code is a server error, {@code false} otherwise
+     */
     private boolean isServerError(int statusCode) {
         return statusCode >= SERVER_ERROR_MIN_STATUS_CODE && statusCode <= SERVER_ERROR_MAX_STATUS_CODE;
     }

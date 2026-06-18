@@ -14,6 +14,9 @@ import java.util.List;
  * The type Float primitive type handler.
  */
 public class FloatHandler implements PrimitiveHandler {
+    /**
+     * The protobuf {@code FieldDescriptor} of the float field this handler processes.
+     */
     private Descriptors.FieldDescriptor fieldDescriptor;
 
     /**
@@ -25,16 +28,33 @@ public class FloatHandler implements PrimitiveHandler {
         this.fieldDescriptor = fieldDescriptor;
     }
 
+    /**
+     * Determines whether this handler applies to the field.
+     *
+     * @return {@code true} if the field's Java type is {@code FLOAT}
+     */
     @Override
     public boolean canHandle() {
         return fieldDescriptor.getJavaType() == JavaType.FLOAT;
     }
 
+    /**
+     * Parses the given value into a Java {@code float}.
+     *
+     * @param field the value to parse, defaulting to {@code 0} when {@code null}
+     * @return the parsed float value
+     */
     @Override
     public Object parseObject(Object field) {
         return Float.parseFloat(getValueOrDefault(field, "0"));
     }
 
+    /**
+     * Reads the float value for this field from a Parquet {@code SimpleGroup}.
+     *
+     * @param simpleGroup the Parquet group holding the encoded record
+     * @return the float value, or {@code 0.0F} when the field is absent
+     */
     @Override
     public Object parseSimpleGroup(SimpleGroup simpleGroup) {
         String fieldName = fieldDescriptor.getName();
@@ -48,6 +68,12 @@ public class FloatHandler implements PrimitiveHandler {
         }
     }
 
+    /**
+     * Converts a list of float values into a primitive {@code float[]}.
+     *
+     * @param field the list of float values, or {@code null}
+     * @return the values as a {@code float[]}, empty when {@code field} is {@code null}
+     */
     @Override
     public Object parseRepeatedObjectField(Object field) {
 
@@ -58,6 +84,12 @@ public class FloatHandler implements PrimitiveHandler {
         return inputValues;
     }
 
+    /**
+     * Reads the repeated float field from a Parquet {@code SimpleGroup} into a {@code float[]}.
+     *
+     * @param simpleGroup the Parquet group holding the encoded record
+     * @return the float array, empty when the field is absent
+     */
     @Override
     public Object parseRepeatedSimpleGroupField(SimpleGroup simpleGroup) {
         String fieldName = fieldDescriptor.getName();
@@ -72,11 +104,21 @@ public class FloatHandler implements PrimitiveHandler {
         return new float[0];
     }
 
+    /**
+     * Returns the Flink {@code TypeInformation} for a single float value.
+     *
+     * @return {@code Types.FLOAT}
+     */
     @Override
     public TypeInformation getTypeInformation() {
         return Types.FLOAT;
     }
 
+    /**
+     * Returns the Flink {@code TypeInformation} for a repeated float field.
+     *
+     * @return a primitive float-array type
+     */
     @Override
     public TypeInformation getArrayType() {
         return Types.PRIMITIVE_ARRAY(Types.FLOAT);

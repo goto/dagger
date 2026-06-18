@@ -15,10 +15,25 @@ import java.util.UnknownFormatConversionException;
  * The Http post request handler.
  */
 public class HttpPutRequestHandler implements HttpRequestHandler {
+    /**
+     * Configuration describing the endpoint, verb, patterns and headers for the request.
+     */
     private HttpSourceConfig httpSourceConfig;
+    /**
+     * The asynchronous HTTP client used to prepare the request builder.
+     */
     private AsyncHttpClient httpClient;
+    /**
+     * Resolved values substituted into the request pattern that forms the request body.
+     */
     private Object[] requestVariablesValues;
+    /**
+     * Resolved values substituted into the dynamic header pattern.
+     */
     private Object[] dynamicHeaderVariablesValues;
+    /**
+     * Resolved values substituted into the endpoint placeholders.
+     */
     private Object[] endpointVariablesValues;
     /**
      * Instantiates a new Http post request handler.
@@ -36,6 +51,16 @@ public class HttpPutRequestHandler implements HttpRequestHandler {
         this.endpointVariablesValues = endpointVariablesValues;
     }
 
+    /**
+     * {@inheritDoc}
+     *
+     * <p>Builds a PUT request by formatting the request body and endpoint from their variable values and
+     * applying the static headers together with any dynamic headers produced from the header pattern.
+     *
+     * @return the prepared {@code BoundRequestBuilder} for the PUT request
+     * @throws InvalidConfigurationException if the header pattern is invalid or incompatible with the
+     *                                       configured header variables
+     */
     @Override
     public BoundRequestBuilder create() {
         String requestBody = String.format(httpSourceConfig.getPattern(), requestVariablesValues);
@@ -58,6 +83,13 @@ public class HttpPutRequestHandler implements HttpRequestHandler {
         return addHeaders(putRequest, headers);
     }
 
+    /**
+     * {@inheritDoc}
+     *
+     * <p>This handler can create the request when the configured verb is {@code PUT}.
+     *
+     * @return {@code true} when the configured verb is {@code PUT} (case-insensitive), {@code false} otherwise
+     */
     @Override
     public boolean canCreate() {
         return httpSourceConfig.getVerb().equalsIgnoreCase("put");

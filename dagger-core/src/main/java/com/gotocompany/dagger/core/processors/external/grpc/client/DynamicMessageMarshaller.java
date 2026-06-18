@@ -13,6 +13,9 @@ import io.grpc.MethodDescriptor.Marshaller;
  * A {@link Marshaller} for dynamic messages.
  */
 public class DynamicMessageMarshaller implements Marshaller<DynamicMessage> {
+    /**
+     * The protobuf descriptor describing the dynamic message type marshalled by this instance.
+     */
     private final Descriptor messageDescriptor;
 
     /**
@@ -24,6 +27,15 @@ public class DynamicMessageMarshaller implements Marshaller<DynamicMessage> {
         this.messageDescriptor = messageDescriptor;
     }
 
+    /**
+     * {@inheritDoc}
+     *
+     * <p>Reads a {@link DynamicMessage} of the configured type from the supplied stream.
+     *
+     * @param inputStream the stream carrying the serialized protobuf message
+     * @return the parsed dynamic message
+     * @throws RuntimeException if the message cannot be read from the stream
+     */
     @Override
     public DynamicMessage parse(InputStream inputStream) {
         try {
@@ -35,6 +47,14 @@ public class DynamicMessageMarshaller implements Marshaller<DynamicMessage> {
         }
     }
 
+    /**
+     * {@inheritDoc}
+     *
+     * <p>Serializes the given message into a stream over its protobuf byte representation.
+     *
+     * @param abstractMessage the dynamic message to serialize
+     * @return a stream over the serialized message bytes
+     */
     @Override
     public InputStream stream(DynamicMessage abstractMessage) {
         return abstractMessage.toByteString().newInput();

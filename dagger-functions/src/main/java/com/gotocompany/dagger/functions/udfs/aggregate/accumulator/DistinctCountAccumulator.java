@@ -10,6 +10,9 @@ import java.util.HashSet;
  */
 public class DistinctCountAccumulator implements Serializable {
 
+    /**
+     * Backing set holding the distinct values observed by the owning aggregation.
+     */
     private @DataTypeHint("RAW") HashSet<String> distinctItems = new HashSet<>();
 
     /**
@@ -30,10 +33,22 @@ public class DistinctCountAccumulator implements Serializable {
         distinctItems.add(item);
     }
 
+    /**
+     * Returns the backing set of distinct values.
+     *
+     * <p>Primarily intended for state access during {@code merge} and for serialization.
+     *
+     * @return the mutable set of distinct items
+     */
     public HashSet<String> getDistinctItems() {
         return distinctItems;
     }
 
+    /**
+     * Replaces the backing set of distinct values.
+     *
+     * @param distinctItems the set of distinct items to use as the accumulator state
+     */
     public void setDistinctItems(HashSet<String> distinctItems) {
         this.distinctItems = distinctItems;
     }

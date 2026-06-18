@@ -10,6 +10,9 @@ import java.sql.Timestamp;
  */
 public class TimestampFromUnix extends ScalarUdf {
 
+    /**
+     * Number of milliseconds in one second, used to convert UNIX seconds into a {@link Timestamp}.
+     */
     private static final int SECONDS_TO_MILISECONDS = 1000;
 
     /**

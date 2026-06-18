@@ -29,10 +29,19 @@ import org.slf4j.LoggerFactory;
  */
 public class GrpcAsyncConnector extends AsyncConnector {
 
+    /**
+     * Logger used to record gRPC connection lifecycle events.
+     */
     private static final Logger LOGGER = LoggerFactory.getLogger(GrpcAsyncConnector.class.getName());
 
+    /**
+     * The gRPC source configuration backing this connector's lookups.
+     */
     private GrpcSourceConfig grpcSourceConfig;
 
+    /**
+     * The gRPC client used to issue asynchronous unary calls to the configured service.
+     */
     private GrpcClient grpcClient;
 
     /**
@@ -68,11 +77,26 @@ public class GrpcAsyncConnector extends AsyncConnector {
 
     }
 
+    /**
+     * {@inheritDoc}
+     *
+     * <p>Builds a {@link DescriptorManager} that resolves protobuf descriptors from the configured gRPC
+     * stencil URLs in addition to the stencil client orchestrator.
+     *
+     * @param schemaConfig the schema configuration providing the stencil client orchestrator
+     * @return a descriptor manager backed by the configured gRPC stencil URLs
+     */
     @Override
     public DescriptorManager initDescriptorManager(SchemaConfig schemaConfig) {
         return new DescriptorManager(schemaConfig.getStencilClientOrchestrator(), grpcSourceConfig.getGrpcStencilUrl());
     }
 
+    /**
+     * {@inheritDoc}
+     *
+     * <p>Lazily creates the {@link GrpcClient} from the source configuration and opens its managed channel,
+     * unless a client was already injected.
+     */
     @Override
     protected void createClient() {
 
@@ -82,6 +106,18 @@ public class GrpcAsyncConnector extends AsyncConnector {
         }
     }
 
+    /**
+     * {@inheritDoc}
+     *
+     * <p>Resolves the request variables from the input row, validates the query, builds a request
+     * {@link DynamicMessage} via a {@link GrpcRequestHandler}, and issues an asynchronous unary call whose
+     * response is handled by a {@link GrpcResponseHandler}. Invalid bodies and unavailable channels are
+     * recorded as telemetry and propagated through the result future.
+     *
+     * @param input        the incoming row supplying the request variable values
+     * @param resultFuture the future completed with the enriched row or an error
+     * @throws Exception if the call cannot be initiated
+     */
     @Override
     protected void process(Row input, ResultFuture<Row> resultFuture) throws Exception {
 
@@ -114,6 +150,12 @@ public class GrpcAsyncConnector extends AsyncConnector {
     }
 
 
+    /**
+     * Resolves the protobuf descriptor for the configured gRPC response schema.
+     *
+     * @param resultFuture the future used to report a missing descriptor as an error
+     * @return the response message descriptor, or {@code null} when no schema is configured
+     */
     private Descriptors.Descriptor getOutputDescriptorForGrpcResponse(ResultFuture<Row> resultFuture) {
         String descriptorClassName = grpcSourceConfig.getGrpcResponseProtoSchema();
         Descriptors.Descriptor grpcProtoDescriptor = null;
@@ -127,6 +169,12 @@ public class GrpcAsyncConnector extends AsyncConnector {
         return grpcProtoDescriptor;
     }
 
+    /**
+     * Resolves the protobuf descriptor for the configured gRPC request schema.
+     *
+     * @param resultFuture the future used to report a missing descriptor as an error
+     * @return the request message descriptor, or {@code null} when no schema is configured
+     */
     private Descriptors.Descriptor getInputDescriptorForGrpcRequest(ResultFuture<Row> resultFuture) {
         String descriptorClassName = grpcSourceConfig.getGrpcRequestProtoSchema();
         Descriptors.Descriptor grpcProtoDescriptor = null;
@@ -140,6 +188,11 @@ public class GrpcAsyncConnector extends AsyncConnector {
         return grpcProtoDescriptor;
     }
 
+    /**
+     * {@inheritDoc}
+     *
+     * <p>Closes the gRPC client, releases the channel, records a connection-close metric, and logs the closure.
+     */
     @Override
     public void close() {
         grpcClient.close();

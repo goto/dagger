@@ -28,6 +28,15 @@ public class FileTypeFactory {
         }
     }
 
+    /**
+     * Determines the file format of a Python file from its extension.
+     *
+     * <p>The substring after the final {@code .} is returned upper-cased, for example
+     * {@code PY} or {@code ZIP}, and is used to select the matching {@link FileType}.
+     *
+     * @param pythonFile the configured Python file location
+     * @return the upper-cased file extension
+     */
     private static String getFileTypeFormat(String pythonFile) {
         String[] files = pythonFile.split("\\.");
         return files[files.length - 1].toUpperCase();

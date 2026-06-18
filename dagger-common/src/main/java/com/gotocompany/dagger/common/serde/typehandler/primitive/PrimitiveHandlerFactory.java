@@ -26,6 +26,15 @@ public class PrimitiveHandlerFactory {
         return filteredTypeHandlers.orElseThrow(() -> new DataTypeNotSupportedException("Data type " + fieldDescriptor.getJavaType() + " not supported in primitive type handlers"));
     }
 
+    /**
+     * Builds the ordered list of candidate primitive handlers for the given field.
+     *
+     * <p>{@code getTypeHandler} selects the first handler whose {@code canHandle()} returns
+     * {@code true}, so the order determines which handler claims each Java type.
+     *
+     * @param fieldDescriptor the field descriptor to build candidate handlers for
+     * @return the ordered list of candidate primitive handlers to try
+     */
     private static List<PrimitiveHandler> getSpecificHandlers(Descriptors.FieldDescriptor fieldDescriptor) {
         return Arrays.asList(
                 new IntegerHandler(fieldDescriptor),

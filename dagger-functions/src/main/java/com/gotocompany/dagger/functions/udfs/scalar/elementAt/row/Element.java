@@ -10,8 +10,17 @@ import java.util.Optional;
  * The abstract class of Element.
  */
 public abstract class Element {
+    /**
+     * The protobuf field descriptor identifying this element within its parent message.
+     */
     private Descriptors.FieldDescriptor fieldDescriptor;
+    /**
+     * The parent element in the path chain, or {@code null} when this is the first element.
+     */
     private Element parent;
+    /**
+     * The Flink {@link Row} that holds the value for this element.
+     */
     private Row row;
 
     /**

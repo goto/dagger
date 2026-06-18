@@ -11,6 +11,9 @@ import java.nio.file.Paths;
  */
 public class LocalFileSource implements FileSource {
 
+    /**
+     * Absolute or relative path on the local file system to the Python file to read.
+     */
     private String pythonFile;
 
     /**
@@ -22,6 +25,14 @@ public class LocalFileSource implements FileSource {
         this.pythonFile = pythonFile;
     }
 
+    /**
+     * {@inheritDoc}
+     *
+     * <p>Reads the configured local file in full and returns its raw bytes.
+     *
+     * @return the content of the local Python file
+     * @throws IOException if the file cannot be read
+     */
     @Override
     public byte[] getObjectFile() throws IOException {
         return Files.readAllBytes(Paths.get(pythonFile));

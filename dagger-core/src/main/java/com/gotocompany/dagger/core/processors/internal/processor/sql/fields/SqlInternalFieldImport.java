@@ -11,8 +11,11 @@ import com.gotocompany.dagger.core.processors.internal.processor.sql.SqlConfigTy
  */
 public class SqlInternalFieldImport implements SqlInternalFieldConfig {
 
+    /** Resolves logical column names to their input/output row indices. */
     private ColumnNameManager columnNameManager;
+    /** Extracts the configured input data (single field or whole input row) for the mapping. */
     private SqlConfigTypePathParser sqlPathParser;
+    /** The internal source configuration supplying the input value and output field. */
     private InternalSourceConfig internalSourceConfig;
 
     /**
@@ -28,6 +31,14 @@ public class SqlInternalFieldImport implements SqlInternalFieldConfig {
         this.internalSourceConfig = internalSourceConfig;
     }
 
+    /**
+     * Resolves the configured input value and writes it into the mapped output column.
+     *
+     * <p>When the configured output field cannot be resolved to a column index the record is left
+     * unchanged.
+     *
+     * @param rowManager the row manager wrapping the record whose output row is populated
+     */
     @Override
     public void processInputColumns(RowManager rowManager) {
         int outputFieldIndex = columnNameManager.getOutputIndex(internalSourceConfig.getOutputField());

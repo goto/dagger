@@ -9,6 +9,14 @@ import org.apache.flink.types.Row;
  */
 public interface FilterDecorator extends FilterFunction<Row>, StreamDecorator {
 
+    /**
+     * Decorates the given stream by applying this filter to it.
+     *
+     * <p>{@inheritDoc}
+     *
+     * @param inputStream the input stream of {@link Row} records to filter
+     * @return a data stream retaining only the records that satisfy this filter
+     */
     @Override
     default DataStream<Row> decorate(DataStream<Row> inputStream) {
         return inputStream.filter(this);

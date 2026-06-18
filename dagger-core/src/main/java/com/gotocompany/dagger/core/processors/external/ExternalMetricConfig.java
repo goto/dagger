@@ -10,9 +10,21 @@ import java.io.Serializable;
  * The External metric config.
  */
 public class ExternalMetricConfig implements Serializable {
+    /**
+     * The grace period in milliseconds to wait for telemetry reporters to flush before shutting down.
+     */
     private final long shutDownPeriod;
+    /**
+     * Whether telemetry/metric reporting is enabled for the external source.
+     */
     private final boolean telemetryEnabled;
+    /**
+     * The subscriber notified of telemetry produced by the external source.
+     */
     private TelemetrySubscriber telemetrySubscriber;
+    /**
+     * The identifier used to distinguish metrics emitted for a specific external source instance.
+     */
     private String metricId;
 
     /**

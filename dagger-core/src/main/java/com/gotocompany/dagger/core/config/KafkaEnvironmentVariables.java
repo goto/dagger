@@ -9,6 +9,9 @@ import java.util.Properties;
  */
 public class KafkaEnvironmentVariables {
 
+    /**
+     * Prefix marking Dagger configuration keys that carry raw Kafka consumer properties.
+     */
     private static final String KAFKA_PREFIX = "source_kafka_config_";
 
     /**
@@ -31,6 +34,16 @@ public class KafkaEnvironmentVariables {
         return props;
     }
 
+    /**
+     * Converts a prefixed Dagger configuration key into its native Kafka property name.
+     *
+     * <p>The {@code source_kafka_config_} prefix is stripped and the remaining underscore-separated
+     * segments are lower-cased and joined with dots, so {@code source_kafka_config_bootstrap_servers}
+     * becomes {@code bootstrap.servers}.
+     *
+     * @param varName the prefixed Dagger configuration key to convert
+     * @return the equivalent dot-separated Kafka property name
+     */
     private static String parseVarName(String varName) {
         String[] names = varName.toLowerCase().replaceAll(KAFKA_PREFIX, "").split("_");
         return String.join(".", names);

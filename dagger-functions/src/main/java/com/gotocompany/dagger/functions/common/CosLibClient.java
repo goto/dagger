@@ -14,10 +14,20 @@ import lombok.Getter;
  * Stateless class.
  */
 public class CosLibClient {
+    /**
+     * The singleton instance of {@link CosLibClient}, exposed through the Lombok-generated
+     * {@code getInstance()} accessor and replaceable in tests via {@code testOnlySetInstance}.
+     */
     @Getter
     private static CosLibClient instance = new CosLibClient();
 
+    /**
+     * Name of the environment variable that holds the COS secret id used for authentication.
+     */
     private static final String ENV_COS_SECRET_ID = "COS_SECRET_ID";
+    /**
+     * Name of the environment variable that holds the COS secret key used for authentication.
+     */
     private static final String ENV_COS_SECRET_KEY = "COS_SECRET_KEY";
 
     // the credential provider provides short living token. If we have a libCosClient long living object with these

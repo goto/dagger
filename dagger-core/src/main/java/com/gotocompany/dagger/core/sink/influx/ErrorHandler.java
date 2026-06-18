@@ -19,8 +19,15 @@ import java.util.function.BiConsumer;
  * The Error handler for Influx sink.
  */
 public class ErrorHandler implements Serializable {
+    /**
+     * Handler invoked for a batch of points that failed to write; it selects the matching
+     * {@link InfluxError} strategy and delegates handling to it.
+     */
     private BiConsumer<Iterable<Point>, Throwable> exceptionHandler;
 
+    /**
+     * The {@link InfluxError} strategy matched for the most recent failure, if any.
+     */
     private InfluxError error;
 
     /**

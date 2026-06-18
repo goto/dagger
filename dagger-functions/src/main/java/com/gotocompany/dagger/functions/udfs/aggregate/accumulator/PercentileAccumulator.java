@@ -11,8 +11,14 @@ import java.util.List;
  */
 public class PercentileAccumulator implements Serializable {
 
+    /**
+     * Backing list of sample values over which the percentile is computed.
+     */
     private List<Double> dValueList = new ArrayList<>();
 
+    /**
+     * The requested percentile (for example {@code 95.0}) to evaluate over the samples.
+     */
     private double percentile;
 
     /**
@@ -36,18 +42,40 @@ public class PercentileAccumulator implements Serializable {
                 evaluate(dValueList.stream().sorted().mapToDouble(Double::doubleValue).toArray(), 0, dValueList.size());
     }
 
+    /**
+     * Returns the backing list of sample values.
+     *
+     * <p>Primarily intended for state access during {@code merge} and for serialization.
+     *
+     * @return the mutable list of sample values
+     */
     public List<Double> getdValueList() {
         return dValueList;
     }
 
+    /**
+     * Replaces the backing list of sample values.
+     *
+     * @param dValueList the list of sample values to use as the accumulator state
+     */
     public void setdValueList(List<Double> dValueList) {
         this.dValueList = dValueList;
     }
 
+    /**
+     * Returns the requested percentile to be evaluated over the samples.
+     *
+     * @return the percentile value
+     */
     public double getPercentile() {
         return percentile;
     }
 
+    /**
+     * Sets the requested percentile to be evaluated over the samples.
+     *
+     * @param percentile the percentile value to evaluate
+     */
     public void setPercentile(double percentile) {
         this.percentile = percentile;
     }

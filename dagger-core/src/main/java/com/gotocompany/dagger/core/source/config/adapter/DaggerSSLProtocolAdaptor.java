@@ -9,7 +9,24 @@ import com.gotocompany.dagger.core.utils.Constants;
 import java.io.IOException;
 import java.util.Arrays;
 
+/**
+ * Gson {@link TypeAdapter} that validates the Kafka consumer SSL/TLS protocol while a
+ * {@code StreamConfig} is deserialized.
+ *
+ * <p>It is wired in through a {@code @JsonAdapter} annotation on the stream config's
+ * {@code sslProtocol} field and accepts only the protocol versions listed in
+ * {@link Constants#SUPPORTED_SOURCE_KAFKA_CONSUMER_CONFIG_SSL_PROTOCOL} (for example {@code TLSv1.2},
+ * {@code TLSv1.3} or {@code SSL}); any other value aborts job startup with an
+ * {@link InvalidConfigurationException}.
+ */
 public class DaggerSSLProtocolAdaptor extends TypeAdapter<String> {
+    /**
+     * Serializes the SSL protocol value back to JSON, emitting a JSON {@code null} when it is unset.
+     *
+     * @param jsonWriter the writer receiving the serialized value
+     * @param value      the SSL protocol to write; a {@code null} is rendered as a JSON null literal
+     * @throws IOException if writing to the underlying JSON stream fails
+     */
     @Override
     public void write(JsonWriter jsonWriter, String value) throws IOException {
         if (value == null) {
@@ -19,6 +36,15 @@ public class DaggerSSLProtocolAdaptor extends TypeAdapter<String> {
         jsonWriter.value(value);
     }
 
+    /**
+     * Reads the SSL protocol value from JSON and validates it against the supported versions.
+     *
+     * @param jsonReader the reader positioned at the SSL protocol string
+     * @return the SSL protocol when it is one of the supported values
+     * @throws IOException                  if reading from the underlying JSON stream fails
+     * @throws InvalidConfigurationException if the value is not present in
+     *                                       {@link Constants#SUPPORTED_SOURCE_KAFKA_CONSUMER_CONFIG_SSL_PROTOCOL}
+     */
     @Override
     public String read(JsonReader jsonReader) throws IOException {
         String sslProtocol = jsonReader.nextString();

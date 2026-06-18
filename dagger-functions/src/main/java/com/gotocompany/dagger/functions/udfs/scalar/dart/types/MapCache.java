@@ -18,6 +18,9 @@ public class MapCache extends Cache implements Serializable {
      * The constant NULL_CACHE.
      */
     public static final MapCache NULL_CACHE = new MapCache(new HashMap<String, String>(), null);
+    /**
+     * The backing key-value pairs held by this cache entry.
+     */
     private Map<String, String> cache;
 
     /**
@@ -63,6 +66,12 @@ public class MapCache extends Cache implements Serializable {
         return cache.isEmpty();
     }
 
+    /**
+     * Compares this map cache with another object for equality based on the cached key-value pairs.
+     *
+     * @param o the object to compare with
+     * @return {@code true} if the other object is a {@code MapCache} with equal cached contents
+     */
     @Override
     public boolean equals(Object o) {
         if (this == o) {
@@ -75,6 +84,11 @@ public class MapCache extends Cache implements Serializable {
         return Objects.equals(cache, mapCache.cache);
     }
 
+    /**
+     * Returns a hash code derived from the cached key-value pairs.
+     *
+     * @return the hash code for this map cache
+     */
     @Override
     public int hashCode() {
         return Objects.hash(cache);

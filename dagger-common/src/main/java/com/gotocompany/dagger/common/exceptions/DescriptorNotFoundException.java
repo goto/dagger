@@ -4,6 +4,7 @@ package com.gotocompany.dagger.common.exceptions;
  * The class Exception if Descriptor not found.
  */
 public class DescriptorNotFoundException extends RuntimeException {
+    /** Default detail message used when no specific descriptor error message is supplied. */
     public static final String DESCRIPTOR_NOT_FOUND = "descriptor not found";
 
     /**

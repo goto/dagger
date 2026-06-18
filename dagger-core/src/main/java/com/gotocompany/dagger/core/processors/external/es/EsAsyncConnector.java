@@ -29,7 +29,13 @@ import java.util.List;
  */
 public class EsAsyncConnector extends AsyncConnector {
 
+    /**
+     * The Elasticsearch source configuration backing this connector's lookups.
+     */
     private final EsSourceConfig esSourceConfig;
+    /**
+     * The low-level Elasticsearch REST client used to issue asynchronous search requests.
+     */
     private RestClient esClient;
 
     /**
@@ -62,6 +68,12 @@ public class EsAsyncConnector extends AsyncConnector {
         this.esSourceConfig = esSourceConfig;
     }
 
+    /**
+     * {@inheritDoc}
+     *
+     * <p>Lazily builds the Elasticsearch {@link RestClient} from the configured hosts, attaching the
+     * credentials provider, request timeouts, and maximum retry timeout, unless a client was already injected.
+     */
     @Override
     protected void createClient() {
         if (esClient == null) {
@@ -74,6 +86,16 @@ public class EsAsyncConnector extends AsyncConnector {
         }
     }
 
+    /**
+     * {@inheritDoc}
+     *
+     * <p>Resolves the endpoint variables from the input row, validates the query, formats the configured
+     * endpoint pattern, and issues an asynchronous {@code GET} request whose response is handled by an
+     * {@link EsResponseHandler}.
+     *
+     * @param input        the incoming row supplying the endpoint variable values
+     * @param resultFuture the future completed with the enriched row or an error
+     */
     @Override
     protected void process(Row input, ResultFuture<Row> resultFuture) {
         RowManager rowManager = new RowManager(input);
@@ -90,6 +112,11 @@ public class EsAsyncConnector extends AsyncConnector {
         esClient.performRequestAsync(esRequest, esResponseHandler);
     }
 
+    /**
+     * Parses the comma-separated host configuration into an array of {@link HttpHost} entries.
+     *
+     * @return the Elasticsearch hosts to connect to, each bound to the configured port
+     */
     private HttpHost[] getHttpHosts() {
         List<String> hosts = Arrays.asList(esSourceConfig.getHost().split(","));
         ArrayList<HttpHost> httpHosts = new ArrayList<>();
@@ -97,12 +124,22 @@ public class EsAsyncConnector extends AsyncConnector {
         return httpHosts.toArray(new HttpHost[0]);
     }
 
+    /**
+     * Builds the request configuration carrying the configured connect and socket timeouts.
+     *
+     * @return the {@link RequestConfig} applied to each Elasticsearch request
+     */
     private RequestConfig getRequestConfig() {
         return RequestConfig.custom()
                 .setConnectTimeout(esSourceConfig.getConnectTimeout())
                 .setSocketTimeout(esSourceConfig.getSocketTimeout()).build();
     }
 
+    /**
+     * Builds a credentials provider seeded with the configured username and password for basic auth.
+     *
+     * @return the {@link CredentialsProvider} used to authenticate Elasticsearch requests
+     */
     private CredentialsProvider getCredentialsProvider() {
         final CredentialsProvider credentialsProvider = new BasicCredentialsProvider();
         credentialsProvider.setCredentials(AuthScope.ANY,

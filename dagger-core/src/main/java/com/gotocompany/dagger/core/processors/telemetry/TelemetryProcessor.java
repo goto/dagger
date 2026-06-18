@@ -12,6 +12,7 @@ import org.apache.flink.types.Row;
  * The Telemetry processor.
  */
 public class TelemetryProcessor implements PostProcessor {
+    /** The map function that records and exports telemetry metrics for the stream. */
     private MetricsTelemetryExporter metricsTelemetryExporter;
 
     /**
@@ -23,12 +24,29 @@ public class TelemetryProcessor implements PostProcessor {
         this.metricsTelemetryExporter = metricsTelemetryExporter;
     }
 
+    /**
+     * Attaches the telemetry exporter to the stream as a map function.
+     *
+     * <p>Records pass through unchanged; the exporter side-effects metric registration, while the
+     * column names are preserved on the returned {@link StreamInfo}.
+     *
+     * @param inputStreamInfo the upstream stream together with its column names
+     * @return a new {@link StreamInfo} wrapping the instrumented stream and the unchanged column names
+     */
     @Override
     public StreamInfo process(StreamInfo inputStreamInfo) {
         DataStream<Row> resultStream = inputStreamInfo.getDataStream().map(metricsTelemetryExporter);
         return new StreamInfo(resultStream, inputStreamInfo.getColumnNames());
     }
 
+    /**
+     * Indicates whether this post processor is applicable to the supplied configuration.
+     *
+     * <p>Telemetry is always collected, so this processor applies to every configuration.
+     *
+     * @param postProcessorConfig the post processor configuration (ignored)
+     * @return {@code true} always
+     */
     @Override
     public boolean canProcess(PostProcessorConfig postProcessorConfig) {
         return true;

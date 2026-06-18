@@ -14,8 +14,19 @@ import static com.gotocompany.dagger.common.core.Constants.UDF_TELEMETRY_GROUP_K
  */
 public abstract class TableUdf<T> extends TableFunction<T> {
 
+    /** Telemetry helper used to register the UDF usage gauge against the Flink metric group. */
     private GaugeStatsManager gaugeStatsManager;
 
+    /**
+     * Initializes this table function and registers its UDF telemetry gauge.
+     *
+     * <p>Delegates to the superclass {@code open}, then builds a {@link GaugeStatsManager} from
+     * the {@link FunctionContext} metric group and registers an integer gauge keyed by
+     * {@code UDF_TELEMETRY_GROUP_KEY} so that usage of this UDF is observable in metrics.
+     *
+     * @param context the Flink function context exposing the runtime metric group
+     * @throws Exception if the superclass {@code open} call fails
+     */
     @Override
     public void open(FunctionContext context) throws Exception {
         super.open(context);

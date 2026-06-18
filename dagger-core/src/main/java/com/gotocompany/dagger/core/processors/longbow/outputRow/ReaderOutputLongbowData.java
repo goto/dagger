@@ -12,6 +12,9 @@ import java.util.Map;
  * The Reader output longbow data.
  */
 public class ReaderOutputLongbowData implements ReaderOutputRow {
+    /**
+     * Schema used to resolve column names and indices when assembling the output row.
+     */
     private LongbowSchema longbowSchema;
 
     /**
@@ -23,6 +26,17 @@ public class ReaderOutputLongbowData implements ReaderOutputRow {
         this.longbowSchema = longbowSchema;
     }
 
+    /**
+     * Merges the BigTable scan result with the input row into a Longbow output row.
+     *
+     * <p>Non Longbow-data columns are copied from {@code input}, then every entry of
+     * {@code scanResult} overrides or adds to that map. Each value is finally written into a new row
+     * at the index assigned to its column by the {@link LongbowSchema}.
+     *
+     * @param scanResult the parsed Longbow data keyed by output column name
+     * @param input      the input row that triggered the lookup
+     * @return a new row populated with the merged input and scanned Longbow data
+     */
     @Override
     public Row get(Map<String, Object> scanResult, Row input) {
         HashMap<String, Object> columnMap = new HashMap<>();
@@ -37,6 +51,12 @@ public class ReaderOutputLongbowData implements ReaderOutputRow {
         return output;
     }
 
+    /**
+     * Determines whether the given schema column holds Longbow data.
+     *
+     * @param c a schema entry mapping a column name to its row index
+     * @return {@code true} if the column name contains the Longbow data key marker, otherwise {@code false}
+     */
     private boolean isLongbowData(Map.Entry<String, Integer> c) {
         return c.getKey().contains(Constants.LONGBOW_DATA_KEY);
     }

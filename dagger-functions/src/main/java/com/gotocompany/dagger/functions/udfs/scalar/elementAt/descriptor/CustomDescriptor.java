@@ -12,6 +12,9 @@ import static com.google.protobuf.Descriptors.FieldDescriptor;
  * The Custom descriptor.
  */
 public class CustomDescriptor {
+    /**
+     * The wrapped protobuf {@code Descriptor} whose fields this helper navigates.
+     */
     private Descriptor descriptor;
 
     /**
@@ -69,6 +72,12 @@ public class CustomDescriptor {
         return nextDescriptor.map(CustomDescriptor::new);
     }
 
+    /**
+     * Compares this custom descriptor with another object for equality based on the wrapped descriptor.
+     *
+     * @param o the object to compare with
+     * @return {@code true} if the other object is a {@code CustomDescriptor} wrapping an equal descriptor
+     */
     @Override
     public boolean equals(Object o) {
         if (this == o) {
@@ -81,6 +90,11 @@ public class CustomDescriptor {
         return descriptor != null ? descriptor.equals(that.descriptor) : that.descriptor == null;
     }
 
+    /**
+     * Returns a hash code derived from the wrapped descriptor.
+     *
+     * @return the hash code for this custom descriptor
+     */
     @Override
     public int hashCode() {
         return descriptor != null ? descriptor.hashCode() : 0;

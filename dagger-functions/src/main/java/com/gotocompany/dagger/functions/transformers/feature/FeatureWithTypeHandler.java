@@ -15,16 +15,43 @@ import java.util.Map;
  * The Feature with type handler.
  */
 public class FeatureWithTypeHandler implements Serializable {
+    /**
+     * Transformation-argument key whose value names the output column that receives the feature rows.
+     */
     private static final String OUTPUT_COLUMN_NAME_KEY = "outputColumnName";
+    /**
+     * Transformation-argument key whose value lists the per-feature key, value and type definitions.
+     */
     private static final String OUTPUT_COLUMN_DATA_KEY = "data";
+    /**
+     * Key, within a feature definition, naming the column that supplies the feature key.
+     */
     private static final String KEY_COLUMN_NAME = "keyColumnName";
+    /**
+     * Key, within a feature definition, naming the column that supplies the feature value.
+     */
     private static final String VALUE_COLUMN_NAME = "valueColumnName";
+    /**
+     * Key, within a feature definition, naming the value type of the feature.
+     */
     private static final String TYPE = "type";
+    /**
+     * Number of fields in each generated feature row, namely the key, value and value type.
+     */
     private static final int FEATURE_ROW_LENGTH = 3;
 
 
+    /**
+     * Ordered names of the columns in the incoming {@link Row}, used to resolve column indices.
+     */
     private String[] inputColumns;
+    /**
+     * Per-feature definitions, each holding the key column, value column and value type.
+     */
     private List<Tuple3<String, String, String>> featureInfoList;
+    /**
+     * Name of the column that receives the generated array of feature rows.
+     */
     private String outputColumnName;
 
     /**
@@ -39,6 +66,14 @@ public class FeatureWithTypeHandler implements Serializable {
         createFeatureInfoList(transformationArguments);
     }
 
+    /**
+     * Builds the list of feature definitions from the transformation arguments.
+     *
+     * <p>Reads the output-column data entries and, for each, records the key column, value column and
+     * value type as a {@link Tuple3} in the feature-info list.
+     *
+     * @param transformationArguments the transformation arguments supplied to this handler
+     */
     private void createFeatureInfoList(Map<String, Object> transformationArguments) {
         featureInfoList = new ArrayList<>();
         List<Map<String, String>> outputColumnData = (List<Map<String, String>>) transformationArguments.get(OUTPUT_COLUMN_DATA_KEY);

@@ -17,13 +17,39 @@ import java.io.IOException;
  */
 public interface JobBuilder {
 
+    /**
+     * Initializes the Flink execution and table environments and registers global job settings.
+     *
+     * @return this builder, to allow fluent chaining of the registration stages
+     */
     JobBuilder registerConfigs();
 
+    /**
+     * Registers the configured source streams, assigns their watermarks and applies pre-processors.
+     *
+     * @return this builder, to allow fluent chaining of the registration stages
+     */
     JobBuilder registerSourceWithPreProcessors();
 
+    /**
+     * Registers the user-defined functions (including Python UDFs) used by the SQL query.
+     *
+     * @return this builder, to allow fluent chaining of the registration stages
+     * @throws IOException if a function factory or Python UDF resource cannot be loaded
+     */
     JobBuilder registerFunctions() throws IOException;
 
+    /**
+     * Runs the configured SQL query, applies the post-processors and attaches the configured sink.
+     *
+     * @return this builder, to allow fluent chaining of the registration stages
+     */
     JobBuilder registerOutputStream();
 
+    /**
+     * Submits and runs the assembled Flink job.
+     *
+     * @throws Exception if the job fails to execute
+     */
     void execute() throws Exception;
 }

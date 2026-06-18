@@ -16,10 +16,25 @@ import java.io.InputStream;
 
 import static com.gotocompany.dagger.common.core.Constants.UDF_TELEMETRY_GROUP_KEY;
 
+/**
+ * The type Oss client.
+ *
+ * <p>A {@link DartDataStoreClient} implementation that fetches dart JSON payloads from Alibaba Cloud
+ * Object Storage Service (OSS) buckets.
+ */
 public class OssDartClient implements DartDataStoreClient {
+    /**
+     * The divisor used to convert object sizes from bytes to kilobytes when reporting file-size telemetry.
+     */
     private static final Double BYTES_TO_KB = 1024.0;
+    /**
+     * The gauge group key under which the dart path is registered for file-size telemetry.
+     */
     private static final String DART_PATH = "dartpath";
 
+    /**
+     * The underlying Alibaba Cloud OSS client used to read dart objects.
+     */
     private final OSS libOssClient;
 
     /**
@@ -33,6 +48,19 @@ public class OssDartClient implements DartDataStoreClient {
         }
     }
 
+    /**
+     * Fetches the dart JSON payload for the given object from the configured OSS bucket.
+     *
+     * <p>Reads the object content as a string and records dart path and file-size telemetry via the
+     * supplied gauge manager.
+     *
+     * @param udfName           the simple name of the UDF requesting the data, used as a telemetry group
+     * @param gaugeStatsManager the gauge manager used to record path and size telemetry
+     * @param bucketName        the name of the OSS bucket to read from
+     * @param dartName          the object key of the dart payload within the bucket
+     * @return the dart payload contents as a string
+     * @throws TagDoesNotExistException if the object content cannot be read from OSS
+     */
     public String fetchJsonData(String udfName, GaugeStatsManager gaugeStatsManager, String bucketName, String dartName) {
         OSSObject ossObject = libOssClient.getObject(bucketName, dartName);
         String dartJson;

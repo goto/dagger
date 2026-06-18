@@ -12,6 +12,9 @@ import java.util.List;
  * The Descriptor manager.
  */
 public class DescriptorManager implements Serializable {
+    /**
+     * The Stencil client used to resolve Protobuf descriptors by proto class name.
+     */
     private StencilClient stencilClient;
 
     /**

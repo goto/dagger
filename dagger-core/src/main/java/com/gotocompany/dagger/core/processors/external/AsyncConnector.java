@@ -35,15 +35,46 @@ import static java.util.Collections.singleton;
  * The Async connector.
  */
 public abstract class AsyncConnector extends RichAsyncFunction<Row, Row> implements TelemetryPublisher {
+    /**
+     * The identifier of the external source type (for example {@code ES}, {@code HTTP}, {@code GRPC}, or {@code PG}),
+     * used when registering metrics and telemetry for this connector.
+     */
     private final String sourceType;
+    /**
+     * The source-specific configuration describing the endpoint, request pattern, and behaviour of this connector.
+     */
     private final SourceConfig sourceConfig;
+    /**
+     * The metric configuration controlling telemetry, the metric id, and the shutdown period for this connector.
+     */
     private final ExternalMetricConfig externalMetricConfig;
+    /**
+     * The schema configuration providing column metadata, input/output proto classes, and the stencil orchestrator.
+     */
     private final SchemaConfig schemaConfig;
+    /**
+     * Reporter used to surface fatal and non-fatal errors raised while making external calls.
+     */
     private ErrorReporter errorReporter;
+    /**
+     * Manager used to register and emit meter-style metrics for the external source aspects.
+     */
     private MeterStatsManager meterStatsManager;
+    /**
+     * Resolver used to look up protobuf {@link Descriptors.Descriptor}s for request and response messages.
+     */
     private DescriptorManager descriptorManager;
+    /**
+     * Telemetry collected for this connector, keyed by telemetry type, with each key mapping to a list of values.
+     */
     private Map<String, List<String>> metrics = new HashMap<>();
+    /**
+     * The protobuf descriptor of the output message that enriched values are written into.
+     */
     private Descriptors.Descriptor outputDescriptor;
+    /**
+     * Helper that resolves endpoint/request variable values from the incoming {@link Row}.
+     */
     private EndpointHandler endpointHandler;
 
     /**
@@ -143,6 +174,17 @@ public abstract class AsyncConnector extends RichAsyncFunction<Row, Row> impleme
         return new DescriptorManager(config.getStencilClientOrchestrator());
     }
 
+    /**
+     * {@inheritDoc}
+     *
+     * <p>Initializes the connector by lazily creating the {@link DescriptorManager}, the external client
+     * (via {@link #createClient()}), the {@link ErrorReporter}, the {@link MeterStatsManager}, and the
+     * {@link EndpointHandler}, and then registers the external source metrics under the configured source
+     * type and metric id.
+     *
+     * @param configuration the Flink runtime configuration supplied during operator initialization
+     * @throws Exception if the parent initialization or client creation fails
+     */
     @Override
     public void open(Configuration configuration) throws Exception {
         super.open(configuration);
@@ -184,6 +226,17 @@ public abstract class AsyncConnector extends RichAsyncFunction<Row, Row> impleme
      */
     protected abstract void process(Row input, ResultFuture<Row> resultFuture) throws Exception;
 
+    /**
+     * {@inheritDoc}
+     *
+     * <p>Delegates to {@link #process(Row, ResultFuture)} and records a successful external call. Pattern or
+     * variable configuration problems are translated into an {@code InvalidConfigurationException} that is
+     * reported and propagated through the result future.
+     *
+     * @param input        the incoming row to be enriched by the external lookup
+     * @param resultFuture the future used to emit the enriched row or an error
+     * @throws Exception if processing fails in an unrecoverable way
+     */
     @Override
     public void asyncInvoke(Row input, ResultFuture<Row> resultFuture) throws Exception {
 
@@ -215,6 +268,15 @@ public abstract class AsyncConnector extends RichAsyncFunction<Row, Row> impleme
         resultFuture.completeExceptionally(exception);
     }
 
+    /**
+     * {@inheritDoc}
+     *
+     * <p>Marks a timeout metric and either reports and throws the error (when the source is configured to fail
+     * on errors) or reports it as non-fatal, finally completing the future with the original unmodified input row.
+     *
+     * @param input        the row whose external call timed out
+     * @param resultFuture the future used to emit the fallback row or an error
+     */
     @Override
     public void timeout(Row input, ResultFuture<Row> resultFuture) {
         meterStatsManager.markEvent(ExternalSourceAspects.TIMEOUTS);
@@ -227,22 +289,46 @@ public abstract class AsyncConnector extends RichAsyncFunction<Row, Row> impleme
         resultFuture.complete(singleton(input));
     }
 
+    /**
+     * {@inheritDoc}
+     *
+     * <p>Delegates to the parent implementation to release any resources held by the rich async function.
+     *
+     * @throws Exception if the parent cleanup fails
+     */
     @Override
     public void close() throws Exception {
 
         super.close();
     }
 
+    /**
+     * {@inheritDoc}
+     *
+     * @return the telemetry collected for this connector, keyed by telemetry type
+     */
     @Override
     public Map<String, List<String>> getTelemetry() {
         return metrics;
     }
 
+    /**
+     * {@inheritDoc}
+     *
+     * <p>Records the post-processor type telemetry entry for this connector's source type before telemetry
+     * subscribers are notified.
+     */
     @Override
     public void preProcessBeforeNotifyingSubscriber() {
         addMetric(TelemetryTypes.POST_PROCESSOR_TYPE.getValue(), sourceType);
     }
 
+    /**
+     * Appends a telemetry value under the given key, creating the backing list on first use.
+     *
+     * @param key   the telemetry key to record the value under
+     * @param value the telemetry value to add
+     */
     private void addMetric(String key, String value) {
         metrics.computeIfAbsent(key, k -> new ArrayList<>()).add(value);
     }

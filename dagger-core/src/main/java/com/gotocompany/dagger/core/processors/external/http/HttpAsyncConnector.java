@@ -37,9 +37,21 @@ import static org.asynchttpclient.Dsl.config;
  */
 public class HttpAsyncConnector extends AsyncConnector {
 
+    /**
+     * Logger used to record connector lifecycle events such as connection closure.
+     */
     private static final Logger LOGGER = LoggerFactory.getLogger(HttpAsyncConnector.class.getName());
+    /**
+     * The asynchronous HTTP client used to execute the outbound enrichment requests.
+     */
     private AsyncHttpClient httpClient;
+    /**
+     * Configuration describing the endpoint, verb, request/header patterns and output mapping for this connector.
+     */
     private HttpSourceConfig httpSourceConfig;
+    /**
+     * The set of HTTP status codes excluded from triggering a fatal failure even when fail-on-errors is enabled.
+     */
     private Set<Integer> failOnErrorsExclusionSet;
 
     /**
@@ -83,6 +95,12 @@ public class HttpAsyncConnector extends AsyncConnector {
         return httpClient;
     }
 
+    /**
+     * {@inheritDoc}
+     *
+     * <p>Lazily creates the underlying {@link AsyncHttpClient} when one has not already been injected,
+     * applying the connect timeout taken from the {@code HttpSourceConfig}.
+     */
     @Override
     protected void createClient() {
         if (httpClient == null) {
@@ -90,12 +108,29 @@ public class HttpAsyncConnector extends AsyncConnector {
         }
     }
 
+    /**
+     * {@inheritDoc}
+     *
+     * <p>Opens the connector by delegating to the superclass and then computing the set of status codes
+     * that are excluded from fail-on-errors handling from the configured code ranges.
+     *
+     * @param configuration the Flink {@code Configuration} supplied when the async operator is opened
+     * @throws Exception if the superclass fails to initialise the connector
+     */
     @Override
     public void open(Configuration configuration) throws Exception {
         super.open(configuration);
         setFailOnErrorsExclusionSet(httpSourceConfig.getExcludeFailOnErrorsCodeRange());
     }
 
+    /**
+     * {@inheritDoc}
+     *
+     * <p>Closes the underlying HTTP client, clears the reference, records a close-connection metric and
+     * logs that the connector has been shut down.
+     *
+     * @throws Exception if closing the underlying HTTP client fails
+     */
     @Override
     public void close() throws Exception {
         httpClient.close();
@@ -104,6 +139,18 @@ public class HttpAsyncConnector extends AsyncConnector {
         LOGGER.error("HTTP Connector : Connection closed");
     }
 
+    /**
+     * {@inheritDoc}
+     *
+     * <p>Resolves the request, dynamic header and endpoint variable values from the incoming row, validates
+     * them and, when valid, builds the request via {@link HttpRequestFactory} and executes it asynchronously.
+     * A {@link HttpResponseHandler} completes the {@code resultFuture} once a response or error is received.
+     * An unsupported HTTP verb is recorded as an invalid-configuration metric and completes the future
+     * exceptionally.
+     *
+     * @param input the input {@link Row} carrying the values used to populate the request
+     * @param resultFuture the future completed with the enriched output row or an error
+     */
     @Override
     protected void process(Row input, ResultFuture<Row> resultFuture) {
         try {
@@ -130,10 +177,25 @@ public class HttpAsyncConnector extends AsyncConnector {
 
     }
 
+    /**
+     * Returns the set of HTTP status codes excluded from fail-on-errors handling.
+     *
+     * @return the {@code Set<Integer>} of status codes for which the connector will not fail even when
+     *         fail-on-errors is enabled
+     */
     protected Set<Integer> getFailOnErrorsExclusionSet() {
         return failOnErrorsExclusionSet;
     }
 
+    /**
+     * Parses the configured comma-separated, hyphen-delimited status code ranges into the exclusion set.
+     *
+     * <p>For example {@code "500-502,504"} expands to the codes {@code 500}, {@code 501}, {@code 502} and
+     * {@code 504}. A {@code null} or empty value leaves the exclusion set empty.
+     *
+     * @param excludeFailOnErrorsCodeRange the raw configuration string describing status code ranges,
+     *                                      which may be {@code null} or empty
+     */
     private void setFailOnErrorsExclusionSet(String excludeFailOnErrorsCodeRange) {
         failOnErrorsExclusionSet = new HashSet<Integer>();
         if (!StringUtil.isNullOrEmpty(excludeFailOnErrorsCodeRange)) {

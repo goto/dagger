@@ -10,6 +10,7 @@ import com.gotocompany.dagger.core.processors.internal.processor.sql.SqlInternal
  */
 public class SqlInternalAutoFieldImport implements SqlInternalFieldConfig {
 
+    /** Resolves logical column names to their input/output row indices. */
     private ColumnNameManager columnNameManager;
 
     /**
@@ -21,6 +22,14 @@ public class SqlInternalAutoFieldImport implements SqlInternalFieldConfig {
         this.columnNameManager = columnNameManager;
     }
 
+    /**
+     * Copies every input column straight through to the matching output column.
+     *
+     * <p>For each managed input column the value is read from the input row and written into the
+     * output column carrying the same name, implementing the SQL select-all behaviour.
+     *
+     * @param rowManager the row manager wrapping the record whose output row is populated
+     */
     @Override
     public void processInputColumns(RowManager rowManager) {
         for (String columnName : columnNameManager.getInputColumnNames()) {

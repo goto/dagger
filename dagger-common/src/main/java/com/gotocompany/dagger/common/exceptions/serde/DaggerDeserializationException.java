@@ -13,6 +13,11 @@ public class DaggerDeserializationException extends RuntimeException {
         super(innerException);
     }
 
+    /**
+     * Instantiates a new Dagger deserialization exception with the specified detail message.
+     *
+     * @param message the detail message describing the deserialization failure
+     */
     public DaggerDeserializationException(String message) {
         super(message);
     }

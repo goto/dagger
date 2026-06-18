@@ -9,7 +9,9 @@ import org.apache.flink.metrics.MetricGroup;
  */
 public class GaugeStatsManager {
 
+    /** Whether gauge registration is enabled; when {@code false} all register calls are no-ops. */
     private final Boolean enabled;
+    /** The Flink metric group under which gauges are registered. */
     private final MetricGroup metricGroup;
 
     /**

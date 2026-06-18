@@ -13,6 +13,9 @@ import java.util.List;
  */
 public class MessageParser implements Serializable {
 
+    /**
+     * The converter used to transform protobuf messages into Flink {@code Row} values.
+     */
     private ProtoToRow protoToRow;
 
     /**
@@ -42,6 +45,16 @@ public class MessageParser implements Serializable {
         }
     }
 
+    /**
+     * Converts a single resolved protobuf field value into its Flink-compatible representation.
+     *
+     * <p>Message fields are converted to {@code Row} values, enum fields to their string form (single
+     * or repeated), and repeated string fields to string arrays; all other values are returned as-is.
+     *
+     * @param fieldByName the descriptor of the field being parsed
+     * @param resultField the raw field value extracted from the message
+     * @return the converted value suitable for use in a Flink {@code Row}
+     */
     private Object parseSingleRow(Descriptors.FieldDescriptor fieldByName, Object resultField) {
         if (fieldByName.getJavaType() == Descriptors.FieldDescriptor.JavaType.MESSAGE) {
             return protoToRow.getRow((DynamicMessage) resultField);
@@ -59,6 +72,14 @@ public class MessageParser implements Serializable {
         return resultField;
     }
 
+    /**
+     * Resolves the protobuf field descriptor for the given key within the supplied parent descriptor.
+     *
+     * @param key              the field name to look up
+     * @param parentDescriptor the descriptor of the message containing the field
+     * @return the matching field descriptor
+     * @throws LongbowException if no field with the given key exists in the parent message
+     */
     private Descriptors.FieldDescriptor getFieldByName(String key, Descriptors.Descriptor parentDescriptor) {
         Descriptors.FieldDescriptor fieldByName = parentDescriptor.findFieldByName(key);
         if (fieldByName == null) {

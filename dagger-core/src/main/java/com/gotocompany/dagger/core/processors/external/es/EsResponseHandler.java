@@ -37,15 +37,45 @@ import static org.apache.http.HttpStatus.SC_OK;
  * The ElasticSearch response handler.
  */
 public class EsResponseHandler implements ResponseListener {
+    /**
+     * Logger used to record Elasticsearch response parsing and processing errors.
+     */
     private static final Logger LOGGER = LoggerFactory.getLogger(EsResponseHandler.class.getName());
+    /**
+     * The Elasticsearch source configuration describing output mappings and error behaviour.
+     */
     private EsSourceConfig esSourceConfig;
+    /**
+     * Manager wrapping the input and output rows that response values are written into.
+     */
     private RowManager rowManager;
+    /**
+     * The protobuf descriptor of the output message used to type-cast response values.
+     */
     private Descriptor outputDescriptor;
+    /**
+     * The future completed with the enriched row once the response has been handled.
+     */
     private ResultFuture<Row> resultFuture;
+    /**
+     * The time at which the request was issued, used to compute response latency telemetry.
+     */
     private Instant startTime;
+    /**
+     * Manager used to emit meter-style metrics for response outcomes.
+     */
     private MeterStatsManager meterStatsManager;
+    /**
+     * Resolver mapping output column names to their positions in the output row.
+     */
     private ColumnNameManager columnNameManager;
+    /**
+     * Reporter used to surface fatal and non-fatal errors raised while handling responses.
+     */
     private ErrorReporter errorReporter;
+    /**
+     * Helper that emits success and failure telemetry for the external call.
+     */
     private PostResponseTelemetry postResponseTelemetry;
 
     /**
@@ -78,6 +108,15 @@ public class EsResponseHandler implements ResponseListener {
         startTime = Instant.now();
     }
 
+    /**
+     * {@inheritDoc}
+     *
+     * <p>For a successful ({@code 200 OK}) response, reads each configured output column from the JSON body
+     * using its JSON path and writes the value into the output row. Path, parse, read, and other errors are
+     * recorded as telemetry and reported. The result future is always completed with the current row.
+     *
+     * @param response the Elasticsearch response to read enrichment values from
+     */
     @Override
     public void onSuccess(Response response) {
         try {
@@ -121,6 +160,15 @@ public class EsResponseHandler implements ResponseListener {
         }
     }
 
+    /**
+     * {@inheritDoc}
+     *
+     * <p>Records failure telemetry and either reports and throws an {@code HttpFailureException} (when the
+     * source is configured to fail on errors) or reports it as non-fatal, validating the HTTP status code when
+     * the cause is a {@code ResponseException}. The result future is always completed with the current row.
+     *
+     * @param e the exception describing the Elasticsearch failure
+     */
     @Override
     public void onFailure(Exception e) {
         postResponseTelemetry.sendFailureTelemetry(meterStatsManager, startTime);
@@ -140,6 +188,18 @@ public class EsResponseHandler implements ResponseListener {
     }
 
 
+    /**
+     * Writes a single response value into the output row at the given index.
+     *
+     * <p>When the response type is not retained (or an explicit type is configured), the value is converted
+     * using the field's {@link TypeHandler}, and map values are built into a nested {@link Row}. A missing
+     * field descriptor is reported as an error.
+     *
+     * @param esConfig the Elasticsearch source configuration controlling type handling
+     * @param index    the output row index to write the value into
+     * @param value    the raw value read from the response
+     * @param name     the output column (field) name being populated
+     */
     private void setField(EsSourceConfig esConfig, int index, Object value, String name) {
         if (!esConfig.isRetainResponseType() || esConfig.hasType()) {
             Descriptors.FieldDescriptor fieldDescriptor = outputDescriptor.findFieldByName(name);
@@ -160,6 +220,11 @@ public class EsResponseHandler implements ResponseListener {
         }
     }
 
+    /**
+     * Reports the given exception as fatal and completes the result future exceptionally.
+     *
+     * @param exception the exception to report and propagate
+     */
     private void reportAndThrowError(Exception exception) {
         errorReporter.reportFatalException(exception);
         resultFuture.completeExceptionally(exception);

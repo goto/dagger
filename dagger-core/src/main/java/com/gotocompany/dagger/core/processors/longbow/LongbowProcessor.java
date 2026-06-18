@@ -19,9 +19,21 @@ import java.util.concurrent.TimeUnit;
  */
 public class LongbowProcessor implements PostProcessor {
 
+    /**
+     * The async processor used to attach each rich async function as an ordered-wait operator.
+     */
     private AsyncProcessor asyncProcessor;
+    /**
+     * The Dagger configuration providing the Longbow async timeout and thread capacity.
+     */
     private Configuration configuration;
+    /**
+     * The ordered list of Longbow rich async functions (writer and/or reader) applied to the stream.
+     */
     private ArrayList<RichAsyncFunction<Row, Row>> longbowRichFunctions;
+    /**
+     * The column modifier that adjusts the output column names for the chosen Longbow type.
+     */
     private ColumnModifier modifier;
 
     /**
@@ -39,6 +51,16 @@ public class LongbowProcessor implements PostProcessor {
         this.modifier = modifier;
     }
 
+    /**
+     * Applies the configured Longbow rich async functions to the incoming stream in order.
+     *
+     * <p>Each function is wrapped in an ordered-wait async operator using the Longbow async timeout
+     * and thread capacity from the configuration. The resulting stream is returned together with the
+     * column names produced by the {@link ColumnModifier}.
+     *
+     * @param streamInfo the incoming stream and its column names
+     * @return a new {@link StreamInfo} wrapping the Longbow-processed stream and modified column names
+     */
     @Override
     public StreamInfo process(StreamInfo streamInfo) {
         DataStream<Row> inputStream = streamInfo.getDataStream();
@@ -51,6 +73,15 @@ public class LongbowProcessor implements PostProcessor {
         return new StreamInfo(outputStream, modifier.modifyColumnNames(streamInfo.getColumnNames()));
     }
 
+    /**
+     * Indicates whether this post processor can handle the given configuration.
+     *
+     * <p>The Longbow processor is always constructed explicitly by the {@code LongbowFactory} rather
+     * than selected from configuration, so this always returns {@code false}.
+     *
+     * @param postProcessorConfig the post processor configuration to test
+     * @return {@code false}, as this processor is never chosen via configuration matching
+     */
     @Override
     public boolean canProcess(PostProcessorConfig postProcessorConfig) {
         return false;

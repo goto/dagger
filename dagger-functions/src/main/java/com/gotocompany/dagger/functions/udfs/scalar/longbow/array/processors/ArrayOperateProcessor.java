@@ -31,6 +31,15 @@ public class ArrayOperateProcessor extends ArrayProcessor {
         super(jexlEngine, jexlContext, jexlScript, expression);
     }
 
+    /**
+     * {@inheritDoc}
+     *
+     * <p>Executes the configured JEXL operation script against the prepared context and returns the
+     * resulting array.
+     *
+     * @return the result produced by executing the operation script
+     * @throws ArrayOperateException if the script execution fails
+     */
     @Override
     public Object process() {
         try {

@@ -16,6 +16,9 @@ import java.util.List;
  * The type Byte string primitive type handler.
  */
 public class ByteStringHandler implements PrimitiveHandler {
+    /**
+     * The protobuf {@code FieldDescriptor} of the byte-string field this handler processes.
+     */
     private Descriptors.FieldDescriptor fieldDescriptor;
 
     /**
@@ -27,16 +30,33 @@ public class ByteStringHandler implements PrimitiveHandler {
         this.fieldDescriptor = fieldDescriptor;
     }
 
+    /**
+     * Determines whether this handler applies to the field.
+     *
+     * @return {@code true} if the field's Java type is {@code BYTE_STRING}
+     */
     @Override
     public boolean canHandle() {
         return fieldDescriptor.getJavaType() == JavaType.BYTE_STRING;
     }
 
+    /**
+     * Returns the given byte-string value unchanged.
+     *
+     * @param field the value to pass through
+     * @return the same {@code field} value
+     */
     @Override
     public Object parseObject(Object field) {
         return field;
     }
 
+    /**
+     * Reads the byte-string value for this field from a Parquet {@code SimpleGroup}.
+     *
+     * @param simpleGroup the Parquet group holding the encoded record
+     * @return the value as a {@code ByteString}, or {@code null} when the field is absent
+     */
     @Override
     public Object parseSimpleGroup(SimpleGroup simpleGroup) {
         String fieldName = fieldDescriptor.getName();
@@ -50,6 +70,12 @@ public class ByteStringHandler implements PrimitiveHandler {
         }
     }
 
+    /**
+     * Converts a list of byte-string values into a {@code ByteString[]}.
+     *
+     * @param field the list of {@code ByteString} values, or {@code null}
+     * @return the values as a {@code ByteString[]}, empty when {@code field} is {@code null}
+     */
     @Override
     public Object parseRepeatedObjectField(Object field) {
         List<ByteString> inputValues = new ArrayList<>();
@@ -59,6 +85,12 @@ public class ByteStringHandler implements PrimitiveHandler {
         return inputValues.toArray(new ByteString[]{});
     }
 
+    /**
+     * Reads the repeated byte-string field from a Parquet {@code SimpleGroup} into a {@code ByteString[]}.
+     *
+     * @param simpleGroup the Parquet group holding the encoded record
+     * @return the byte-string array, empty when the field is absent
+     */
     @Override
     public Object parseRepeatedSimpleGroupField(SimpleGroup simpleGroup) {
         String fieldName = fieldDescriptor.getName();
@@ -73,11 +105,21 @@ public class ByteStringHandler implements PrimitiveHandler {
         return byteStringList.toArray(new ByteString[]{});
     }
 
+    /**
+     * Returns the Flink {@code TypeInformation} for a single byte-string value.
+     *
+     * @return the type information for {@code ByteString}
+     */
     @Override
     public TypeInformation getTypeInformation() {
         return TypeInformation.of(ByteString.class);
     }
 
+    /**
+     * Returns the Flink {@code TypeInformation} for a repeated byte-string field.
+     *
+     * @return an object-array type of {@code ByteString}
+     */
     @Override
     public TypeInformation getArrayType() {
         return Types.OBJECT_ARRAY(TypeInformation.of(ByteString.class));

@@ -6,6 +6,9 @@ import com.gotocompany.dagger.core.processors.longbow.LongbowSchema;
  * The factory class for Longbow data.
  */
 public class LongbowDataFactory {
+    /**
+     * The Longbow schema used to decide which {@link LongbowData} implementation to create.
+     */
     private LongbowSchema longbowSchema;
 
     /**

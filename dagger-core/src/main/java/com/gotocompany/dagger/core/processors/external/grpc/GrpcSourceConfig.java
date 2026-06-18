@@ -17,26 +17,85 @@ import java.util.stream.Collectors;
  * A class that holds Grpc configuration.
  */
 public class GrpcSourceConfig implements Serializable, SourceConfig {
+    /**
+     * The hostname/address of the gRPC service to call.
+     */
     private String endpoint;
+    /**
+     * The port of the gRPC service to call.
+     */
     private int servicePort;
+    /**
+     * The fully-qualified protobuf class name describing the gRPC request message.
+     */
     private String grpcRequestProtoSchema;
+    /**
+     * The fully-qualified protobuf class name describing the gRPC response message.
+     */
     private String grpcResponseProtoSchema;
+    /**
+     * The fully-qualified gRPC method URL ({@code package.Service/Method}) to invoke.
+     */
     private String grpcMethodUrl;
+    /**
+     * The format pattern used to build the JSON request body from the resolved variables.
+     */
     private String requestPattern;
+    /**
+     * The comma-separated input columns whose values are substituted into the request pattern.
+     */
     private String requestVariables;
+    /**
+     * The gRPC keepalive ping interval in milliseconds, or {@code null} to use the default.
+     */
     private String grpcArgKeepaliveTimeMs;
+    /**
+     * The gRPC keepalive ping timeout in milliseconds, or {@code null} to use the default.
+     */
     private String grpcArgKeepaliveTimeoutMs;
+    /**
+     * The overall stream/async timeout in milliseconds for the lookup.
+     */
     private String streamTimeout;
+    /**
+     * The connection timeout in milliseconds for establishing the gRPC channel.
+     */
     private String connectTimeout;
+    /**
+     * Whether a lookup failure should fail the job ({@code true}) or be tolerated as non-fatal ({@code false}).
+     */
     private boolean failOnErrors;
+    /**
+     * The fully-qualified protobuf class name used to type-cast the response, when configured.
+     */
     private String type;
+    /**
+     * Whether the raw response value type is retained as-is instead of being cast to the configured proto type.
+     */
     private boolean retainResponseType;
+    /**
+     * The comma-separated stencil URLs used to resolve gRPC request/response descriptors.
+     */
     private String grpcStencilUrl;
+    /**
+     * Optional gRPC metadata headers sent with each call, recognised under the JSON keys {@code headers},
+     * {@code Headers}, or {@code HEADERS}.
+     */
     @SerializedName(value = "headers", alternate = {"Headers", "HEADERS"})
     private Map<String, String> headers;
+    /**
+     * The mapping of output column name to the configuration describing how to extract its value.
+     */
     private Map<String, OutputMapping> outputMapping;
+    /**
+     * Optional identifier used to disambiguate metrics emitted for this source, recognised under the JSON keys
+     * {@code metricId}, {@code MetricId}, or {@code METRICID}.
+     */
     @SerializedName(value = "metricId", alternate = {"MetricId", "METRICID"})
     private String metricId;
+    /**
+     * The maximum number of concurrent asynchronous requests buffered by the async operator.
+     */
     private int capacity;
 
     /**
@@ -125,11 +184,21 @@ public class GrpcSourceConfig implements Serializable, SourceConfig {
         return endpoint;
     }
 
+    /**
+     * {@inheritDoc}
+     *
+     * @return the request pattern used to build the gRPC request body
+     */
     @Override
     public String getPattern() {
         return requestPattern;
     }
 
+    /**
+     * {@inheritDoc}
+     *
+     * @return the comma-separated request variable column names
+     */
     @Override
     public String getVariables() {
         return requestVariables;
@@ -144,15 +213,30 @@ public class GrpcSourceConfig implements Serializable, SourceConfig {
         return Integer.valueOf(streamTimeout);
     }
 
+    /**
+     * Returns whether a lookup failure should fail the job.
+     *
+     * @return {@code true} if lookup failures should fail the job, otherwise {@code false}
+     */
     public boolean isFailOnErrors() {
         return failOnErrors;
     }
 
+    /**
+     * {@inheritDoc}
+     *
+     * @return the configured metric id for this source, or {@code null} when unset
+     */
     @Override
     public String getMetricId() {
         return metricId;
     }
 
+    /**
+     * Gets the configured protobuf type name used to cast the response.
+     *
+     * @return the configured type name, or {@code null} when unset
+     */
     public String getType() {
         return type;
     }
@@ -175,11 +259,24 @@ public class GrpcSourceConfig implements Serializable, SourceConfig {
         return outputMapping;
     }
 
+    /**
+     * {@inheritDoc}
+     *
+     * @return the output column names derived from the configured output mapping keys
+     */
     @Override
     public List<String> getOutputColumns() {
         return new ArrayList<>(outputMapping.keySet());
     }
 
+    /**
+     * Gets the fields that must be present for this configuration to be valid.
+     *
+     * <p>Exposes the endpoint, service port, request/response proto schemas, method url, fail-on-errors flag,
+     * request pattern, request variables, timeouts, and output mapping.
+     *
+     * @return a map of mandatory field names to their configured values
+     */
     public HashMap<String, Object> getMandatoryFields() {
         HashMap<String, Object> mandatoryFields = new HashMap<>();
         mandatoryFields.put("endpoint", endpoint);

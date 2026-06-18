@@ -14,8 +14,17 @@ import java.util.concurrent.TimeUnit;
  */
 public class GrpcStreamDecorator implements StreamDecorator {
 
+    /**
+     * The gRPC source configuration passed to the connector created by this decorator.
+     */
     private GrpcSourceConfig grpcSourceConfig;
+    /**
+     * The metric configuration applied to the connector, including telemetry and the metric id.
+     */
     private final ExternalMetricConfig externalMetricConfig;
+    /**
+     * The schema configuration providing column and proto metadata to the connector.
+     */
     private final SchemaConfig schemaConfig;
 
 
@@ -33,11 +42,25 @@ public class GrpcStreamDecorator implements StreamDecorator {
     }
 
 
+    /**
+     * {@inheritDoc}
+     *
+     * @return {@code true} when a gRPC source configuration is present
+     */
     @Override
     public Boolean canDecorate() {
         return grpcSourceConfig != null;
     }
 
+    /**
+     * {@inheritDoc}
+     *
+     * <p>Wraps the input stream in an ordered asynchronous gRPC lookup, registering the telemetry subscriber
+     * and applying the configured stream timeout and capacity.
+     *
+     * @param inputStream the stream to enrich with gRPC lookups
+     * @return the asynchronously enriched stream
+     */
     @Override
     public DataStream<Row> decorate(DataStream<Row> inputStream) {
         GrpcAsyncConnector grpcAsyncConnector = new GrpcAsyncConnector(grpcSourceConfig, externalMetricConfig, schemaConfig);

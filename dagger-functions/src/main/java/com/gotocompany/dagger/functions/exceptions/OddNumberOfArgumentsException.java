@@ -5,6 +5,10 @@ package com.gotocompany.dagger.functions.exceptions;
  */
 public class OddNumberOfArgumentsException extends RuntimeException {
 
+    /**
+     * Default message used when the exception is raised without an explicit reason, indicating that the
+     * UDF received an odd number of arguments when an even count was required.
+     */
     private static final String DEFAULT_ERROR_MESSAGE = "Odd number of arguments given to Udf. Requires even.";
 
     /**

@@ -37,9 +37,22 @@ import java.util.Properties;
  * Responsible for handling the sink type.
  */
 public class SinkOrchestrator implements TelemetryPublisher {
+    /**
+     * Exporter subscribed to telemetry publishers (such as the Kafka serializer builder) created
+     * while building a sink.
+     */
     private final MetricsTelemetryExporter telemetryExporter;
+    /**
+     * Telemetry gathered during sink construction, keyed by metric type with the list of recorded
+     * values, exposed through {@link #getTelemetry()}.
+     */
     private final Map<String, List<String>> metrics;
 
+    /**
+     * Instantiates a new sink orchestrator.
+     *
+     * @param telemetryExporter the exporter that receives telemetry published while sinks are built
+     */
     public SinkOrchestrator(MetricsTelemetryExporter telemetryExporter) {
         this.telemetryExporter = telemetryExporter;
         this.metrics = new HashMap<>();
@@ -95,6 +108,13 @@ public class SinkOrchestrator implements TelemetryPublisher {
         return sink;
     }
 
+    /**
+     * Subscribes the orchestrator's telemetry exporter to the given Kafka serializer builder so that
+     * schema-related telemetry produced while serializing is forwarded to the exporter.
+     *
+     * @param kafkaSchemaBuilder the Kafka serializer builder, which also acts as a
+     *                           {@code TelemetryPublisher}
+     */
     private void reportTelemetry(KafkaSerializerBuilder kafkaSchemaBuilder) {
         TelemetryPublisher pub = (TelemetryPublisher) kafkaSchemaBuilder;
         pub.addSubscriber(telemetryExporter);
@@ -124,6 +144,12 @@ public class SinkOrchestrator implements TelemetryPublisher {
         return kafkaProducerConfigs;
     }
 
+    /**
+     * Validates that the configured Kafka producer {@code linger.ms} value is a parseable integer.
+     *
+     * @param lingerMs the linger-milliseconds value as a string
+     * @throws IllegalArgumentException if {@code lingerMs} cannot be parsed as an integer
+     */
     private void validateLingerMs(String lingerMs) {
         try {
             Integer.parseInt(lingerMs);
@@ -132,11 +158,25 @@ public class SinkOrchestrator implements TelemetryPublisher {
         }
     }
 
+    /**
+     * {@inheritDoc}
+     *
+     * <p>Returns the telemetry accumulated by this orchestrator while building sinks, keyed by metric
+     * type with the list of recorded values.
+     *
+     * @return the telemetry map of metric type to the list of recorded values
+     */
     @Override
     public Map<String, List<String>> getTelemetry() {
         return metrics;
     }
 
+    /**
+     * Records a telemetry value under the given key, creating the backing value list on first use.
+     *
+     * @param key   the metric type key
+     * @param value the metric value to append for that key
+     */
     private void addMetric(String key, String value) {
         metrics.computeIfAbsent(key, k -> new ArrayList<>()).add(value);
     }

@@ -21,8 +21,20 @@ import java.util.stream.IntStream;
  */
 public class OutlierMad extends TableUdf<Tuple5<Timestamp, Double, Double, Double, Boolean>> {
 
+    /**
+     * Logger used to record failures encountered while computing outliers, allowing the UDF to keep
+     * emitting rows instead of failing the job.
+     */
     private static final Logger LOGGER = LoggerFactory.getLogger(OutlierMad.class.getName());
+    /**
+     * Number of milliseconds in a single minute, used to convert minute-based window and observation
+     * lengths into timestamp arithmetic.
+     */
     private static final long MILLI_SECONDS_IN_MINUTE = 60000;
+    /**
+     * Constant {@code 100} used to express the outlier ratio within the observation window as a
+     * percentage.
+     */
     private static final double HUNDRED = 100D;
 
     /**
@@ -54,6 +66,19 @@ public class OutlierMad extends TableUdf<Tuple5<Timestamp, Double, Double, Doubl
         }
     }
 
+    /**
+     * Sorts the points chronologically and marks which of them fall inside the observation period.
+     *
+     * <p>A point is flagged observable when its timestamp lies within the trailing observation window
+     * that ends at the close of the configured window, so that only recent points are considered when
+     * deciding whether the window contains outliers.
+     *
+     * @param windowStartTime            the start time of the window
+     * @param points                     the points to order and classify
+     * @param windowLengthInMinutes      the length of the window in minutes
+     * @param observationPeriodInMinutes the trailing period, in minutes, within which points are observable
+     * @return a chronologically ordered {@code ArrayList<Point>} with each point's observability set
+     */
     private ArrayList<Point> getOrderedValues(Timestamp windowStartTime, ArrayList<Point> points, int windowLengthInMinutes, Integer observationPeriodInMinutes) {
         points.sort((p1, p2) -> (int) (p1.getTimestamp().getTime() - p2.getTimestamp().getTime()));
         ArrayList<Point> orderedValues = new ArrayList<>(Collections.nCopies(points.size(), Point.EMPTY_POINT));

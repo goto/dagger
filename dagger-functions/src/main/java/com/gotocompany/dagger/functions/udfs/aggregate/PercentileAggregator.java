@@ -16,11 +16,27 @@ import java.math.BigDecimal;
  */
 public class PercentileAggregator extends AggregateUdf<Double, PercentileAccumulator> {
 
+    /**
+     * Creates a fresh, empty {@link PercentileAccumulator} for a new aggregation group.
+     *
+     * <p>Flink invokes this once per aggregation key to obtain the mutable state used to
+     * collect the sample values and the requested percentile.
+     *
+     * @return a new, empty {@link PercentileAccumulator} instance
+     */
     @Override
     public PercentileAccumulator createAccumulator() {
         return new PercentileAccumulator();
     }
 
+    /**
+     * Returns the computed percentile over all values accumulated so far.
+     *
+     * <p>Flink calls this to produce the final aggregation output from the accumulator state.
+     *
+     * @param acc the accumulator holding the sample values and the requested percentile
+     * @return the percentile value computed from the accumulated samples
+     */
     @Override
     public Double getValue(PercentileAccumulator acc) {
         return acc.getPercentileValue();
@@ -37,6 +53,16 @@ public class PercentileAggregator extends AggregateUdf<Double, PercentileAccumul
         acc.add(percentile.doubleValue(), dValue.doubleValue());
     }
 
+    /**
+     * Merges the sample values from other accumulators into the target accumulator.
+     *
+     * <p>The double values held by each {@link PercentileAccumulator} in {@code otherAccumulators}
+     * are appended to {@code percentileAccumulator}, and the requested percentile is carried over so
+     * the combined accumulator can compute the percentile across all partial samples.
+     *
+     * @param percentileAccumulator the accumulator that receives the merged sample values
+     * @param otherAccumulators     the other accumulators whose sample values are merged in
+     */
     public void merge(PercentileAccumulator percentileAccumulator, Iterable<PercentileAccumulator> otherAccumulators) {
         for (PercentileAccumulator accumulatorInstance : otherAccumulators) {
             percentileAccumulator.getdValueList().addAll(accumulatorInstance.getdValueList());

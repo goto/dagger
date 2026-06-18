@@ -27,11 +27,29 @@ import java.util.TimeZone;
  * The type Timestamp proto handler.
  */
 public class TimestampHandler implements TypeHandler {
+    /**
+     * The number of milliseconds in one second, used to split epoch values into seconds.
+     */
     private static final int SECOND_TO_MS_FACTOR = 1000;
+    /**
+     * The default seconds component used when a timestamp value is absent.
+     */
     private static final long DEFAULT_SECONDS_VALUE = 0L;
+    /**
+     * The default nanoseconds component used when a timestamp value is absent.
+     */
     private static final int DEFAULT_NANOS_VALUE = 0;
+    /**
+     * The number of nanoseconds in one millisecond, used when converting Parquet millis.
+     */
     private static final int MS_TO_NANOS_FACTOR = 1000_000;
+    /**
+     * The UTC date format used to render timestamps as strings for JSON output.
+     */
     private static SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+    /**
+     * The protobuf {@code FieldDescriptor} of the {@code google.protobuf.Timestamp} field handled here.
+     */
     private Descriptors.FieldDescriptor fieldDescriptor;
 
     /**
@@ -44,11 +62,29 @@ public class TimestampHandler implements TypeHandler {
         dateFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
     }
 
+    /**
+     * Determines whether this handler applies to the field.
+     *
+     * @return {@code true} if the field is a {@code google.protobuf.Timestamp} message
+     */
     @Override
     public boolean canHandle() {
         return fieldDescriptor.getJavaType() == Descriptors.FieldDescriptor.JavaType.MESSAGE && fieldDescriptor.getMessageType().getFullName().equals("google.protobuf.Timestamp");
     }
 
+    /**
+     * Converts a variety of time representations into a protobuf {@code Timestamp} and sets it.
+     *
+     * <p>Supported inputs include {@code java.sql.Timestamp}, {@code Instant},
+     * {@code LocalDateTime}, a two-field {@code Row} of {@code (seconds, nanos)}, an ISO-8601
+     * {@code String}, and any {@code Number} of epoch seconds. When the handler cannot apply or
+     * {@code field} is {@code null}, the builder is returned unchanged.
+     *
+     * @param builder the dynamic message builder being populated
+     * @param field   the time value to convert and set, or {@code null} to skip
+     * @return the same {@code builder}, with the timestamp set when a value could be derived
+     * @throws IllegalArgumentException if a {@code Row} input does not have exactly two fields
+     */
     @Override
     public DynamicMessage.Builder transformToProtoBuilder(DynamicMessage.Builder builder, Object field) {
         if (!canHandle() || field == null) {
@@ -93,27 +129,62 @@ public class TimestampHandler implements TypeHandler {
         return builder;
     }
 
+    /**
+     * Converts a {@code LocalDateTime} into a protobuf {@code Timestamp} at UTC.
+     *
+     * @param timeField the local date-time to convert, interpreted as UTC
+     * @return the equivalent protobuf timestamp
+     */
     private Timestamp convertLocalDateTime(LocalDateTime timeField) {
         return Timestamp.newBuilder()
                 .setSeconds(timeField.toEpochSecond(ZoneOffset.UTC))
                 .build();
     }
 
+    /**
+     * Converts a post-processor value into its ISO-8601 string form when it is a valid instant.
+     *
+     * @param field the value emitted by an upstream post processor
+     * @return the value's string representation, or {@code null} if it is not a valid timestamp
+     */
     @Override
     public Object transformFromPostProcessor(Object field) {
         return isValid(field) ? field.toString() : null;
     }
 
+    /**
+     * Converts a protobuf {@code Timestamp} message read from the parent into a Flink {@code Row}.
+     *
+     * @param field the nested {@code DynamicMessage} timestamp read from the parent message
+     * @return a row holding the timestamp's {@code seconds} and {@code nanos} fields
+     */
     @Override
     public Object transformFromProto(Object field) {
         return RowFactory.createRow((DynamicMessage) field);
     }
 
+    /**
+     * Converts the protobuf timestamp into a row using the descriptor cache.
+     *
+     * @param field the nested {@code DynamicMessage} timestamp read from the parent message
+     * @param cache the field descriptor cache used to resolve nested field indices
+     * @return a row holding the timestamp's {@code seconds} and {@code nanos} fields
+     */
     @Override
     public Object transformFromProtoUsingCache(Object field, FieldDescriptorCache cache) {
         return RowFactory.createRow((DynamicMessage) field, cache);
     }
 
+    /**
+     * Reads the timestamp field from a Parquet {@code SimpleGroup} into a {@code (seconds, nanos)} row.
+     *
+     * <p>Both the {@code INT64} millisecond encoding and the nested group encoding (with
+     * {@code seconds} and {@code nanos} fields) are supported; a default zero timestamp is
+     * returned when the field is absent.
+     *
+     * @param simpleGroup the Parquet group holding the encoded record
+     * @return a two-field row of seconds and nanos
+     */
     @Override
     public Object transformFromParquet(SimpleGroup simpleGroup) {
         String fieldName = fieldDescriptor.getName();
@@ -128,6 +199,13 @@ public class TimestampHandler implements TypeHandler {
         return Row.of(DEFAULT_SECONDS_VALUE, DEFAULT_NANOS_VALUE);
     }
 
+    /**
+     * Parses an {@code INT64} millisecond timestamp from a Parquet group into seconds and nanos.
+     *
+     * @param simpleGroup        the Parquet group containing the timestamp field
+     * @param timestampFieldName the name of the timestamp field to read
+     * @return a two-field row of seconds and nanos
+     */
     private Row parseInt64TimestampFromSimpleGroup(SimpleGroup simpleGroup, String timestampFieldName) {
         /* conversion from ms to nanos borrowed from Instant.java class and inlined here for performance reasons */
         long timeInMillis = simpleGroup.getLong(timestampFieldName, 0);
@@ -137,6 +215,13 @@ public class TimestampHandler implements TypeHandler {
         return Row.of(seconds, nanos);
     }
 
+    /**
+     * Parses a nested-group timestamp (with {@code seconds} and {@code nanos}) from a Parquet group.
+     *
+     * @param simpleGroup        the Parquet group containing the timestamp field
+     * @param timestampFieldName the name of the timestamp group field to read
+     * @return a two-field row of seconds and nanos, defaulting to zero for missing components
+     */
     private Row parseGroupTypeTimestampFromSimpleGroup(SimpleGroup simpleGroup, String timestampFieldName) {
         SimpleGroup timestampGroup = (SimpleGroup) simpleGroup.getGroup(timestampFieldName, 0);
         long seconds = 0L;
@@ -150,6 +235,13 @@ public class TimestampHandler implements TypeHandler {
         return Row.of(seconds, nanos);
     }
 
+    /**
+     * Renders the timestamp row as a UTC date-time string for JSON output.
+     *
+     * @param field the timestamp {@code Row} of {@code (seconds, nanos)}
+     * @return the formatted UTC date-time string, or the original value when it is not a
+     *         two-field row
+     */
     @Override
     public Object transformToJson(Object field) {
         Row timeField = (Row) field;
@@ -161,11 +253,22 @@ public class TimestampHandler implements TypeHandler {
         }
     }
 
+    /**
+     * Returns the Flink {@code TypeInformation} used to represent this timestamp field.
+     *
+     * @return the row type derived from the timestamp message descriptor
+     */
     @Override
     public TypeInformation getTypeInformation() {
         return TypeInformationFactory.getRowType(fieldDescriptor.getMessageType());
     }
 
+    /**
+     * Converts a {@code java.sql.Timestamp} into a protobuf {@code Timestamp}.
+     *
+     * @param field the SQL timestamp to convert
+     * @return the equivalent protobuf timestamp, preserving seconds and nanoseconds
+     */
     private Timestamp convertSqlTimestamp(java.sql.Timestamp field) {
         long timestampSeconds = field.getTime() / SECOND_TO_MS_FACTOR;
         int timestampNanos = field.getNanos();
@@ -175,6 +278,12 @@ public class TimestampHandler implements TypeHandler {
                 .build();
     }
 
+    /**
+     * Checks whether the given value can be parsed as an ISO-8601 instant.
+     *
+     * @param field the value to validate
+     * @return {@code true} if the value is non-null and parses as an {@code Instant}
+     */
     private boolean isValid(Object field) {
         if (field == null) {
             return false;

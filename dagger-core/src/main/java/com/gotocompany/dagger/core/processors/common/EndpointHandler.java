@@ -28,13 +28,37 @@ import static java.util.Collections.singleton;
  * The Endpoint handler.
  */
 public class EndpointHandler {
+    /**
+     * Logger used to record diagnostic information during endpoint variable resolution.
+     */
     private static final Logger LOGGER = LoggerFactory.getLogger(EndpointHandler.class.getName());
+    /**
+     * Meter stats manager used to record external source metrics such as empty inputs.
+     */
     private MeterStatsManager meterStatsManager;
+    /**
+     * Reporter used to surface fatal errors encountered while resolving descriptors.
+     */
     private ErrorReporter errorReporter;
+    /**
+     * The fully qualified names of the input Protobuf classes used to locate field descriptors.
+     */
     private String[] inputProtoClasses;
+    /**
+     * Lazily built mapping from input column name to its Protobuf {@link Descriptors.FieldDescriptor}.
+     */
     private Map<String, Descriptors.FieldDescriptor> descriptorMap;
+    /**
+     * Manager that resolves input and output column indices by name.
+     */
     private ColumnNameManager columnNameManager;
+    /**
+     * Manager that resolves Protobuf descriptors by proto class name.
+     */
     private DescriptorManager descriptorManager;
+    /**
+     * The most recently resolved input Protobuf message descriptor.
+     */
     private Descriptors.Descriptor descriptor;
 
     /**
@@ -117,6 +141,18 @@ public class EndpointHandler {
         return false;
     }
 
+    /**
+     * Builds a lookup from required input column names to their Protobuf field descriptors.
+     *
+     * <p>For each required column the method scans every configured input proto class and records
+     * the first matching {@link Descriptors.FieldDescriptor} found. Columns without a matching field
+     * are simply omitted from the returned map.
+     *
+     * @param requiredInputColumns the input column names that need descriptors
+     * @param inputProtoClassNames the proto class names to search for matching fields
+     * @param resultFuture         the result future completed exceptionally if a descriptor is missing
+     * @return a map from column name to its matching field descriptor
+     */
     private Map<String, Descriptors.FieldDescriptor> createDescriptorMap(String[] requiredInputColumns,
                                                                          String[] inputProtoClassNames,
                                                                          ResultFuture<Row> resultFuture) {
@@ -134,6 +170,16 @@ public class EndpointHandler {
         return descriptorHashMap;
     }
 
+    /**
+     * Resolves the Protobuf message descriptor for the given proto class name.
+     *
+     * <p>If the descriptor cannot be found the underlying error is reported and propagated through
+     * the supplied result future.
+     *
+     * @param resultFuture   the result future completed exceptionally when the descriptor is missing
+     * @param protoClassName the fully qualified proto class name to resolve
+     * @return the resolved message descriptor, or the previously held descriptor if resolution failed
+     */
     private Descriptors.Descriptor getInputDescriptor(ResultFuture<Row> resultFuture, String protoClassName) {
         try {
             descriptor = descriptorManager.getDescriptor(protoClassName);
@@ -143,6 +189,12 @@ public class EndpointHandler {
         return descriptor;
     }
 
+    /**
+     * Reports the given exception as fatal and completes the result future exceptionally.
+     *
+     * @param resultFuture the result future to complete exceptionally
+     * @param exception    the exception to report and propagate
+     */
     private void reportAndThrowError(ResultFuture<Row> resultFuture, Exception exception) {
         errorReporter.reportFatalException(exception);
         resultFuture.completeExceptionally(exception);

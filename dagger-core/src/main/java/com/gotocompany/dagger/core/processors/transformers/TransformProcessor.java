@@ -23,6 +23,9 @@ import java.util.Map;
  * The Transformer processor.
  */
 public class TransformProcessor implements Preprocessor, PostProcessor, TelemetryPublisher {
+    /**
+     * The ordered list of {@link TransformConfig} entries this processor applies to the stream.
+     */
     protected final List<TransformConfig> transformConfigs;
 
 
@@ -35,9 +38,21 @@ public class TransformProcessor implements Preprocessor, PostProcessor, Telemetr
         return tableName;
     }
 
+    /**
+     * The name of the input table this processor is bound to, or {@code "NULL"} when unscoped.
+     */
     protected final String tableName;
+    /**
+     * The telemetry metrics gathered by this processor, keyed by metric type.
+     */
     private final Map<String, List<String>> metrics = new HashMap<>();
+    /**
+     * The telemetry classification (pre-processor or post-processor) of this processor.
+     */
     protected final TelemetryTypes type;
+    /**
+     * The Dagger context providing access to job configuration and the Flink runtime.
+     */
     private final DaggerContext daggerContext;
 
     /**
@@ -65,6 +80,18 @@ public class TransformProcessor implements Preprocessor, PostProcessor, Telemetr
         TransformerUtils.populateDefaultArguments(this);
     }
 
+    /**
+     * Applies every configured transformer to the given stream in order and returns the result.
+     *
+     * <p>For each {@link TransformConfig} the declared {@link Transformer} implementation is loaded
+     * reflectively and its {@code transform} method is invoked, chaining the output of one
+     * transformer into the input of the next.
+     *
+     * @param streamInfo the stream metadata and data stream to transform
+     * @return the resulting {@link StreamInfo} after all transformers have been applied
+     * @throws TransformClassNotDefinedException if a configured transformer class cannot be loaded
+     *                                           or instantiated
+     */
     @Override
     public StreamInfo process(StreamInfo streamInfo) {
         for (TransformConfig transformConfig : transformConfigs) {
@@ -79,16 +106,37 @@ public class TransformProcessor implements Preprocessor, PostProcessor, Telemetr
         return streamInfo;
     }
 
+    /**
+     * Determines whether this processor should run for the given pre-processor configuration.
+     *
+     * @param processorConfig the pre-processor configuration to inspect
+     * @return {@code true} if the configuration declares a table transformer whose table name
+     *         matches this processor's table name, {@code false} otherwise
+     */
     @Override
     public boolean canProcess(PreProcessorConfig processorConfig) {
         return processorConfig.getTableTransformers().stream().anyMatch(x -> x.tableName.equals(this.tableName));
     }
 
+    /**
+     * Determines whether this processor should run for the given post-processor configuration.
+     *
+     * @param processorConfig the post-processor configuration to inspect
+     * @return {@code true} if the configuration declares any transform configs, {@code false}
+     *         otherwise
+     */
     @Override
     public boolean canProcess(PostProcessorConfig processorConfig) {
         return processorConfig.hasTransformConfigs();
     }
 
+    /**
+     * Registers this processor's telemetry metric before telemetry subscribers are notified.
+     *
+     * <p>The metric key recorded depends on the configured {@link TelemetryTypes}: post-processor
+     * usage is tracked under the generic transform-processor key, while pre-processor usage is
+     * tracked under a table-scoped key. Other telemetry types record nothing.
+     */
     @Override
     public void preProcessBeforeNotifyingSubscriber() {
         switch (this.type) {
@@ -103,11 +151,22 @@ public class TransformProcessor implements Preprocessor, PostProcessor, Telemetr
         }
     }
 
+    /**
+     * Returns the telemetry metrics gathered by this processor.
+     *
+     * @return a map of metric type to the list of recorded metric values
+     */
     @Override
     public Map<String, List<String>> getTelemetry() {
         return metrics;
     }
 
+    /**
+     * Records a single telemetry metric value under the given key, creating the list if needed.
+     *
+     * @param key   the metric type key to record under
+     * @param value the metric value to append
+     */
     private void addMetric(String key, String value) {
         metrics.computeIfAbsent(key, k -> new ArrayList<>()).add(value);
     }

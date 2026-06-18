@@ -11,8 +11,19 @@ import java.util.TimeZone;
  */
 public class StartOfMonth extends ScalarUdf {
 
+    /**
+     * First hour of the day ({@code 0}), used to roll a timestamp back to the start of the day.
+     */
     private static final Integer FIRST_HOUR_OF_DAY = 0;
+
+    /**
+     * Number of seconds in a day ({@code 86400}), used when normalising the day-of-week field.
+     */
     private static final Integer DURATION_OF_DAY_IN_SECONDS = 86400;
+
+    /**
+     * Number of milliseconds in one second, used to convert between seconds and milliseconds.
+     */
     private static final Integer SECOND_IN_MILLIS = 1000;
 
     /**

@@ -19,10 +19,22 @@ import static com.gotocompany.dagger.common.core.Constants.ROWTIME;
  */
 public class TablePutRequest implements PutRequest {
 
+    /**
+     * Default BigTable column family, in bytes, under which Longbow data columns are written.
+     */
     private static final byte[] COLUMN_FAMILY_NAME = Bytes.toBytes(Constants.LONGBOW_COLUMN_FAMILY_DEFAULT);
 
+    /**
+     * Schema describing the Longbow key and the data columns to persist.
+     */
     private LongbowSchema longbowSchema;
+    /**
+     * Input row whose Longbow data columns are written to BigTable.
+     */
     private Row input;
+    /**
+     * Identifier of the BigTable table this put targets.
+     */
     private String tableId;
 
     /**
@@ -38,6 +50,15 @@ public class TablePutRequest implements PutRequest {
         this.tableId = tableId;
     }
 
+    /**
+     * Builds the BigTable {@link Put} for the input row in table (column-per-field) form.
+     *
+     * <p>The row key is derived from the Longbow key, and one cell is added per Longbow data column,
+     * each written under the default column family with the row time as timestamp and the column's
+     * string value as bytes.
+     *
+     * @return the assembled {@link Put} request
+     */
     @Override
     public Put get() {
         Put putRequest = new Put(longbowSchema.getKey(input, 0));
@@ -48,6 +69,12 @@ public class TablePutRequest implements PutRequest {
         return putRequest;
     }
 
+    /**
+     * Normalises a row-time field into a {@link Timestamp}.
+     *
+     * @param timeStampField the row-time value, either a {@link LocalDateTime} or a {@link Timestamp}
+     * @return the equivalent {@link Timestamp}
+     */
     private Timestamp convertToTimeStamp(Object timeStampField) {
         if (timeStampField instanceof LocalDateTime) {
             return Timestamp.valueOf((LocalDateTime) timeStampField);
@@ -55,6 +82,11 @@ public class TablePutRequest implements PutRequest {
         return (Timestamp) timeStampField;
     }
 
+    /**
+     * {@inheritDoc}
+     *
+     * @return the identifier of the target BigTable table
+     */
     @Override
     public String getTableId() {
         return this.tableId;

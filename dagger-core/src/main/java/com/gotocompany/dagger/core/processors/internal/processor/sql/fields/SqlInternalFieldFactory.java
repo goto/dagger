@@ -10,8 +10,11 @@ import com.gotocompany.dagger.core.processors.internal.processor.sql.SqlInternal
  * The factory class for Sql internal field processor.
  */
 public class SqlInternalFieldFactory {
+    /** Resolves logical column names to their input/output row indices. */
     private ColumnNameManager columnNameManager;
+    /** Extracts the configured input data for single-field SQL mappings. */
     private SqlConfigTypePathParser sqlPathParser;
+    /** The internal source configuration supplying the output field and select-all marker. */
     private InternalSourceConfig internalSourceConfig;
 
     /**
@@ -40,6 +43,11 @@ public class SqlInternalFieldFactory {
         }
     }
 
+    /**
+     * Determines whether the configuration requests importing all input columns.
+     *
+     * @return {@code true} when the configured output field is the SQL select-all marker, {@code false} otherwise
+     */
     private boolean selectAllFromInputColumns() {
         return Constants.SQL_PATH_SELECT_ALL_CONFIG_VALUE.equals(internalSourceConfig.getOutputField());
     }

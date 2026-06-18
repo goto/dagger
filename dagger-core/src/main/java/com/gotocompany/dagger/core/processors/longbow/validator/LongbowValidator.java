@@ -10,6 +10,9 @@ import java.util.stream.Collectors;
  * The Longbow validator.
  */
 public class LongbowValidator {
+    /**
+     * The input stream column names validated against each Longbow type's field requirements.
+     */
     private String[] columnNames;
 
     /**

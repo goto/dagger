@@ -8,6 +8,9 @@ import org.slf4j.LoggerFactory;
  * The Split udf.
  */
 public class Split extends ScalarUdf {
+    /**
+     * Logger used to record when an input string cannot be split (for example a {@code null} input).
+     */
     private static final Logger LOGGER = LoggerFactory.getLogger(Split.class.getName());
 
     /**

@@ -16,6 +16,9 @@ import java.util.stream.Collectors;
  * The ExponentialMovingAverage udf.
  */
 public class ExponentialMovingAverage extends ScalarUdf {
+    /**
+     * Number of milliseconds in one minute, used to bucket timestamps into per-minute positions.
+     */
     private static final long MILLI_SECONDS_IN_MINUTE = 60000;
 
     /**

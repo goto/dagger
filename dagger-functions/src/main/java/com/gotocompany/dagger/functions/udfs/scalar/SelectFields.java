@@ -32,8 +32,19 @@ import java.util.Optional;
  * The SelectFields udf.
  */
 public class SelectFields extends ScalarUdf {
+    /**
+     * Orchestrator used to obtain the {@link StencilClient} for protobuf descriptor lookups.
+     */
     private StencilClientOrchestrator stencilClientOrchestrator;
+
+    /**
+     * Stencil client used to resolve protobuf descriptors; supplied directly or via the orchestrator.
+     */
     private StencilClient stencilClient;
+
+    /**
+     * Parser used to read the requested field path out of each decoded protobuf message.
+     */
     private MessageParser messageParser;
 
     /**
@@ -56,6 +67,15 @@ public class SelectFields extends ScalarUdf {
         this.messageParser = new MessageParser();
     }
 
+    /**
+     * {@inheritDoc}
+     *
+     * <p>Resolves and caches the {@link StencilClient} on first open so protobuf descriptors can be
+     * looked up while selecting fields.
+     *
+     * @param context the Flink function context supplied during initialisation
+     * @throws Exception if the superclass fails to open
+     */
     @Override
     public void open(FunctionContext context) throws Exception {
         super.open(context);
@@ -113,6 +133,13 @@ public class SelectFields extends ScalarUdf {
         return output.toArray(new Object[0]);
     }
 
+    /**
+     * Resolves the protobuf {@link Descriptors.Descriptor} for the given class name via the Stencil client.
+     *
+     * @param protoClassName the fully-qualified protobuf message class name
+     * @return the resolved descriptor for {@code protoClassName}
+     * @throws ClassNotFoundException if no descriptor is registered for {@code protoClassName}
+     */
     private Descriptors.Descriptor getDescriptor(String protoClassName) throws ClassNotFoundException {
         Descriptors.Descriptor descriptor = stencilClient.get(protoClassName);
         if (descriptor == null) {
@@ -134,6 +161,15 @@ public class SelectFields extends ScalarUdf {
     }
 
 
+    /**
+     * {@inheritDoc}
+     *
+     * <p>Declares an output strategy producing an {@code ARRAY} of raw {@code Object} values, matching the
+     * list of selected field values returned by {@code eval}.
+     *
+     * @param typeFactory the factory used to resolve Flink {@link DataType}s
+     * @return the {@link TypeInference} describing the output type strategy
+     */
     @Override
     public TypeInference getTypeInference(DataTypeFactory typeFactory) {
         TypeInference build = TypeInference.newBuilder()
@@ -143,7 +179,16 @@ public class SelectFields extends ScalarUdf {
     }
 
 
+    /**
+     * Output {@link TypeStrategy} for {@link SelectFields} that reports an {@code ARRAY} of raw {@code Object}.
+     */
     private static class SelectFieldsOutputStrategy implements TypeStrategy {
+        /**
+         * Infers the output type as an {@code ARRAY} of raw {@code Object}.
+         *
+         * @param callContext the context describing the current SQL call
+         * @return an {@link Optional} containing the array {@link DataType}
+         */
         @Override
         public Optional<DataType> inferType(CallContext callContext) {
             DataTypeFactory dataTypeFactory = callContext.getDataTypeFactory();

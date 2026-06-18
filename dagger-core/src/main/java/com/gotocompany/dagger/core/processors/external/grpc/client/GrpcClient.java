@@ -24,12 +24,24 @@ import java.util.concurrent.TimeUnit;
  * The Grpc client.
  */
 public class GrpcClient {
+    /**
+     * The gRPC source configuration describing the endpoint, headers, and keepalive settings.
+     */
     private final GrpcSourceConfig grpcConfig;
 
+    /**
+     * The managed channel to the gRPC service, created lazily and decorated with headers and keepalive options.
+     */
     private ManagedChannel decoratedChannel;
 
+    /**
+     * The default keepalive timeout in milliseconds, used when none is configured.
+     */
     private final long defaultKeepAliveTimeout = 20000L;
 
+    /**
+     * The default keepalive ping interval in milliseconds, used when none is configured.
+     */
     private final long defaultKeepAliveInterval = Long.MAX_VALUE;
 
     /**
@@ -50,6 +62,12 @@ public class GrpcClient {
         decoratedChannel = channelBuilder.build();
     }
 
+    /**
+     * Applies keepalive settings and optional metadata headers to the given channel builder.
+     *
+     * @param channelBuilder the channel builder to decorate
+     * @return the decorated channel builder, configured with keepalive options and any header interceptors
+     */
     protected  ManagedChannelBuilder<?> decorateManagedChannelBuilder(ManagedChannelBuilder<?> channelBuilder) {
 
         long keepAliveInterval = StringUtils.isNotEmpty(grpcConfig.getGrpcArgKeepaliveTimeMs()) ? Long.parseLong(grpcConfig.getGrpcArgKeepaliveTimeMs()) : defaultKeepAliveInterval;
@@ -91,6 +109,14 @@ public class GrpcClient {
                 responseObserver);
     }
 
+    /**
+     * Creates a unary client call bound to the configured method using dynamic-message marshallers.
+     *
+     * @param callOptions      the call options to apply to the call
+     * @param inputDescriptor  the descriptor used to marshal the request message
+     * @param outputDescriptor the descriptor used to unmarshal the response message
+     * @return a client call for the configured gRPC method
+     */
     private ClientCall<DynamicMessage, DynamicMessage> createCall(CallOptions callOptions, Descriptor inputDescriptor, Descriptor outputDescriptor) {
 
         return decoratedChannel.newCall(MethodDescriptor.newBuilder(new DynamicMessageMarshaller(inputDescriptor), new DynamicMessageMarshaller(outputDescriptor))

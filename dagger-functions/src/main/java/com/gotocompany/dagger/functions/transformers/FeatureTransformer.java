@@ -18,11 +18,29 @@ import java.util.Map;
  * Converts to feast Features from post processors.
  */
 public class FeatureTransformer implements MapFunction<Row, Row>, Transformer {
+    /**
+     * Number of fields in each generated feast feature row, namely the key, value and value type.
+     */
     private static final int FEATURE_ROW_LENGTH = 3;
+    /**
+     * Transformation-argument key whose value names the column holding the feature key.
+     */
     private static final String KEY_COLUMN_NAME = "keyColumnName";
+    /**
+     * Transformation-argument key whose value names the column holding the feature value.
+     */
     private static final String VALUE_COLUMN_NAME = "valueColumnName";
+    /**
+     * Name of the column that supplies the feature key.
+     */
     private final String keyColumn;
+    /**
+     * Name of the column that supplies the feature value and that receives the generated feature rows.
+     */
     private final String valueColumn;
+    /**
+     * Ordered names of the columns in the incoming {@link Row}, used to resolve column indices.
+     */
     private String[] columnNames;
 
     /**
@@ -38,6 +56,18 @@ public class FeatureTransformer implements MapFunction<Row, Row>, Transformer {
         this.valueColumn = transformationArguments.get(VALUE_COLUMN_NAME);
     }
 
+    /**
+     * Builds feast feature rows from the configured key and value columns of the incoming row.
+     *
+     * <p>Resolves the key and value column indices, delegates to {@code FeatureUtils} to populate the
+     * feature rows from the key and value, copies all fields of {@code inputRow} into a new {@link Row}
+     * and replaces the value column with the generated array of feature rows.
+     *
+     * @param inputRow the row to transform
+     * @return a new row whose value column holds the generated feast feature rows
+     * @throws IllegalArgumentException if the configured key or value column does not exist
+     * @throws Exception if populating the feature rows fails
+     */
     @Override
     public Row map(Row inputRow) throws Exception {
         int featureKeyIndex = Arrays.asList(columnNames).indexOf(keyColumn);
@@ -59,6 +89,15 @@ public class FeatureTransformer implements MapFunction<Row, Row>, Transformer {
         return outputRow;
     }
 
+    /**
+     * Wires this map function into the streaming pipeline.
+     *
+     * <p>Applies this transformer as a {@link MapFunction} over the input data stream and returns a new
+     * {@link StreamInfo} that preserves the original column names.
+     *
+     * @param inputStreamInfo the incoming stream and its column metadata
+     * @return a {@link StreamInfo} wrapping the mapped data stream with the original column names
+     */
     @Override
     public StreamInfo transform(StreamInfo inputStreamInfo) {
         DataStream<Row> inputStream = inputStreamInfo.getDataStream();

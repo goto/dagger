@@ -15,9 +15,21 @@ import static com.google.protobuf.Descriptors.Descriptor;
  * The Message reader.
  */
 public class MessageReader {
+    /**
+     * The Flink {@link Row} record from which a nested element is read.
+     */
     private Row message;
+    /**
+     * The fully-qualified protobuf class name describing the schema of the message.
+     */
     private String protoClassName;
+    /**
+     * The dot-separated path identifying the parent message within the proto schema.
+     */
     private String pathOfMessage;
+    /**
+     * The Stencil client used to resolve protobuf descriptors by class name.
+     */
     private StencilClient stencilClient;
 
     /**
@@ -35,6 +47,12 @@ public class MessageReader {
         this.stencilClient = stencilClient;
     }
 
+    /**
+     * Resolves the root protobuf descriptor for the configured proto class name via the Stencil client.
+     *
+     * @return the root {@code Descriptor} for the configured proto class
+     * @throws ClassNotFoundException if no descriptor is registered for the configured proto class name
+     */
     private Descriptor getRootDescriptor() throws ClassNotFoundException {
         Descriptor dsc = stencilClient.get(protoClassName);
         if (dsc == null) {

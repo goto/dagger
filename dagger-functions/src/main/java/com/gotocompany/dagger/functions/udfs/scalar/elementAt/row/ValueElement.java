@@ -22,6 +22,12 @@ class ValueElement extends Element {
         super(parent, row, fieldDescriptor);
     }
 
+    /**
+     * Returns an empty result because a leaf value element has no further path elements to descend into.
+     *
+     * @param pathElement the name of the requested child field (ignored for value elements)
+     * @return an always-empty {@link Optional}
+     */
     @Override
     public Optional<Element> createNext(String pathElement) {
         return Optional.empty();

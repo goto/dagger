@@ -21,9 +21,13 @@ import java.util.Set;
  * The Metrics telemetry exporter.
  */
 public class MetricsTelemetryExporter extends RichMapFunction<Row, Row> implements TelemetrySubscriber {
+    /** Logger used to report the metrics registered with the underlying stats manager. */
     private static final Logger LOGGER = LoggerFactory.getLogger(MetricsTelemetryExporter.class.getName());
+    /** Manages gauge metrics; lazily created from the runtime metric group when not injected. */
     private GaugeStatsManager gaugeStatsManager;
+    /** Constant gauge value reported for every registered telemetry aspect. */
     private Integer gaugeValue = 1;
+    /** Accumulated telemetry, mapping each metric group key to the set of values seen for it. */
     private Map<String, Set<String>> metrics = new HashMap<>();
 
     /**
@@ -41,6 +45,15 @@ public class MetricsTelemetryExporter extends RichMapFunction<Row, Row> implemen
     public MetricsTelemetryExporter() {
     }
 
+    /**
+     * Initialises the gauge stats manager and registers any pending metric groups.
+     *
+     * <p>Called by Flink when the function is opened. When no {@link GaugeStatsManager} was injected
+     * one is created from the runtime metric group, and previously collected metrics are registered.
+     *
+     * @param parameters the Flink job/runtime configuration
+     * @throws Exception if the underlying {@link RichMapFunction} initialisation fails
+     */
     @Override
     public void open(Configuration parameters) throws Exception {
         if (gaugeStatsManager == null) {
@@ -51,11 +64,29 @@ public class MetricsTelemetryExporter extends RichMapFunction<Row, Row> implemen
         }
     }
 
+    /**
+     * Passes each record through unchanged.
+     *
+     * <p>This exporter only collects telemetry as a side effect of stream setup and does not modify
+     * the data flowing through it.
+     *
+     * @param inputRow the incoming record
+     * @return the same {@code inputRow}, unmodified
+     * @throws Exception if record handling fails
+     */
     @Override
     public Row map(Row inputRow) throws Exception {
         return inputRow;
     }
 
+    /**
+     * Receives telemetry from a publisher and registers the merged metrics.
+     *
+     * <p>Invoked when a subscribed {@link TelemetryPublisher} announces new telemetry; the values are
+     * merged into the accumulated metrics and, when a stats manager is available, registered.
+     *
+     * @param publisher the publisher whose telemetry is merged into this exporter
+     */
     @Override
     public void updated(TelemetryPublisher publisher) {
         mergeMetrics(publisher.getTelemetry());
@@ -64,6 +95,14 @@ public class MetricsTelemetryExporter extends RichMapFunction<Row, Row> implemen
         }
     }
 
+    /**
+     * Merges telemetry from a publisher into the accumulated metric groups.
+     *
+     * <p>Each value is added to the set stored under its group key, creating the set on first use so
+     * duplicate values are ignored.
+     *
+     * @param metricsFromPublisher the per-group metric values reported by a publisher
+     */
     private void mergeMetrics(Map<String, List<String>> metricsFromPublisher) {
         metricsFromPublisher.forEach((key, value) -> {
                     metrics.computeIfAbsent(key, x -> new HashSet<>()).addAll(value);
