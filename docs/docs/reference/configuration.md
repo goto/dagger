@@ -360,8 +360,15 @@ Defines the password to connect to InfluxDB.
 
 Defines the InfluxDB database name.
 
-* Example value: `DAGGER`
+* Example value: `default_db`
 * Type: `required`
+
+#### `SINK_INFLUX_DB_NAME_LIST`
+
+Defines a comma-separated list of InfluxDB database names for custom jobs that write to multiple databases. The values are positionally aligned with `SINK_INFLUX_MEASUREMENTS_LIST` and let a custom job override the database name per sink through configuration instead of code. When unset, the sink uses `SINK_INFLUX_DB_NAME`.
+
+* Example value: `default_db, ssd_db`
+* Type: `optional`
 
 #### `SINK_INFLUX_MEASUREMENT_NAME`
 
