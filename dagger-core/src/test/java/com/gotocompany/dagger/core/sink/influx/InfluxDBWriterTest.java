@@ -177,15 +177,15 @@ public class InfluxDBWriterTest {
     }
 
     @Test
-    public void shouldWriteToInfluxWithOverrideMeasurementAndRetentionPolicy() throws Exception {
+    public void shouldWriteToInfluxWithOverrideMeasurementRetentionPolicyAndDatabase() throws Exception {
         Row row = new Row(1);
         row.setField(0, "some field");
         InfluxDBWriter influxDBWriter = new InfluxDBWriter(configuration, influxDb, new String[]{"some_field_name"},
-                errorHandler, errorReporter, InfluxSinkOverrides.of("override_measurement", "override_policy"));
+                errorHandler, errorReporter, InfluxSinkOverrides.of("override_measurement", "override_policy", "override_db"));
         influxDBWriter.write(row, context);
 
         ArgumentCaptor<Point> pointArg = ArgumentCaptor.forClass(Point.class);
-        verify(influxDb).write(eq("dagger_test"), eq("override_policy"), pointArg.capture());
+        verify(influxDb).write(eq("override_db"), eq("override_policy"), pointArg.capture());
         // measurement is in line protocol prefix
         assertTrue(pointArg.getValue().lineProtocol().startsWith("override_measurement"));
     }
@@ -196,6 +196,28 @@ public class InfluxDBWriterTest {
         row.setField(0, "some field");
         InfluxDBWriter influxDBWriter = new InfluxDBWriter(configuration, influxDb, new String[]{"some_field_name"},
                 errorHandler, errorReporter, InfluxSinkOverrides.withRetentionPolicy(""));
+        influxDBWriter.write(row, context);
+
+        verify(influxDb).write(eq("dagger_test"), eq("two_day_policy"), any());
+    }
+
+    @Test
+    public void shouldWriteToInfluxWithOverrideDatabaseName() throws Exception {
+        Row row = new Row(1);
+        row.setField(0, "some field");
+        InfluxDBWriter influxDBWriter = new InfluxDBWriter(configuration, influxDb, new String[]{"some_field_name"},
+                errorHandler, errorReporter, InfluxSinkOverrides.withDatabaseName("override_db"));
+        influxDBWriter.write(row, context);
+
+        verify(influxDb).write(eq("override_db"), eq("two_day_policy"), any());
+    }
+
+    @Test
+    public void shouldFallBackToConfigDatabaseNameWhenOverrideIsBlank() throws Exception {
+        Row row = new Row(1);
+        row.setField(0, "some field");
+        InfluxDBWriter influxDBWriter = new InfluxDBWriter(configuration, influxDb, new String[]{"some_field_name"},
+                errorHandler, errorReporter, InfluxSinkOverrides.withDatabaseName(""));
         influxDBWriter.write(row, context);
 
         verify(influxDb).write(eq("dagger_test"), eq("two_day_policy"), any());

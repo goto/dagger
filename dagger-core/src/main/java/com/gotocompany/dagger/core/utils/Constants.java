@@ -169,6 +169,12 @@ public class Constants {
     // configuration without changing the code.
     public static final String SINK_INFLUX_RETENTION_POLICY_LIST_KEY = "SINK_INFLUX_RETENTION_POLICY_LIST";
 
+    // A custom job can use this configuration to get all Influx database names as a list
+    // (positionally aligned with SINK_INFLUX_MEASUREMENTS_LIST_KEY) and configure them in the
+    // job builder pipeline accordingly. This allows database names to be updated through
+    // configuration without changing the code.
+    public static final String SINK_INFLUX_DB_NAME_LIST_KEY = "SINK_INFLUX_DB_NAME_LIST";
+
     public static final String SINK_INFLUX_URL_KEY = "SINK_INFLUX_URL";
     public static final String SINK_INFLUX_URL_DEFAULT = "";
     public static final String SINK_INFLUX_USERNAME_KEY = "SINK_INFLUX_USERNAME";

@@ -39,7 +39,9 @@ public class InfluxDBWriter implements SinkWriter<Row, Void, Void> {
 
     public InfluxDBWriter(Configuration configuration, InfluxDB influxDB, String[] columnNames, ErrorHandler errorHandler,
                           ErrorReporter errorReporter, InfluxSinkOverrides overrides) {
-        databaseName = configuration.getString(Constants.SINK_INFLUX_DB_NAME_KEY, Constants.SINK_INFLUX_DB_NAME_DEFAULT);
+        databaseName = overrides.hasDatabaseName()
+                ? overrides.getDatabaseName()
+                : configuration.getString(Constants.SINK_INFLUX_DB_NAME_KEY, Constants.SINK_INFLUX_DB_NAME_DEFAULT);
         retentionPolicy = overrides.hasRetentionPolicy()
                 ? overrides.getRetentionPolicy()
                 : configuration.getString(Constants.SINK_INFLUX_RETENTION_POLICY_KEY, Constants.SINK_INFLUX_RETENTION_POLICY_DEFAULT);
