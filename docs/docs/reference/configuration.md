@@ -8,6 +8,7 @@ This page contains references for all the application configurations for Dagger.
 * [Influx Sink](configuration.md#influx-sink)
 * [Kafka Sink](configuration.md#kafka-sink)
 * [BigQuery Sink](configuration.md#bigquery-sink)
+* [CSV Sink](configuration.md#csv-sink)
 * [Schema Registry](configuration.md#schema-registry)
 * [Flink](configuration.md#flink)
 * [Darts](configuration.md#darts)
@@ -287,7 +288,7 @@ STREAMS = [
 
 #### `SINK_TYPE`
 
-Defines the Dagger sink type. At present, we support `log`, `influx`, `kafka`, `bigquery`
+Defines the Dagger sink type. At present, we support `log`, `influx`, `kafka`, `bigquery`, `csv`
 
 * Example value: `log`
 * Type: `required`
@@ -472,6 +473,78 @@ Controls how many records are loaded into the BigQuery Sink in one network call
 Contains the error types for which the dagger should throw an exception if such an error occurs during runtime. The possible error types are `DESERIALIZATION_ERROR`, `INVALID_MESSAGE_ERROR`, `UNKNOWN_FIELDS_ERROR`, `SINK_4XX_ERROR`, `SINK_5XX_ERROR`, `SINK_UNKNOWN_ERROR`, `DEFAULT_ERROR` . The error types should be comma-separated.
 - Example value: `UNKNOWN_FIELDS_ERROR`
 - Type: `optional`
+
+
+### CSV Sink
+
+A CSV sink Dagger \(`SINK_TYPE`=`csv`\) writes the query output as a daily-rolling CSV file to any Flink-supported filesystem (e.g. `file://`, `gs://`, `oss://`, `cosn://`, `s3://`). The full output path for a given day is `<SINK_CSV_BASE_PATH>/<FLINK_JOB_ID>/<SINK_CSV_FILENAME_PREFIX>-<date>.csv`.
+
+The sink buffers output rows and flushes them on every Flink checkpoint (see `FLINK_CHECKPOINT_INTERVAL`); an empty buffer results in a no-op flush, so the file is only (re)written when there is new data. The sink always runs with parallelism 1 so that a single subtask owns the daily file. Delivery is at-least-once.
+
+Nested/composite columns are not expanded automatically — flatten them in your SQL using dot-notation and aliases (e.g. `SELECT emp.code AS emp_code`). Any non-scalar value that still reaches the sink (`Map`/`Collection`/array) is JSON-encoded into a single cell.
+
+#### `SINK_CSV_BASE_PATH`
+
+Defines the root path under which the daily CSV files are written. The job id and file name are appended to this base path.
+
+* Example value: `oss://bucket-name/some-folder`
+* Type: `required`
+
+#### `SINK_CSV_WRITE_MODE`
+
+Defines how each flush writes to the daily file. `OVERWRITE` fully replaces the file with the latest buffer (best for windowed/aggregated snapshots), while `APPEND` performs a read-modify-write to accumulate rows (best for time-series/passthrough). `APPEND` is at-least-once and may produce duplicate rows on restart.
+
+* Example value: `OVERWRITE`
+* Type: `optional`
+* Default value: `APPEND`
+
+#### `SINK_CSV_PARTITION_DATE_FORMAT`
+
+Defines the date-time pattern used both to name and to partition the output files. It is a Java `DateTimeFormatter` pattern, rendered with `Locale.ENGLISH`. The finest field in the pattern decides the file rolling/partitioning granularity, for example:
+
+* `yyyy` -> `output-2026.csv` (yearly)
+* `yyyy-MM` -> `output-2026-06.csv` (monthly)
+* `dd-MMM-yyyy` -> `output-12-Jun-2026.csv` (daily)
+* `yyyy-MMM-dd-HH` -> `output-2026-Jun-12-06.csv` (hourly)
+* `yyyy-MMM-dd-HH-mm` -> `output-2026-Jun-12-06-18.csv` (minutely)
+
+Allowed characters: the `DateTimeFormatter` pattern letters (such as `y`, `M`, `d`, `H`, `m`, `s`) and the separators hyphen (`-`) and underscore (`_`). Any other character (including `/`, `:`, `|`, `.`, and spaces) is rejected at startup; this keeps file names cross-platform and prevents the date value from injecting subfolders into the path.
+
+* Example value: `dd-MMM-yyyy`
+* Type: `optional`
+* Default value: `yyyy-MMM-dd-HH-mm`
+
+#### `SINK_CSV_PARTITION_TIMEZONE`
+
+Defines the timezone used to resolve the wall-clock date that drives the partition boundary (the `SINK_CSV_PARTITION_DATE_FORMAT` value). It must be a valid IANA timezone id; an invalid id is rejected at startup. Set this to your local zone so files roll over at local midnight (or the local hour/minute) rather than at UTC.
+
+* Example value: `Asia/Jakarta`
+* Type: `optional`
+* Default value: `Asia/Jakarta`
+
+#### `SINK_CSV_DELIMITER`
+
+Defines the field delimiter used between columns. Values containing the delimiter, double-quotes, or newlines are quoted following RFC 4180.
+
+* Example value: `,`
+* Type: `optional`
+* Default value: `,`
+
+#### `SINK_CSV_WRITE_HEADER`
+
+Enable/Disable writing the column-name header as the first line of the file.
+
+* Example value: `true`
+* Type: `optional`
+* Default value: `true`
+
+#### `SINK_CSV_FILENAME_PREFIX`
+
+Defines the prefix of the daily file name; the date and `.csv` extension are appended to it.
+
+* Example value: `output`
+* Type: `optional`
+* Default value: `output`
 
 
 ### Schema Registry

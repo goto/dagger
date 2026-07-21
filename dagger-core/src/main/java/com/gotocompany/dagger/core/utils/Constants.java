@@ -208,6 +208,31 @@ public class Constants {
     public static final String SINK_ERROR_TYPES_FOR_FAILURE = "SINK_ERROR_TYPES_FOR_FAILURE";
     public static final String SINK_ERROR_TYPES_FOR_FAILURE_DEFAULT = "";
 
+    public static final String SINK_TYPE_KEY = "SINK_TYPE";
+    public static final String SINK_TYPE_DEFAULT = "influx";
+    public static final String SINK_TYPE_CSV = "csv";
+
+    // CSV sink. Output path = SINK_CSV_BASE_PATH/<FLINK_JOB_ID>/<SINK_CSV_FILENAME_PREFIX>-<date>.csv
+    public static final String SINK_CSV_BASE_PATH_KEY = "SINK_CSV_BASE_PATH";
+    public static final String SINK_CSV_WRITE_MODE_KEY = "SINK_CSV_WRITE_MODE";
+    public static final String SINK_CSV_WRITE_MODE_APPEND = "APPEND";
+    public static final String SINK_CSV_WRITE_MODE_OVERWRITE = "OVERWRITE";
+    public static final String SINK_CSV_WRITE_MODE_DEFAULT = SINK_CSV_WRITE_MODE_APPEND;
+    // Java DateTimeFormatter pattern rendered with Locale.ENGLISH. Its finest field decides the file rolling/sharding
+    // granularity (e.g. yyyy=yearly, yyyy-MM=monthly, dd-MMM-yyyy=daily, yyyy-MMM-dd-HH-mm=minutely).
+    // Allowed characters: pattern letters (y, M, d, H, m, s, ...) and the separators '-' and '_'; anything else is rejected.
+    public static final String SINK_CSV_PARTITION_DATE_FORMAT_KEY = "SINK_CSV_PARTITION_DATE_FORMAT";
+    public static final String SINK_CSV_PARTITION_DATE_FORMAT_DEFAULT = "yyyy-MMM-dd-HH-mm";
+    // IANA timezone id (e.g. Asia/Jakarta, UTC) used to resolve the wall-clock date that drives the partition boundary.
+    public static final String SINK_CSV_PARTITION_TIMEZONE_KEY = "SINK_CSV_PARTITION_TIMEZONE";
+    public static final String SINK_CSV_PARTITION_TIMEZONE_DEFAULT = "Asia/Jakarta";
+    public static final String SINK_CSV_DELIMITER_KEY = "SINK_CSV_DELIMITER";
+    public static final String SINK_CSV_DELIMITER_DEFAULT = ",";
+    public static final String SINK_CSV_WRITE_HEADER_KEY = "SINK_CSV_WRITE_HEADER";
+    public static final boolean SINK_CSV_WRITE_HEADER_DEFAULT = true;
+    public static final String SINK_CSV_FILENAME_PREFIX_KEY = "SINK_CSV_FILENAME_PREFIX";
+    public static final String SINK_CSV_FILENAME_PREFIX_DEFAULT = "output";
+
     public static final String[] SUPPORTED_SOURCE_KAFKA_CONSUMER_CONFIG_SECURITY_PROTOCOL = {"SASL_PLAINTEXT", "SASL_SSL", "SSL"};
     public static final String[] SUPPORTED_SOURCE_KAFKA_CONSUMER_CONFIG_SASL_MECHANISM = {"PLAIN", "SCRAM-SHA-256", "SCRAM-SHA-512"};
 

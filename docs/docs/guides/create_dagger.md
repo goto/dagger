@@ -119,7 +119,7 @@ $ java -jar dagger-core/build/libs/dagger-core-<dagger-version>-fat.jar ConfigFi
 
 #### `Sinks`
 
-- The current version of dagger supports Log, BigQuery, InfluxDB and Kafka as supported sinks to push the data after processing. You need to set up the desired sinks beforehand so that data can be pushed seamlessly.
+- The current version of dagger supports Log, BigQuery, InfluxDB, Kafka and CSV as supported sinks to push the data after processing. You need to set up the desired sinks beforehand so that data can be pushed seamlessly.
 
   ##### `Influx Sink`
 
@@ -136,6 +136,11 @@ $ java -jar dagger-core/build/libs/dagger-core-<dagger-version>-fat.jar ConfigFi
   - BigQuery is a fully managed enterprise data warehouse that helps you manage and analyze your data with built-in features like machine learning, geospatial analysis, and business intelligence.BigQuery's serverless architecture lets you use SQL queries to answer your organization's biggest questions with zero infrastructure management. BigQuery's scalable, distributed analysis engine lets you query terabytes in seconds and petabytes in minutes.
   - Bigquery Sink is created using the GOTO Depot library.
   - Depot is a sink connector, which acts as a bridge between data processing systems and real sink. You can check out the Depot Github repository [here](https://github.com/goto/depot/tree/main/docs).
+
+  ##### `CSV Sink` :
+
+  - CSV sink writes the processed data as a daily-rolling CSV file to any Flink-supported filesystem (`file://`, `gs://`, `oss://`, `cosn://`, `s3://`). It is handy when downstream consumers want to download the file and import it into spreadsheet tools like Google Sheets or Lark.
+  - You only need write access to the target path; no extra service needs to be set up beyond the relevant Flink filesystem plugin/credentials for the chosen scheme.
 
 
 ## Common Configurations
@@ -257,6 +262,27 @@ OUTPUT_KAFKA_TOPIC=test-kafka-output
 - [Default columns for json data type](https://github.com/goto/depot/blob/main/docs/sinks/bigquery.md#default-columns-for-json-data-type)
 - [Errors Handling](https://github.com/goto/depot/blob/main/docs/sinks/bigquery.md#errors-handling)
 - [Google Cloud Bigquery IAM Permission](https://github.com/goto/depot/blob/main/docs/sinks/bigquery.md#google-cloud-bigquery-iam-permission)
+
+## CSV Sink
+
+- CSV sink writes the query output as a daily-rolling CSV file to any Flink-supported filesystem. The output file for a given day is `<SINK_CSV_BASE_PATH>/<FLINK_JOB_ID>/<SINK_CSV_FILENAME_PREFIX>-<date>.csv`.
+- Listing some of the configurations essential for CSV sink Dagger. Find more about them [here](../reference/configuration.md#csv-sink).
+
+```properties
+# === sink config ===
+SINK_TYPE=csv
+SINK_CSV_BASE_PATH=oss://bucket-name/some-folder
+# === optional (defaults shown) ===
+SINK_CSV_WRITE_MODE=APPEND
+SINK_CSV_PARTITION_DATE_FORMAT=yyyy-MMM-dd-HH-mm
+SINK_CSV_PARTITION_TIMEZONE=Asia/Jakarta
+SINK_CSV_DELIMITER=,
+SINK_CSV_WRITE_HEADER=true
+SINK_CSV_FILENAME_PREFIX=output
+```
+
+- Rows are buffered and flushed on every Flink checkpoint, so the effective write cadence follows your windowing query and `FLINK_CHECKPOINT_INTERVAL`. The sink always runs with parallelism 1 and provides at-least-once delivery.
+- Use `OVERWRITE` for windowed/aggregated snapshots (the file always reflects the latest window) and `APPEND` for time-series/passthrough output (rows accumulate over the day). Flatten nested columns in SQL using dot-notation and aliases, e.g. `SELECT emp.code AS emp_code`.
 
 ## Advanced Data Processing
 

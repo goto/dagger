@@ -5,6 +5,7 @@ import com.gotocompany.dagger.common.core.StencilClientOrchestrator;
 import com.gotocompany.dagger.core.metrics.reporters.statsd.DaggerStatsDReporter;
 import com.gotocompany.dagger.core.processors.telemetry.processor.MetricsTelemetryExporter;
 import com.gotocompany.dagger.core.sink.bigquery.BigQuerySink;
+import com.gotocompany.dagger.core.sink.csv.CsvSink;
 import com.gotocompany.dagger.core.sink.influx.InfluxDBSink;
 import com.gotocompany.dagger.core.sink.influx.InfluxSinkOverrides;
 import com.gotocompany.dagger.core.sink.log.LogSink;
@@ -111,6 +112,28 @@ public class SinkOrchestratorTest {
 
         sinkOrchestrator.getSink(configuration, new String[]{}, stencilClientOrchestrator, daggerStatsDReporter, influxSinkOverrides);
         assertEquals(expectedMetrics, sinkOrchestrator.getTelemetry());
+    }
+
+    @Test
+    public void shouldGiveCsvSinkWhenConfiguredToUseCsv() throws Exception {
+        when(configuration.getString(eq("SINK_TYPE"), anyString())).thenReturn("csv");
+        when(configuration.getString(eq(Constants.SINK_CSV_BASE_PATH_KEY), anyString())).thenReturn("file:///tmp/out");
+        when(configuration.getString(eq(Constants.SINK_CSV_WRITE_MODE_KEY), anyString())).thenReturn(Constants.SINK_CSV_WRITE_MODE_OVERWRITE);
+        when(configuration.getString(eq(Constants.SINK_CSV_PARTITION_DATE_FORMAT_KEY), anyString())).thenReturn(Constants.SINK_CSV_PARTITION_DATE_FORMAT_DEFAULT);
+        when(configuration.getString(eq(Constants.SINK_CSV_PARTITION_TIMEZONE_KEY), anyString())).thenReturn(Constants.SINK_CSV_PARTITION_TIMEZONE_DEFAULT);
+        when(configuration.getBoolean(eq(Constants.SINK_CSV_WRITE_HEADER_KEY), anyBoolean())).thenReturn(true);
+
+        Sink sinkFunction = sinkOrchestrator.getSink(configuration, new String[]{"id"}, stencilClientOrchestrator, daggerStatsDReporter, influxSinkOverrides);
+
+        assertThat(sinkFunction, instanceOf(CsvSink.class));
+    }
+
+    @Test
+    public void shouldThrowWhenCsvSinkConfiguredWithoutBasePath() {
+        when(configuration.getString(eq("SINK_TYPE"), anyString())).thenReturn("csv");
+
+        Assert.assertThrows(IllegalArgumentException.class,
+                () -> sinkOrchestrator.getSink(configuration, new String[]{"id"}, stencilClientOrchestrator, daggerStatsDReporter, influxSinkOverrides));
     }
 
     @Test
