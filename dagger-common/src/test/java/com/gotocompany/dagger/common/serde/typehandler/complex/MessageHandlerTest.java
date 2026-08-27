@@ -1,6 +1,7 @@
 package com.gotocompany.dagger.common.serde.typehandler.complex;
 
 import com.gotocompany.dagger.common.core.FieldDescriptorCache;
+import com.gotocompany.dagger.common.exceptions.serde.InvalidColumnMappingException;
 import com.gotocompany.dagger.common.serde.typehandler.TypeHandlerFactory;
 import org.apache.flink.api.common.typeinfo.TypeInformation;
 import org.apache.flink.api.common.typeinfo.Types;
@@ -94,6 +95,25 @@ public class MessageHandlerTest {
         assertEquals("test1", returnedValue.getMaskedCard());
         assertEquals("", returnedValue.getNetwork());
 
+    }
+
+    @Test
+    public void shouldThrowInvalidColumnMappingExceptionNamingTheNestedFieldWhenNestedFieldTypeMismatches() {
+        Descriptors.FieldDescriptor messageFieldDescriptor = TestBookingLogMessage.getDescriptor().findFieldByName("driver_pickup_location");
+        MessageHandler messageHandler = new MessageHandler(messageFieldDescriptor);
+        DynamicMessage.Builder builder = DynamicMessage.newBuilder(messageFieldDescriptor.getContainingType());
+
+        Row inputRow = new Row(5);
+        inputRow.setField(0, "name1");
+        inputRow.setField(1, "address1");
+        inputRow.setField(2, "not-a-double");
+        inputRow.setField(3, 1.23);
+        inputRow.setField(4, "type1");
+
+        InvalidColumnMappingException exception = assertThrows(InvalidColumnMappingException.class,
+                () -> messageHandler.transformToProtoBuilder(builder, inputRow));
+
+        assertTrue(exception.getMessage().contains("driver_pickup_location.latitude"));
     }
 
     @Test
