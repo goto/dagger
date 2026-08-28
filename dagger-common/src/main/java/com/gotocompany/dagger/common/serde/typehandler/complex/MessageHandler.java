@@ -2,6 +2,7 @@ package com.gotocompany.dagger.common.serde.typehandler.complex;
 
 import com.google.protobuf.Descriptors;
 import com.gotocompany.dagger.common.core.FieldDescriptorCache;
+import com.gotocompany.dagger.common.exceptions.serde.InvalidColumnMappingException;
 import com.gotocompany.dagger.common.serde.parquet.SimpleGroupValidation;
 import com.gotocompany.dagger.common.serde.typehandler.TypeHandler;
 import com.gotocompany.dagger.common.serde.typehandler.TypeHandlerFactory;
@@ -62,8 +63,16 @@ public class MessageHandler implements TypeHandler {
             int index = nestedFieldDescriptor.getIndex();
             if (index < rowElement.getArity()) {
                 TypeHandler typeHandler = TypeHandlerFactory.getTypeHandler(nestedFieldDescriptor);
-                if (rowElement.getField(index) != null) {
-                    typeHandler.transformToProtoBuilder(elementBuilder, rowElement.getField(index));
+                Object nestedValue = rowElement.getField(index);
+                if (nestedValue != null) {
+                    try {
+                        typeHandler.transformToProtoBuilder(elementBuilder, nestedValue);
+                    } catch (RuntimeException e) {
+                        String errMessage = String.format(
+                                "column invalid: type mismatch of column %s.%s, expecting %s type. Actual type %s",
+                                fieldDescriptor.getName(), nestedFieldDescriptor.getName(), nestedFieldDescriptor.getType(), nestedValue.getClass());
+                        throw new InvalidColumnMappingException(errMessage, e);
+                    }
                 }
             }
         }
