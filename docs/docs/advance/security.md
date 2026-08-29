@@ -99,7 +99,7 @@ STREAMS = [
       "SOURCE_KAFKA_CONSUMER_CONFIG_GROUP_ID": "dummy-consumer-group",
       "SOURCE_KAFKA_CONSUMER_CONFIG_SECURITY_PROTOCOL": "SASL_PLAINTEXT",
       "SOURCE_KAFKA_CONSUMER_CONFIG_SASL_MECHANISM": "SCRAM-SHA-512",
-      "SOURCE_KAFKA_CONSUMER_CONFIG_SASL_JAAS_CONFIG": "org.apache.kafka.common.security.scram.ScramLoginModule required username=\"kafkaclient1\" password=\"kafkaclient1-secret\";""SOURCE_KAFKA_NAME": "local-kafka-stream",
+      "SOURCE_KAFKA_CONSUMER_CONFIG_SASL_JAAS_CONFIG": "org.apache.kafka.common.security.scram.ScramLoginModule required username=\"kafkaclient1\" password=\"kafkaclient1-secret\";",
       "SOURCE_KAFKA_NAME": "local-kafka-stream-0",
       "SOURCE_DETAILS": [
         {
