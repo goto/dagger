@@ -29,6 +29,14 @@ public class DaggerSASLMechanismAdaptorTest {
     }
 
     @Test
+    public void shouldAcceptOauthbearer() throws IOException {
+        when(jsonReader.nextString()).thenReturn("OAUTHBEARER");
+        DaggerSASLMechanismAdaptor daggerSASLMechanismAdaptor = new DaggerSASLMechanismAdaptor();
+        String saslMechanism = daggerSASLMechanismAdaptor.read(jsonReader);
+        assertEquals("OAUTHBEARER", saslMechanism);
+    }
+
+    @Test
     public void shouldNotAcceptConfiguredValue() throws IOException {
         when(jsonReader.nextString()).thenReturn("SCRAMSHA512");
         DaggerSASLMechanismAdaptor daggerSASLMechanismAdaptor = new DaggerSASLMechanismAdaptor();
