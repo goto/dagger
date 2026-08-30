@@ -17,6 +17,7 @@ import com.gotocompany.dagger.core.source.config.models.SourceDetails;
 import com.gotocompany.dagger.core.source.config.models.SourceName;
 import com.gotocompany.dagger.core.source.config.models.TimeRangePool;
 import com.gotocompany.dagger.core.utils.KafkaConfigUtil;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.flink.connector.kafka.source.enumerator.initializer.OffsetsInitializer;
 
 import com.google.gson.Gson;
@@ -27,7 +28,10 @@ import com.gotocompany.dagger.common.configuration.Configuration;
 import lombok.Getter;
 import org.apache.kafka.clients.consumer.OffsetResetStrategy;
 
+import java.io.IOException;
 import java.io.StringReader;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Properties;
@@ -59,6 +63,10 @@ public class StreamConfig {
     @Getter
     private String sslKeystorePassword;
 
+    @SerializedName(SOURCE_KAFKA_CONSUMER_CONFIG_SSL_KEYSTORE_PASSWORD_FILE_LOCATION)
+    @Getter
+    private String sslKeystorePasswordFileLocation;
+
     @SerializedName(SOURCE_KAFKA_CONSUMER_CONFIG_SSL_KEYSTORE_TYPE_KEY)
     @Getter
     @JsonAdapter(value = DaggerSSLKeyStoreFileTypeAdaptor.class)
@@ -76,6 +84,10 @@ public class StreamConfig {
     @SerializedName(SOURCE_KAFKA_CONSUMER_CONFIG_SSL_TRUSTSTORE_PASSWORD_KEY)
     @Getter
     private String sslTruststorePassword;
+
+    @SerializedName(SOURCE_KAFKA_CONSUMER_CONFIG_SSL_TRUSTSTORE_PASSWORD_FILE_LOCATION)
+    @Getter
+    private String sslTruststorePasswordFileLocation;
 
     @SerializedName(SOURCE_KAFKA_CONSUMER_CONFIG_SSL_TRUSTSTORE_TYPE_KEY)
     @Getter
@@ -217,6 +229,7 @@ public class StreamConfig {
                 .filter(e -> e.getKey().toLowerCase().startsWith(KAFKA_PREFIX))
                 .forEach(e -> kafkaProps.setProperty(parseVarName(e.getKey(), KAFKA_PREFIX), e.getValue()));
         setAdditionalKafkaConsumerConfigs(kafkaProps, configuration);
+        setSslPasswords(kafkaProps);
         return kafkaProps;
     }
 
@@ -246,5 +259,22 @@ public class StreamConfig {
 
     private OffsetResetStrategy getOffsetResetStrategy() {
         return OffsetResetStrategy.valueOf(autoOffsetReset.toUpperCase());
+    }
+
+    private void setSslPasswords(Properties kafkaProps) {
+        if (StringUtils.isNotEmpty(sslTruststorePasswordFileLocation)) {
+            kafkaProps.setProperty(KAFKA_PROPS_SSL_TRUSTSTORE_PASSWORD_KEY, parsePasswordFile(sslTruststorePasswordFileLocation));
+        }
+        if (StringUtils.isNotEmpty(sslKeystorePasswordFileLocation)) {
+            kafkaProps.setProperty(KAFKA_PROPS_SSL_KEYSTORE_PASSWORD_KEY, parsePasswordFile(sslKeystorePasswordFileLocation));
+        }
+    }
+
+    private String parsePasswordFile(String path) {
+        try {
+            return new String(Files.readAllBytes(Paths.get(path)));
+        } catch (IOException e) {
+            throw new IllegalArgumentException("Error reading password file: " + path, e);
+        }
     }
 }
