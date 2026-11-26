@@ -40,7 +40,7 @@ Python UDF execution requires Python version (3.6, 3.7 or 3.8) with PyFlink inst
 
 PyFlink is available in PyPi and can be installed as follows:
 ```
-$ python -m pip install apache-flink==1.14.3
+$ python -m pip install apache-flink==1.15.4
 ```
 
 To satisfy the PyFlink requirement regarding the Python environment version, you need to soft link python to point to your python3 interpreter:

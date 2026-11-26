@@ -41,13 +41,13 @@ public class Constants {
     public static final String FLINK_PARALLELISM_KEY = "FLINK_PARALLELISM";
     public static final int FLINK_PARALLELISM_MAX_DEFAULT = 50;
     public static final String FLINK_PARALLELISM_MAX_KEY = "FLINK_PARALLELISM_MAX";
-    public static final int FLINK_WATERMARK_INTERVAL_MS_DEFAULT = 10000;
+    public static final int FLINK_WATERMARK_INTERVAL_MS_DEFAULT = 10_000;
     public static final String FLINK_WATERMARK_INTERVAL_MS_KEY = "FLINK_WATERMARK_INTERVAL_MS";
-    public static final long FLINK_CHECKPOINT_INTERVAL_MS_DEFAULT = 30000;
+    public static final long FLINK_CHECKPOINT_INTERVAL_MS_DEFAULT = 30_000;
     public static final String FLINK_CHECKPOINT_INTERVAL_MS_KEY = "FLINK_CHECKPOINT_INTERVAL_MS";
-    public static final long FLINK_CHECKPOINT_TIMEOUT_MS_DEFAULT = 900000;
+    public static final long FLINK_CHECKPOINT_TIMEOUT_MS_DEFAULT = 900_000;
     public static final String FLINK_CHECKPOINT_TIMEOUT_MS_KEY = "FLINK_CHECKPOINT_TIMEOUT_MS";
-    public static final long FLINK_CHECKPOINT_MIN_PAUSE_MS_DEFAULT = 5000;
+    public static final long FLINK_CHECKPOINT_MIN_PAUSE_MS_DEFAULT = 5_000;
     public static final String FLINK_CHECKPOINT_MIN_PAUSE_MS_KEY = "FLINK_CHECKPOINT_MIN_PAUSE_MS";
     public static final int FLINK_CHECKPOINT_MAX_CONCURRENT_DEFAULT = 1;
     public static final String FLINK_CHECKPOINT_MAX_CONCURRENT_KEY = "FLINK_CHECKPOINT_MAX_CONCURRENT";

@@ -25,7 +25,7 @@ import java.util.Objects;
  *         .retentionPolicy(retentionPolicies[i])
  *         .databaseName(databaseNames[i])
  *         .build();
- * Sink sink = sinkOrchestrator.getSink(configuration, columnNames,
+ * DataStreamSink<Row> sink = sinkOrchestrator.addSink(dataStream, configuration, columnNames,
  *         stencilClientOrchestrator, daggerStatsDReporter, influxOverrides);
  * }</pre>
  */

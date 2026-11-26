@@ -2,7 +2,6 @@ package com.gotocompany.dagger.functions.udfs.python;
 
 import com.gotocompany.dagger.functions.exceptions.PythonFilesEmptyException;
 import com.gotocompany.dagger.functions.exceptions.PythonFilesFormatException;
-import org.apache.flink.configuration.Configuration;
 import org.apache.flink.table.api.TableConfig;
 import org.apache.flink.table.api.bridge.java.StreamTableEnvironment;
 import org.junit.Before;
@@ -14,6 +13,8 @@ import org.mockito.Mock;
 import java.io.File;
 import java.io.IOException;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -31,11 +32,7 @@ public class PythonUdfManagerTest {
     @Mock
     private PythonUdfConfig pythonUdfConfig;
 
-    @Mock
     private TableConfig tableConfig;
-
-    @Mock
-    private Configuration configuration;
 
     @Mock
     private com.gotocompany.dagger.common.configuration.Configuration daggerConfiguration;
@@ -43,6 +40,7 @@ public class PythonUdfManagerTest {
     @Before
     public void setup() {
         initMocks(this);
+        tableConfig = new TableConfig();
     }
 
     @Test
@@ -50,7 +48,6 @@ public class PythonUdfManagerTest {
         String pathFile = getPath("python_udf.zip");
 
         when(tableEnvironment.getConfig()).thenReturn(tableConfig);
-        when(tableConfig.getConfiguration()).thenReturn(configuration);
         when(pythonUdfConfig.getPythonFiles()).thenReturn(pathFile);
         when(pythonUdfConfig.getPythonArchives()).thenReturn("/path/to/file.txt");
         when(pythonUdfConfig.getPythonRequirements()).thenReturn("requirements.txt");
@@ -61,12 +58,12 @@ public class PythonUdfManagerTest {
         PythonUdfManager pythonUdfManager = new PythonUdfManager(tableEnvironment, pythonUdfConfig, daggerConfiguration);
         pythonUdfManager.registerPythonFunctions();
 
-        verify(configuration, times(1)).setString("python.files", pathFile);
-        verify(configuration, times(1)).setString("python.archives", "/path/to/file.txt");
-        verify(configuration, times(1)).setString("python.requirements", "requirements.txt");
-        verify(configuration, times(1)).setInteger("python.fn-execution.arrow.batch.size", 10000);
-        verify(configuration, times(1)).setInteger("python.fn-execution.bundle.size", 100000);
-        verify(configuration, times(1)).setLong("python.fn-execution.bundle.time", 1000);
+        assertEquals(pathFile, tableConfig.getConfiguration().getString("python.files", null));
+        assertEquals("/path/to/file.txt", tableConfig.getConfiguration().getString("python.archives", null));
+        assertEquals("requirements.txt", tableConfig.getConfiguration().getString("python.requirements", null));
+        assertEquals(10000, (int) tableConfig.getConfiguration().getInteger("python.fn-execution.arrow.batch.size", -1));
+        assertEquals(100000, (int) tableConfig.getConfiguration().getInteger("python.fn-execution.bundle.size", -1));
+        assertEquals(1000L, (long) tableConfig.getConfiguration().getLong("python.fn-execution.bundle.time", -1L));
     }
 
     @Test
@@ -74,15 +71,14 @@ public class PythonUdfManagerTest {
         String pathFile = getPath("python_udf.zip");
 
         when(tableEnvironment.getConfig()).thenReturn(tableConfig);
-        when(tableConfig.getConfiguration()).thenReturn(configuration);
         when(pythonUdfConfig.getPythonFiles()).thenReturn(pathFile);
 
         PythonUdfManager pythonUdfManager = new PythonUdfManager(tableEnvironment, pythonUdfConfig, daggerConfiguration);
         pythonUdfManager.registerPythonFunctions();
 
-        verify(configuration, times(1)).setString("python.files", pathFile);
-        verify(configuration, times(0)).setString("python.archives", "/path/to/file.txt");
-        verify(configuration, times(0)).setString("python.requirements", "requirements.txt");
+        assertEquals(pathFile, tableConfig.getConfiguration().getString("python.files", null));
+        assertNull(tableConfig.getConfiguration().getString("python.archives", null));
+        assertNull(tableConfig.getConfiguration().getString("python.requirements", null));
     }
 
     @Test
@@ -91,13 +87,12 @@ public class PythonUdfManagerTest {
         String sqlRegisterUdf = "CREATE TEMPORARY FUNCTION TEST_UDF AS 'test_udf.test_udf' LANGUAGE PYTHON";
 
         when(tableEnvironment.getConfig()).thenReturn(tableConfig);
-        when(tableConfig.getConfiguration()).thenReturn(configuration);
         when(pythonUdfConfig.getPythonFiles()).thenReturn(pathFile);
 
         PythonUdfManager pythonUdfManager = new PythonUdfManager(tableEnvironment, pythonUdfConfig, daggerConfiguration);
         pythonUdfManager.registerPythonFunctions();
 
-        verify(configuration, times(1)).setString("python.files", pathFile);
+        assertEquals(pathFile, tableConfig.getConfiguration().getString("python.files", null));
         verify(tableEnvironment, times(1)).executeSql(sqlRegisterUdf);
     }
 
@@ -110,13 +105,12 @@ public class PythonUdfManagerTest {
         String sqlRegisterThirdUdf = "CREATE TEMPORARY FUNCTION SUBSTRACT AS 'python_udf.vectorized.substract.substract' LANGUAGE PYTHON";
 
         when(tableEnvironment.getConfig()).thenReturn(tableConfig);
-        when(tableConfig.getConfiguration()).thenReturn(configuration);
         when(pythonUdfConfig.getPythonFiles()).thenReturn(pathFile);
 
         PythonUdfManager pythonUdfManager = new PythonUdfManager(tableEnvironment, pythonUdfConfig, daggerConfiguration);
         pythonUdfManager.registerPythonFunctions();
 
-        verify(configuration, times(1)).setString("python.files", pathFile);
+        assertEquals(pathFile, tableConfig.getConfiguration().getString("python.files", null));
         verify(tableEnvironment, times(0)).executeSql(sqlRegisterFirstUdf);
         verify(tableEnvironment, times(1)).executeSql(sqlRegisterSecondUdf);
         verify(tableEnvironment, times(1)).executeSql(sqlRegisterThirdUdf);
@@ -132,13 +126,12 @@ public class PythonUdfManagerTest {
         String sqlRegisterThirdUdf = "CREATE TEMPORARY FUNCTION TEST_UDF AS 'test_udf.test_udf' LANGUAGE PYTHON";
 
         when(tableEnvironment.getConfig()).thenReturn(tableConfig);
-        when(tableConfig.getConfiguration()).thenReturn(configuration);
         when(pythonUdfConfig.getPythonFiles()).thenReturn(zipPathFile + "," + pyPathFile);
 
         PythonUdfManager pythonUdfManager = new PythonUdfManager(tableEnvironment, pythonUdfConfig, daggerConfiguration);
         pythonUdfManager.registerPythonFunctions();
 
-        verify(configuration, times(1)).setString("python.files", zipPathFile + "," + pyPathFile);
+        assertEquals(zipPathFile + "," + pyPathFile, tableConfig.getConfiguration().getString("python.files", null));
         verify(tableEnvironment, times(1)).executeSql(sqlRegisterFirstUdf);
         verify(tableEnvironment, times(1)).executeSql(sqlRegisterSecondUdf);
         verify(tableEnvironment, times(1)).executeSql(sqlRegisterThirdUdf);
@@ -153,7 +146,6 @@ public class PythonUdfManagerTest {
         file.deleteOnExit();
 
         when(tableEnvironment.getConfig()).thenReturn(tableConfig);
-        when(tableConfig.getConfiguration()).thenReturn(configuration);
         when(pythonUdfConfig.getPythonFiles()).thenReturn("test_file.txt");
 
         PythonUdfManager pythonUdfManager = new PythonUdfManager(tableEnvironment, pythonUdfConfig, daggerConfiguration);
@@ -166,7 +158,6 @@ public class PythonUdfManagerTest {
         expectedEx.expectMessage("Python files should be in .py or .zip format");
 
         when(tableEnvironment.getConfig()).thenReturn(tableConfig);
-        when(tableConfig.getConfiguration()).thenReturn(configuration);
         when(pythonUdfConfig.getPythonFiles()).thenReturn("");
 
         PythonUdfManager pythonUdfManager = new PythonUdfManager(tableEnvironment, pythonUdfConfig, daggerConfiguration);
@@ -179,7 +170,6 @@ public class PythonUdfManagerTest {
         expectedEx.expectMessage("Python files can not be null");
 
         when(tableEnvironment.getConfig()).thenReturn(tableConfig);
-        when(tableConfig.getConfiguration()).thenReturn(configuration);
 
         PythonUdfManager pythonUdfManager = new PythonUdfManager(tableEnvironment, pythonUdfConfig, daggerConfiguration);
         pythonUdfManager.registerPythonFunctions();
