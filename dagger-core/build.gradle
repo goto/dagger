@@ -29,7 +29,7 @@ def flinkVersion = rootProject.flinkVersion
 version = rootProject.file('version.txt').text.trim()
 
 def minimalVersion = version
-def dependenciesVersion = "0.5.4"
+def dependenciesVersion = "1.5.4-rc1"
 
 description = """dagger to the heart!"""
 
@@ -84,11 +84,12 @@ dependencies {
     annotationProcessor 'org.projectlombok:lombok:1.18.8'
 
     implementation group: 'org.slf4j', name: 'slf4j-reload4j', version: '2.0.7'
-    implementation 'org.apache.flink:flink-streaming-java_2.11:' + flinkVersion
-    implementation 'org.apache.flink:flink-clients_2.11:' + flinkVersion
-    implementation 'org.apache.flink:flink-table:' + flinkVersion
-    implementation 'org.apache.flink:flink-table-api-java-bridge_2.11:' + flinkVersion
-    implementation 'org.apache.flink:flink-table-planner_2.11:' + flinkVersion
+    implementation 'org.apache.flink:flink-streaming-java:' + flinkVersion
+    implementation 'org.apache.flink:flink-clients:' + flinkVersion
+    implementation 'org.apache.flink:flink-connector-files:' + flinkVersion
+    implementation 'org.apache.flink:flink-table-api-java-bridge:' + flinkVersion
+    implementation 'org.apache.flink:flink-table-runtime:' + flinkVersion
+    implementation 'org.apache.flink:flink-table-planner-loader:' + flinkVersion
 
     dependenciesJar 'io.grpc:grpc-all:1.55.1'
     dependenciesJar project(path: ':dagger-common', configuration: 'dependenciesCommonJar')
@@ -102,7 +103,7 @@ dependencies {
     dependenciesJar(group: 'com.google.cloud', name: 'google-cloud-bigquery', version: '2.29.0') {
         exclude group: "io.grpc"
     }
-    dependenciesJar 'org.apache.flink:flink-connector-kafka_2.11:' + flinkVersion
+    dependenciesJar 'org.apache.flink:flink-connector-kafka:' + flinkVersion
     dependenciesJar 'com.google.protobuf:protobuf-java:3.25.3'
     dependenciesJar 'com.google.protobuf:protobuf-java-util:3.25.3'
     dependenciesJar 'org.influxdb:influxdb-java:2.8'
@@ -115,7 +116,7 @@ dependencies {
 
     testImplementation project(':dagger-common').sourceSets.test.output
     testImplementation 'junit:junit:4.13.1'
-    testImplementation 'org.apache.flink:flink-test-utils_2.11:' + flinkVersion
+    testImplementation 'org.apache.flink:flink-test-utils:' + flinkVersion
     testImplementation 'org.apache.kafka:kafka-clients:2.6.3'
     testImplementation 'com.github.tomakehurst:wiremock-standalone:2.27.0'
     testImplementation 'org.jmockit:jmockit:1.25'

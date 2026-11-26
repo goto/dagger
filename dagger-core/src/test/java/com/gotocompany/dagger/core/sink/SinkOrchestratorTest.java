@@ -12,9 +12,12 @@ import com.gotocompany.dagger.core.sink.log.LogSink;
 import com.gotocompany.dagger.core.utils.Constants;
 import org.apache.flink.api.connector.sink.Sink;
 import org.apache.flink.api.java.utils.ParameterTool;
+import org.apache.flink.streaming.api.datastream.DataStream;
+import org.apache.flink.types.Row;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
+import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 
 import java.util.*;
@@ -54,7 +57,7 @@ public class SinkOrchestratorTest {
     @Test
     public void shouldGiveInfluxSinkWhenConfiguredToUseInflux() throws Exception {
         when(configuration.getString(eq("SINK_TYPE"), anyString())).thenReturn("influx");
-        Sink sinkFunction = sinkOrchestrator.getSink(configuration, new String[]{}, stencilClientOrchestrator, daggerStatsDReporter, influxSinkOverrides);
+        Sink sinkFunction = attachSink(new String[]{});
 
         assertThat(sinkFunction, instanceOf(InfluxDBSink.class));
     }
@@ -62,7 +65,7 @@ public class SinkOrchestratorTest {
     @Test
     public void shouldGiveLogSinkWhenConfiguredToUseLog() throws Exception {
         when(configuration.getString(eq("SINK_TYPE"), anyString())).thenReturn("log");
-        Sink sinkFunction = sinkOrchestrator.getSink(configuration, new String[]{}, stencilClientOrchestrator, daggerStatsDReporter, influxSinkOverrides);
+        Sink sinkFunction = attachSink(new String[]{});
 
         assertThat(sinkFunction, instanceOf(LogSink.class));
     }
@@ -70,7 +73,7 @@ public class SinkOrchestratorTest {
     @Test
     public void shouldGiveInfluxWhenConfiguredToUseNothing() throws Exception {
         when(configuration.getString(eq("SINK_TYPE"), anyString())).thenReturn("");
-        Sink sinkFunction = sinkOrchestrator.getSink(configuration, new String[]{}, stencilClientOrchestrator, daggerStatsDReporter, influxSinkOverrides);
+        Sink sinkFunction = attachSink(new String[]{});
 
         assertThat(sinkFunction, instanceOf(InfluxDBSink.class));
     }
@@ -110,7 +113,7 @@ public class SinkOrchestratorTest {
 
         when(configuration.getString(eq("SINK_TYPE"), anyString())).thenReturn("influx");
 
-        sinkOrchestrator.getSink(configuration, new String[]{}, stencilClientOrchestrator, daggerStatsDReporter, influxSinkOverrides);
+        attachSink(new String[]{});
         assertEquals(expectedMetrics, sinkOrchestrator.getTelemetry());
     }
 
@@ -123,7 +126,7 @@ public class SinkOrchestratorTest {
         when(configuration.getString(eq(Constants.SINK_CSV_PARTITION_TIMEZONE_KEY), anyString())).thenReturn(Constants.SINK_CSV_PARTITION_TIMEZONE_DEFAULT);
         when(configuration.getBoolean(eq(Constants.SINK_CSV_WRITE_HEADER_KEY), anyBoolean())).thenReturn(true);
 
-        Sink sinkFunction = sinkOrchestrator.getSink(configuration, new String[]{"id"}, stencilClientOrchestrator, daggerStatsDReporter, influxSinkOverrides);
+        Sink sinkFunction = attachSink(new String[]{"id"});
 
         assertThat(sinkFunction, instanceOf(CsvSink.class));
     }
@@ -133,7 +136,7 @@ public class SinkOrchestratorTest {
         when(configuration.getString(eq("SINK_TYPE"), anyString())).thenReturn("csv");
 
         Assert.assertThrows(IllegalArgumentException.class,
-                () -> sinkOrchestrator.getSink(configuration, new String[]{"id"}, stencilClientOrchestrator, daggerStatsDReporter, influxSinkOverrides));
+                () -> attachSink(new String[]{"id"}));
     }
 
     @Test
@@ -141,7 +144,15 @@ public class SinkOrchestratorTest {
         when(configuration.getString(eq("SINK_TYPE"), anyString())).thenReturn("bigquery");
         when(configuration.getString("SINK_CONNECTOR_SCHEMA_PROTO_MESSAGE_CLASS", "")).thenReturn("some.class");
         when(configuration.getParam()).thenReturn(ParameterTool.fromMap(Collections.emptyMap()));
-        Sink sinkFunction = sinkOrchestrator.getSink(configuration, new String[]{}, stencilClientOrchestrator, daggerStatsDReporter, influxSinkOverrides);
+        Sink sinkFunction = attachSink(new String[]{});
         assertThat(sinkFunction, instanceOf(BigQuerySink.class));
+    }
+
+    private Sink attachSink(String[] columnNames) {
+        DataStream<Row> dataStream = mock(DataStream.class);
+        sinkOrchestrator.addSink(dataStream, configuration, columnNames, stencilClientOrchestrator, daggerStatsDReporter, influxSinkOverrides);
+        ArgumentCaptor<Sink> sinkCaptor = ArgumentCaptor.forClass(Sink.class);
+        verify(dataStream).sinkTo(sinkCaptor.capture());
+        return sinkCaptor.getValue();
     }
 }

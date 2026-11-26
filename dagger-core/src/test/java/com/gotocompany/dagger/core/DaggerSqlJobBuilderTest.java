@@ -30,6 +30,7 @@ import org.powermock.modules.junit4.PowerMockRunner;
 import java.time.Duration;
 import java.util.concurrent.TimeUnit;
 
+import static org.junit.Assert.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -58,8 +59,7 @@ public class DaggerSqlJobBuilderTest extends DaggerContextTestBase {
     @Mock
     private ExecutionConfig executionConfig;
 
-    @Mock
-    private TableConfig tableConfig;
+    private final TableConfig tableConfig = new TableConfig();
 
     @Mock
     private CheckpointConfig checkpointConfig;
@@ -132,7 +132,7 @@ public class DaggerSqlJobBuilderTest extends DaggerContextTestBase {
         verify(checkpointConfig, Mockito.times(1)).setCheckpointTimeout(900000L);
         verify(checkpointConfig, Mockito.times(1)).setMinPauseBetweenCheckpoints(5000L);
         verify(checkpointConfig, Mockito.times(1)).setMaxConcurrentCheckpoints(1);
-        verify(tableConfig, Mockito.times(1)).setIdleStateRetention(Duration.ofMinutes(10));
+        assertEquals(Duration.ofMinutes(10), tableConfig.getIdleStateRetention());
     }
 
     @Test

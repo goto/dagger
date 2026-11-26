@@ -49,18 +49,17 @@ dependencies {
     
     compileOnly project(path: ':dagger-common', configuration: 'minimalCommonJar')
     compileOnly project(path: ':dagger-common', configuration: 'dependenciesCommonJar')
-    compileOnly 'org.apache.flink:flink-streaming-java_2.11:' + flinkVersion
-    compileOnly 'org.apache.flink:flink-connector-kafka_2.11:' + flinkVersion
-    compileOnly group: 'org.scala-lang', name: 'scala-library', version: '2.10.6'
-    compileOnly group: 'org.apache.flink', name: 'flink-clients_2.11', version: flinkVersion
-    compileOnly group: 'org.apache.flink', name: 'flink-table', version: flinkVersion
-    compileOnly group: 'org.apache.flink', name: 'flink-table-api-java-bridge_2.11', version: flinkVersion
-    compileOnly group: 'org.apache.flink', name: 'flink-streaming-java_2.11', version: flinkVersion
+    compileOnly 'org.apache.flink:flink-streaming-java:' + flinkVersion
+    compileOnly 'org.apache.flink:flink-connector-kafka:' + flinkVersion
+    compileOnly group: 'org.apache.flink', name: 'flink-clients', version: flinkVersion
+    compileOnly group: 'org.apache.flink', name: 'flink-table-api-java-bridge', version: flinkVersion
+    compileOnly group: 'org.apache.flink', name: 'flink-table-runtime', version: flinkVersion
+    compileOnly group: 'org.apache.flink', name: 'flink-table-planner-loader', version: flinkVersion
     compileOnly group: 'org.apache.flink', name: 'flink-metrics-dropwizard', version: flinkVersion
     compileOnly 'com.gotocompany:stencil:0.6.0'
 
     dependenciesFunctionsJar 'com.github.davidmoten:geo:0.7.6'
-    dependenciesFunctionsJar 'org.apache.flink:flink-python_2.11:' + flinkVersion
+    dependenciesFunctionsJar 'org.apache.flink:flink-python_2.12:' + flinkVersion
     dependenciesFunctionsJar group: 'org.apache.commons', name: 'commons-jexl3', version: '3.1'
     dependenciesFunctionsJar group: 'org.isuper', name: 's2-geometry-library-java', version: '0.0.1'
     dependenciesFunctionsJar group: 'com.google.cloud', name: 'google-cloud-storage', version: '2.23.0'

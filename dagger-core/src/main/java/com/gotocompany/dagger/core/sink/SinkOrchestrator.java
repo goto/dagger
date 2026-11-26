@@ -16,6 +16,8 @@ import org.apache.flink.api.connector.sink.Sink;
 import org.apache.flink.api.java.utils.ParameterTool;
 import org.apache.flink.connector.base.DeliveryGuarantee;
 import org.apache.flink.connector.kafka.sink.KafkaSink;
+import org.apache.flink.streaming.api.datastream.DataStream;
+import org.apache.flink.streaming.api.datastream.DataStreamSink;
 import org.apache.flink.streaming.connectors.kafka.FlinkKafkaProducerBase;
 import org.apache.flink.types.Row;
 
@@ -47,56 +49,62 @@ public class SinkOrchestrator implements TelemetryPublisher {
     }
 
     /**
-     * Gets sink.
+     * Attaches the configured sink. Kafka uses the Flink 1.15 sink interface; the other sinks still use the legacy one.
      *
+     * @param dataStream                the stream to sink
      * @param configuration             the configuration
      * @param columnNames               the column names
      * @param stencilClientOrchestrator the stencil client orchestrator
      * @param daggerStatsDReporter      the StatsD reporter
      * @param influxSinkOverrides       Influx sink overrides; pass {@link InfluxSinkOverrides#none()} when no influxSinkOverrides are needed
-     * @return the sink
+     * @return the attached sink
      */
-    public Sink getSink(Configuration configuration, String[] columnNames, StencilClientOrchestrator stencilClientOrchestrator,
-                        DaggerStatsDReporter daggerStatsDReporter, InfluxSinkOverrides influxSinkOverrides) {
+    public DataStreamSink<Row> addSink(DataStream<Row> dataStream, Configuration configuration, String[] columnNames,
+                                       StencilClientOrchestrator stencilClientOrchestrator, DaggerStatsDReporter daggerStatsDReporter,
+                                       InfluxSinkOverrides influxSinkOverrides) {
         String sinkType = configuration.getString("SINK_TYPE", "influx");
         addMetric(TelemetryTypes.SINK_TYPE.getValue(), sinkType);
-        Sink sink;
+        DataStreamSink<Row> dataStreamSink;
+        if ("kafka".equals(sinkType)) {
+            dataStreamSink = dataStream.sinkTo(createKafkaSink(configuration, columnNames, stencilClientOrchestrator));
+        } else {
+            dataStreamSink = dataStream.sinkTo(createLegacySink(sinkType, configuration, columnNames, stencilClientOrchestrator, daggerStatsDReporter, influxSinkOverrides));
+        }
+        notifySubscriber();
+        return dataStreamSink;
+    }
+
+    private KafkaSink createKafkaSink(Configuration configuration, String[] columnNames, StencilClientOrchestrator stencilClientOrchestrator) {
+        String outputBootStrapServers = configuration.getString(Constants.SINK_KAFKA_BROKERS_KEY, "");
+        KafkaSerializerBuilder serializationSchema = KafkaSerializationSchemaFactory
+                .getSerializationSchema(configuration, stencilClientOrchestrator, columnNames);
+        reportTelemetry(serializationSchema);
+        return KafkaSink.<Row>builder()
+                .setBootstrapServers(outputBootStrapServers)
+                .setKafkaProducerConfig(getProducerProperties(configuration))
+                .setRecordSerializer(serializationSchema.build())
+                .setDeliverGuarantee(DeliveryGuarantee.AT_LEAST_ONCE)
+                .build();
+    }
+
+    private Sink createLegacySink(String sinkType, Configuration configuration, String[] columnNames,
+                                  StencilClientOrchestrator stencilClientOrchestrator, DaggerStatsDReporter daggerStatsDReporter,
+                                  InfluxSinkOverrides influxSinkOverrides) {
         switch (sinkType) {
-            case "kafka":
-                String outputBootStrapServers = configuration.getString(Constants.SINK_KAFKA_BROKERS_KEY, "");
-
-                KafkaSerializerBuilder serializationSchema = KafkaSerializationSchemaFactory
-                        .getSerializationSchema(configuration, stencilClientOrchestrator, columnNames);
-
-                reportTelemetry(serializationSchema);
-
-                sink = KafkaSink.<Row>builder()
-                        .setBootstrapServers(outputBootStrapServers)
-                        .setKafkaProducerConfig(getProducerProperties(configuration))
-                        .setRecordSerializer(serializationSchema.build())
-                        .setDeliverGuarantee(DeliveryGuarantee.AT_LEAST_ONCE)
-                        .build();
-
-                break;
             case "log":
-                sink = new LogSink(columnNames);
-                break;
+                return new LogSink(columnNames);
             case "csv":
-                sink = CsvSinkBuilder.build(configuration, columnNames);
-                break;
+                return CsvSinkBuilder.build(configuration, columnNames);
             case "bigquery":
-                sink = BigQuerySinkBuilder.create()
+                return BigQuerySinkBuilder.create()
                         .setColumnNames(columnNames)
                         .setDaggerStatsDReporter(daggerStatsDReporter)
                         .setConfiguration(configuration)
                         .setStencilClientOrchestrator(stencilClientOrchestrator)
                         .build();
-                break;
             default:
-                sink = new InfluxDBSink(new InfluxDBFactoryWrapper(), configuration, columnNames, new ErrorHandler(), influxSinkOverrides);
+                return new InfluxDBSink(new InfluxDBFactoryWrapper(), configuration, columnNames, new ErrorHandler(), influxSinkOverrides);
         }
-        notifySubscriber();
-        return sink;
     }
 
     private void reportTelemetry(KafkaSerializerBuilder kafkaSchemaBuilder) {

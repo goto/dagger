@@ -232,8 +232,7 @@ public class DaggerSqlJobBuilder implements JobBuilder {
     private void addSink(StreamInfo streamInfo) {
         SinkOrchestrator sinkOrchestrator = new SinkOrchestrator(telemetryExporter);
         sinkOrchestrator.addSubscriber(telemetryExporter);
-        DataStreamSink<Row> dataStreamSink = streamInfo.getDataStream()
-                .sinkTo(sinkOrchestrator.getSink(configuration, streamInfo.getColumnNames(), stencilClientOrchestrator, daggerStatsDReporter, InfluxSinkOverrides.none()));
+        DataStreamSink<Row> dataStreamSink = sinkOrchestrator.addSink(streamInfo.getDataStream(), configuration, streamInfo.getColumnNames(), stencilClientOrchestrator, daggerStatsDReporter, InfluxSinkOverrides.none());
 
         // make sure previous tasks aggregate the data to one value if you don't want multiple rows for same keys/labels in csv
         // For example
